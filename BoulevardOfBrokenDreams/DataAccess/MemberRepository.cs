@@ -45,7 +45,10 @@ namespace BoulevardOfBrokenDreams.DataAccess
 
         private bool SignUpPropsValidation(SignUpProps user)
         {
-            if (user.nickname == null || user.username == null || user.email == null || user.password == null)
+            if (string.IsNullOrEmpty(user.nickname) ||
+                string.IsNullOrEmpty(user.username) ||
+                string.IsNullOrEmpty(user.email) ||
+                string.IsNullOrEmpty(user.password))
             {
                 return false;
             }
@@ -69,7 +72,7 @@ namespace BoulevardOfBrokenDreams.DataAccess
 
         public async Task<string> AuthMember(SignInProps user)
         {
-            if (true) return "輸入不完整，請確認後再試";
+            if (!SignInPropsValidation(user)) return "輸入不完整，請確認後再試";
 
             Member? foundMember = await context.Members.FirstOrDefaultAsync(m => m.Username == user.username);
 
@@ -93,7 +96,15 @@ namespace BoulevardOfBrokenDreams.DataAccess
 
         private bool SignInPropsValidation(SignInProps user)
         {
-            throw new NotImplementedException();
+            if (string.IsNullOrEmpty(user.username) ||
+                string.IsNullOrEmpty(user.password))
+            {
+                return false;
+            }
+            else
+            {
+                return true;
+            }
         }
     }
 }
