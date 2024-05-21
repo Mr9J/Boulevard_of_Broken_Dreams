@@ -60,5 +60,25 @@ namespace BoulevardOfBrokenDreams.Controllers
                 return BadRequest("伺服器錯誤，請稍後再試");
             }
         }
+
+        [HttpGet("check-username/{username}")]
+        public async Task<IActionResult> CheckUsername(string username)
+        {
+            try
+            {
+                bool res = await (new MemberRepository(context)).GetMember(username);
+
+                if (res)
+                {
+                    return BadRequest("帳號已被註冊");
+                }
+
+                return Ok(res);
+            }
+            catch (Exception)
+            {
+                return BadRequest("伺服器錯誤，請稍後再試");
+            }
+        }
     }
 }
