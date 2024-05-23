@@ -1,6 +1,6 @@
-﻿namespace BoulevardOfBrokenDreams.Props
+﻿namespace BoulevardOfBrokenDreams.Models.DTO
 {
-    public class SignUpProps
+    public class SignUpDTO
     {
         public string nickname { get; set; } = string.Empty;
         public string username { get; set; } = string.Empty;
