@@ -1,10 +1,10 @@
 ﻿namespace BoulevardOfBrokenDreams.Models.DTO
 {
-    public class CurrentUserDTO
+    public class GetCurrentUserDTO
     {
         public int id { get; set; }
         public string username { get; set; } = string.Empty;
         public string email { get; set; } = string.Empty;
-        public string jwt { get; set; } = string.Empty;
+
     }
 }

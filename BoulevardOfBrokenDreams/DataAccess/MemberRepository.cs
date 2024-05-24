@@ -17,7 +17,7 @@ namespace BoulevardOfBrokenDreams.DataAccess
         {
             if (!SignUpPropsValidation(user)) return "輸入不完整，請確認後再試";
 
-            bool isUserExist = await GetMember(user.username);
+            bool isUserExist = await IsMemberExist(user.username);
 
             if (!isUserExist)
             {
@@ -58,7 +58,7 @@ namespace BoulevardOfBrokenDreams.DataAccess
             }
         }
 
-        public async Task<Boolean> GetMember(string username)
+        public async Task<Boolean> IsMemberExist(string username)
         {
             Member? foundMember = await context.Members.FirstOrDefaultAsync(m => m.Username == username);
 
@@ -70,7 +70,7 @@ namespace BoulevardOfBrokenDreams.DataAccess
             return false;
         }
         
-        public async Task<Member?> GetMemberFull(string username)
+        public async Task<Member?> GetMember(string username)
         {
             Member? foundMember = await context.Members.FirstOrDefaultAsync(m => m.Username == username);
 

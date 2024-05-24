@@ -6,6 +6,8 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 
 namespace BoulevardOfBrokenDreams.Controllers
 {
@@ -43,20 +45,22 @@ namespace BoulevardOfBrokenDreams.Controllers
             }
         }
 
-        [HttpGet("check-username"),Authorize]
+        [HttpGet("check-username"), Authorize]
         public async Task<IActionResult> GetCurrentUser(string username)
         {
-            Member? member = await mr.GetMemberFull(username);
+            Member? member = await mr.GetMember(username);
 
             if (member != null)
             {
-               return Ok(member);
+                return Ok(member);
             }
             else
             {
                 return BadRequest(member);
             }
-        } 
+        }
+
+
 
         [HttpPost("sign-in")]
         public async Task<IActionResult> SignIn(SignInDTO user)
@@ -71,14 +75,7 @@ namespace BoulevardOfBrokenDreams.Controllers
 
                     string jwt = "Bearer " + token;
 
-                    CurrentUserDTO cu = new CurrentUserDTO
-                    {
-                        username = member.Username,
-                        email = member.Email ?? string.Empty,
-                        jwt = jwt
-                    };
-
-                    return Ok(cu);
+                    return Ok(jwt);
                 }
                 else
                 {
@@ -89,6 +86,52 @@ namespace BoulevardOfBrokenDreams.Controllers
             {
                 return BadRequest("伺服器錯誤，請稍後再試");
             }
+        }
+
+        [HttpPost("get-current-user"), Authorize]
+        public async Task<IActionResult> getCurrentUser(string jwt)
+        {
+            try
+            {
+                if (jwt == null || jwt == "")
+                {
+                    return NotFound("請輸入 JWT");
+                }
+
+                jwt = jwt.Replace("Bearer ", "");
+
+                JwtSecurityTokenHandler tokenHandler = new JwtSecurityTokenHandler();
+                JwtSecurityToken decodedToken = tokenHandler.ReadJwtToken(jwt);
+
+                string? username = decodedToken.Claims.FirstOrDefault(claim => claim.Type == ClaimTypes.Name)?.Value;
+
+                if (username == null)
+                {
+                    return NotFound("使用者不存在");
+                }
+
+                Member? member = await mr.GetMember(username);
+
+                if (member == null)
+                {
+                    return NotFound("使用者不存在");
+                }
+
+                GetCurrentUserDTO currentUser = new GetCurrentUserDTO
+                {
+                    id = member.MemberId,
+                    username = member.Username,
+                    email = member.Email ?? string.Empty,
+                };
+
+                return Ok(currentUser);
+            }
+            catch (Exception)
+            {
+                return BadRequest("伺服器錯誤，請稍後再試");
+            }
+
+
         }
     }
 }
