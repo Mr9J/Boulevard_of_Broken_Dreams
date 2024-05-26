@@ -37,6 +37,9 @@ public partial class Member
     [Column(TypeName = "datetime")]
     public DateTime? RegistrationTime { get; set; }
 
+    [StringLength(50)]
+    public string? Phone { get; set; }
+
     [InverseProperty("Member")]
     public virtual ICollection<Admin> Admins { get; set; } = new List<Admin>();
 
@@ -56,7 +59,13 @@ public partial class Member
     public virtual ICollection<MemberInterestProjectType> MemberInterestProjectTypes { get; set; } = new List<MemberInterestProjectType>();
 
     [InverseProperty("Member")]
+    public virtual ICollection<MemberLikesPost> MemberLikesPosts { get; set; } = new List<MemberLikesPost>();
+
+    [InverseProperty("Member")]
     public virtual ICollection<Order> Orders { get; set; } = new List<Order>();
+
+    [InverseProperty("Member")]
+    public virtual ICollection<Post> Posts { get; set; } = new List<Post>();
 
     [InverseProperty("Memeber")]
     public virtual ICollection<Project> Projects { get; set; } = new List<Project>();

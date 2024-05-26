@@ -41,6 +41,8 @@ public partial class MumuDbContext : DbContext
 
     public virtual DbSet<MemberInterestProjectType> MemberInterestProjectTypes { get; set; }
 
+    public virtual DbSet<MemberLikesPost> MemberLikesPosts { get; set; }
+
     public virtual DbSet<Order> Orders { get; set; }
 
     public virtual DbSet<OrderDetail> OrderDetails { get; set; }
@@ -49,9 +51,13 @@ public partial class MumuDbContext : DbContext
 
     public virtual DbSet<PaymentStatusId> PaymentStatusIds { get; set; }
 
+    public virtual DbSet<Post> Posts { get; set; }
+
     public virtual DbSet<Product> Products { get; set; }
 
     public virtual DbSet<Project> Projects { get; set; }
+
+    public virtual DbSet<ProjectFaq> ProjectFaqs { get; set; }
 
     public virtual DbSet<ProjectIdtype> ProjectIdtypes { get; set; }
 
@@ -89,11 +95,6 @@ public partial class MumuDbContext : DbContext
             entity.HasOne(d => d.Member).WithMany(p => p.Admins)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_Admins_Members");
-        });
-
-        modelBuilder.Entity<AuthStatus>(entity =>
-        {
-            entity.Property(e => e.AuthStatusId).ValueGeneratedNever();
         });
 
         modelBuilder.Entity<Cart>(entity =>
@@ -169,6 +170,15 @@ public partial class MumuDbContext : DbContext
                 .HasConstraintName("FK_MemberInterestProjectType_ProjectTypes");
         });
 
+        modelBuilder.Entity<MemberLikesPost>(entity =>
+        {
+            entity.HasOne(d => d.Member).WithMany(p => p.MemberLikesPosts).HasConstraintName("FK_MemberLikesPosts_Members");
+
+            entity.HasOne(d => d.Post).WithMany(p => p.MemberLikesPosts)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_MemberLikesPosts_Posts");
+        });
+
         modelBuilder.Entity<Order>(entity =>
         {
             entity.HasOne(d => d.Member).WithMany(p => p.Orders)
@@ -203,14 +213,11 @@ public partial class MumuDbContext : DbContext
                 .HasConstraintName("FK_OrderDetails_Projects");
         });
 
-        modelBuilder.Entity<PaymentMethodId>(entity =>
+        modelBuilder.Entity<Post>(entity =>
         {
-            entity.Property(e => e.PaymentMethodId1).ValueGeneratedNever();
-        });
-
-        modelBuilder.Entity<PaymentStatusId>(entity =>
-        {
-            entity.Property(e => e.PaymentStatusId1).ValueGeneratedNever();
+            entity.HasOne(d => d.Member).WithMany(p => p.Posts)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_Posts_Members");
         });
 
         modelBuilder.Entity<Product>(entity =>
@@ -239,6 +246,11 @@ public partial class MumuDbContext : DbContext
                 .HasConstraintName("FK_Projects_Status");
         });
 
+        modelBuilder.Entity<ProjectFaq>(entity =>
+        {
+            entity.HasOne(d => d.Project).WithMany(p => p.ProjectFaqs).HasConstraintName("FK_ProjectFAQ_Projects");
+        });
+
         modelBuilder.Entity<ProjectIdtype>(entity =>
         {
             entity.HasOne(d => d.Project).WithMany(p => p.ProjectIdtypes)
@@ -255,16 +267,6 @@ public partial class MumuDbContext : DbContext
             entity.HasOne(d => d.Member).WithMany(p => p.Services).HasConstraintName("FK_Services_Members");
 
             entity.HasOne(d => d.Status).WithMany(p => p.Services).HasConstraintName("FK_Services_Status");
-        });
-
-        modelBuilder.Entity<ShipmentStatus>(entity =>
-        {
-            entity.Property(e => e.ShipmentStatusId).ValueGeneratedNever();
-        });
-
-        modelBuilder.Entity<Status>(entity =>
-        {
-            entity.Property(e => e.StatusId).ValueGeneratedNever();
         });
 
         OnModelCreatingPartial(modelBuilder);

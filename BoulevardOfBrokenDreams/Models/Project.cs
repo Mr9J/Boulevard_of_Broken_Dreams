@@ -30,9 +30,6 @@ public partial class Project
 
     public string? Campaign { get; set; }
 
-    [Column("FAQ")]
-    public string? Faq { get; set; }
-
     public string? Updates { get; set; }
 
     [StringLength(100)]
@@ -63,6 +60,9 @@ public partial class Project
 
     [InverseProperty("Project")]
     public virtual ICollection<Product> Products { get; set; } = new List<Product>();
+
+    [InverseProperty("Project")]
+    public virtual ICollection<ProjectFaq> ProjectFaqs { get; set; } = new List<ProjectFaq>();
 
     [InverseProperty("Project")]
     public virtual ICollection<ProjectIdtype> ProjectIdtypes { get; set; } = new List<ProjectIdtype>();

@@ -15,29 +15,57 @@ namespace BoulevardOfBrokenDreams.Controllers
     [ApiController]
     public class MemberController : ControllerBase
     {
-        private readonly MumuDbContext context;
-        private readonly IConfiguration configuration;
-        private MemberRepository mr;
+        private readonly MumuDbContext _context;
+        private readonly IConfiguration _configuration;
+        private MemberRepository _memberRepository;
         public MemberController(MumuDbContext _context, IConfiguration _configuration)
         {
-            this.context = _context;
-            this.configuration = _configuration;
-            this.mr = new MemberRepository(context);
+            this._context = _context;
+            this._configuration = _configuration;
+            this._memberRepository = new MemberRepository(this._context);
         }
 
         [HttpPost("sign-up")]
-        public async Task<IActionResult> SignUp(SignUpDTO user)
+        public async Task<IActionResult> SignUp([FromBody] SignUpDTO user)
         {
             try
             {
-                string res = await mr.CreateMember(user);
+                string res = await _memberRepository.CreateMember(user);
 
-                if (res == "使用者已存在")
+                if (res == "註冊成功")
                 {
-                    return Accepted("使用者已存在");
+                    return Ok(res);
                 }
+                else
+                {
+                    return BadRequest(res);
+                }
+            }
+            catch (Exception)
+            {
+                return BadRequest("伺服器錯誤，請稍後再試");
+            }
+        }
 
-                return Ok(res);
+        [HttpPost("sign-in")]
+        public async Task<IActionResult> SignIn([FromBody] SignInDTO user)
+        {
+            try
+            {
+                Member? member = await _memberRepository.AuthMember(user);
+
+                if (member != null)
+                {
+                    var token = (new JwtGenerator(_configuration)).GenerateJwtToken(user.username, "user");
+
+                    string jwt = "Bearer " + token;
+
+                    return Ok(jwt);
+                }
+                else
+                {
+                    return BadRequest("帳號或密碼錯誤");
+                }
             }
             catch (Exception)
             {
@@ -48,7 +76,7 @@ namespace BoulevardOfBrokenDreams.Controllers
         [HttpGet("check-username"), Authorize]
         public async Task<IActionResult> GetCurrentUser(string username)
         {
-            Member? member = await mr.GetMember(username);
+            Member? member = await _memberRepository.GetMember(username);
 
             if (member != null)
             {
@@ -60,33 +88,6 @@ namespace BoulevardOfBrokenDreams.Controllers
             }
         }
 
-
-
-        [HttpPost("sign-in")]
-        public async Task<IActionResult> SignIn(SignInDTO user)
-        {
-            try
-            {
-                Member? member = await mr.AuthMember(user);
-
-                if (member != null)
-                {
-                    var token = (new JwtGenerator(configuration)).GenerateJwtToken(user.username, "user");
-
-                    string jwt = "Bearer " + token;
-
-                    return Ok(jwt);
-                }
-                else
-                {
-                    return NotFound("使用者不存在");
-                }
-            }
-            catch (Exception)
-            {
-                return BadRequest("伺服器錯誤，請稍後再試");
-            }
-        }
 
         [HttpPost("get-current-user"), Authorize]
         public async Task<IActionResult> getCurrentUser(string jwt)
@@ -110,7 +111,7 @@ namespace BoulevardOfBrokenDreams.Controllers
                     return NotFound("使用者不存在");
                 }
 
-                Member? member = await mr.GetMember(username);
+                Member? member = await _memberRepository.GetMember(username);
 
                 if (member == null)
                 {
