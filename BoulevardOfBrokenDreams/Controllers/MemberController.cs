@@ -26,7 +26,7 @@ namespace BoulevardOfBrokenDreams.Controllers
         }
 
         [HttpPost("sign-up")]
-        public async Task<IActionResult> SignUp([FromBody] SignUpDTO user)
+        public async Task<IActionResult> SignUp(SignUpDTO user)
         {
             try
             {
@@ -48,7 +48,7 @@ namespace BoulevardOfBrokenDreams.Controllers
         }
 
         [HttpPost("sign-in")]
-        public async Task<IActionResult> SignIn([FromBody] SignInDTO user)
+        public async Task<IActionResult> SignIn(SignInDTO user)
         {
             try
             {
@@ -96,7 +96,7 @@ namespace BoulevardOfBrokenDreams.Controllers
             {
                 if (jwt == null || jwt == "")
                 {
-                    return NotFound("請輸入 JWT");
+                    return BadRequest("請輸入 JWT");
                 }
 
                 jwt = jwt.Replace("Bearer ", "");
@@ -120,7 +120,7 @@ namespace BoulevardOfBrokenDreams.Controllers
 
                 GetCurrentUserDTO currentUser = new GetCurrentUserDTO
                 {
-                    id = member.MemberId,
+                    id = member.MemberId.ToString(),
                     username = member.Username,
                     email = member.Email ?? string.Empty,
                 };
