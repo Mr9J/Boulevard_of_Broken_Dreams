@@ -1,4 +1,5 @@
 ﻿using BoulevardOfBrokenDreams.DataAccess;
+using BoulevardOfBrokenDreams.Interface;
 using BoulevardOfBrokenDreams.Models;
 using BoulevardOfBrokenDreams.Models.DTO;
 using BoulevardOfBrokenDreams.Services;
@@ -18,11 +19,13 @@ namespace BoulevardOfBrokenDreams.Controllers
         private readonly MumuDbContext _context;
         private readonly IConfiguration _configuration;
         private MemberRepository _memberRepository;
-        public MemberController(MumuDbContext _context, IConfiguration _configuration)
+        private readonly IEmailSender _emailSender;
+        public MemberController(MumuDbContext _context, IConfiguration _configuration, IEmailSender _emailSender)
         {
             this._context = _context;
             this._configuration = _configuration;
             this._memberRepository = new MemberRepository(this._context);
+            this._emailSender = _emailSender;
         }
 
         [HttpPost("sign-up")]
@@ -132,6 +135,27 @@ namespace BoulevardOfBrokenDreams.Controllers
                 return BadRequest("伺服器錯誤，請稍後再試");
             }
 
+
+        }
+
+
+        [HttpGet("send-email")]
+        public async Task<IActionResult> SendMail()
+        {
+            try
+            {
+                var receiver = "91mr.ya@gmail.com";
+                var subject = "測試";
+                var message = "這是一封測試信";
+
+                await _emailSender.SendEmailAsync(receiver, subject, message);
+
+                return Ok("信件已寄出");
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
 
         }
     }
