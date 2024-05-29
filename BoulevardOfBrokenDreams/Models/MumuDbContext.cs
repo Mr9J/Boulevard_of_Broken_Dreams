@@ -41,8 +41,6 @@ public partial class MumuDbContext : DbContext
 
     public virtual DbSet<MemberInterestProjectType> MemberInterestProjectTypes { get; set; }
 
-    public virtual DbSet<MemberLikesPost> MemberLikesPosts { get; set; }
-
     public virtual DbSet<Order> Orders { get; set; }
 
     public virtual DbSet<OrderDetail> OrderDetails { get; set; }
@@ -50,8 +48,6 @@ public partial class MumuDbContext : DbContext
     public virtual DbSet<PaymentMethodId> PaymentMethodIds { get; set; }
 
     public virtual DbSet<PaymentStatusId> PaymentStatusIds { get; set; }
-
-    public virtual DbSet<Post> Posts { get; set; }
 
     public virtual DbSet<Product> Products { get; set; }
 
@@ -88,13 +84,6 @@ public partial class MumuDbContext : DbContext
             entity.HasOne(d => d.Action).WithMany(p => p.ActionDetails)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_ActionDetails_Actions");
-        });
-
-        modelBuilder.Entity<Admin>(entity =>
-        {
-            entity.HasOne(d => d.Member).WithMany(p => p.Admins)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_Admins_Members");
         });
 
         modelBuilder.Entity<Cart>(entity =>
@@ -159,6 +148,14 @@ public partial class MumuDbContext : DbContext
                 .HasConstraintName("FK_LikeDetails_Members");
         });
 
+        modelBuilder.Entity<Member>(entity =>
+        {
+            entity.Property(e => e.Eid).HasDefaultValueSql("(newid())");
+            entity.Property(e => e.Verified)
+                .HasDefaultValue("N")
+                .IsFixedLength();
+        });
+
         modelBuilder.Entity<MemberInterestProjectType>(entity =>
         {
             entity.HasOne(d => d.Member).WithMany(p => p.MemberInterestProjectTypes)
@@ -168,15 +165,6 @@ public partial class MumuDbContext : DbContext
             entity.HasOne(d => d.ProjectType).WithMany(p => p.MemberInterestProjectTypes)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_MemberInterestProjectType_ProjectTypes");
-        });
-
-        modelBuilder.Entity<MemberLikesPost>(entity =>
-        {
-            entity.HasOne(d => d.Member).WithMany(p => p.MemberLikesPosts).HasConstraintName("FK_MemberLikesPosts_Members");
-
-            entity.HasOne(d => d.Post).WithMany(p => p.MemberLikesPosts)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_MemberLikesPosts_Posts");
         });
 
         modelBuilder.Entity<Order>(entity =>
@@ -211,13 +199,6 @@ public partial class MumuDbContext : DbContext
             entity.HasOne(d => d.Project).WithMany(p => p.OrderDetails)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_OrderDetails_Projects");
-        });
-
-        modelBuilder.Entity<Post>(entity =>
-        {
-            entity.HasOne(d => d.Member).WithMany(p => p.Posts)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_Posts_Members");
         });
 
         modelBuilder.Entity<Product>(entity =>

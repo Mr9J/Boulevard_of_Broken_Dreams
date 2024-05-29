@@ -8,7 +8,9 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.IdentityModel.Tokens.Jwt;
+using System.Net.Mail;
 using System.Security.Claims;
+using System.Text;
 
 namespace BoulevardOfBrokenDreams.Controllers
 {
@@ -37,6 +39,16 @@ namespace BoulevardOfBrokenDreams.Controllers
 
                 if (res == "註冊成功")
                 {
+                    //測試用，應該要在前端做
+                    Member? member = await _memberRepository.GetMember(user.username);
+                    if (member == null) return BadRequest("註冊失敗");
+                    var receiver = user.email;
+                    var subject = "Mumu 用戶註冊驗證";
+                    var message = $"請點擊以下連結驗證您的帳號: https://localhost:7150/mumu/verify/verify-email/{member.Username}/{member.Eid}";
+
+                    await _emailSender.SendEmailAsync(receiver, subject, message);
+
+
                     return Ok(res);
                 }
                 else
@@ -134,8 +146,6 @@ namespace BoulevardOfBrokenDreams.Controllers
             {
                 return BadRequest("伺服器錯誤，請稍後再試");
             }
-
-
         }
 
 
@@ -144,9 +154,14 @@ namespace BoulevardOfBrokenDreams.Controllers
         {
             try
             {
-                var receiver = "91mr.ya@gmail.com";
+                var receiver = "yasmin.corwin16@ethereal.email";
                 var subject = "測試";
-                var message = "這是一封測試信";
+                //StringBuilder mailBody = new StringBuilder();
+                //mailBody.AppendFormat("<h1>用戶註冊</h1>");
+                //mailBody.AppendFormat("<br />");
+                //mailBody.AppendFormat("<p>感謝您的註冊</p>");
+                //var message = mailBody.ToString();
+                var message = "測試完成";
 
                 await _emailSender.SendEmailAsync(receiver, subject, message);
 

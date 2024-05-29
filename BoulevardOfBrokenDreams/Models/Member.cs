@@ -40,8 +40,12 @@ public partial class Member
     [StringLength(50)]
     public string? Phone { get; set; }
 
-    [InverseProperty("Member")]
-    public virtual ICollection<Admin> Admins { get; set; } = new List<Admin>();
+    [Column("EID")]
+    public Guid? Eid { get; set; }
+
+    [StringLength(1)]
+    [Unicode(false)]
+    public string? Verified { get; set; }
 
     [InverseProperty("Member")]
     public virtual ICollection<Cart> Carts { get; set; } = new List<Cart>();
@@ -59,13 +63,7 @@ public partial class Member
     public virtual ICollection<MemberInterestProjectType> MemberInterestProjectTypes { get; set; } = new List<MemberInterestProjectType>();
 
     [InverseProperty("Member")]
-    public virtual ICollection<MemberLikesPost> MemberLikesPosts { get; set; } = new List<MemberLikesPost>();
-
-    [InverseProperty("Member")]
     public virtual ICollection<Order> Orders { get; set; } = new List<Order>();
-
-    [InverseProperty("Member")]
-    public virtual ICollection<Post> Posts { get; set; } = new List<Post>();
 
     [InverseProperty("Memeber")]
     public virtual ICollection<Project> Projects { get; set; } = new List<Project>();

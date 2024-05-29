@@ -11,15 +11,14 @@ namespace BoulevardOfBrokenDreams.Services
             var mail = "siechengye@gmail.com";
             var password = "okqyobakvubpxewc";
 
-            var client = new SmtpClient("smtp.gmail.com")
+            var client = new SmtpClient("smtp.gmail.com", 587)
             {
-                Port = 587,
                 Credentials = new NetworkCredential(mail, password),
                 EnableSsl = true,
             };
 
             return client.SendMailAsync(
-                new MailMessage(from: mail, to: email, subject, message));
+                new MailMessage(from: "no_reply@mumumsit158.com", to: email, subject, message));
         }
     }
 }

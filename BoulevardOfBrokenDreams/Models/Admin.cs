@@ -14,8 +14,4 @@ public partial class Admin
 
     [Column("MemberID")]
     public int MemberId { get; set; }
-
-    [ForeignKey("MemberId")]
-    [InverseProperty("Admins")]
-    public virtual Member Member { get; set; } = null!;
 }
