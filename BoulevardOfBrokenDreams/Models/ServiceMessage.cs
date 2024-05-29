@@ -6,35 +6,35 @@ using Microsoft.EntityFrameworkCore;
 
 namespace BoulevardOfBrokenDreams.Models;
 
-public partial class Service
+public partial class ServiceMessage
 {
     [Key]
+    [Column("MessageID")]
+    public int MessageId { get; set; }
+
     [Column("ServiceID")]
     public int ServiceId { get; set; }
 
     [Column("MemberID")]
-    public int MemberId { get; set; }
+    public int? MemberId { get; set; }
 
     [Column("AdminID")]
     public int? AdminId { get; set; }
 
-    [Column("StatusID")]
-    public int StatusId { get; set; }
+    public string MessageContent { get; set; } = null!;
 
     [Column(TypeName = "datetime")]
-    public DateTime StartDate { get; set; }
-
-    [Column(TypeName = "datetime")]
-    public DateTime? EndDate { get; set; }
+    public DateTime MessageDate { get; set; }
 
     [ForeignKey("AdminId")]
-    [InverseProperty("Services")]
+    [InverseProperty("ServiceMessages")]
     public virtual Admin? Admin { get; set; }
 
     [ForeignKey("MemberId")]
-    [InverseProperty("Services")]
-    public virtual Member Member { get; set; } = null!;
+    [InverseProperty("ServiceMessages")]
+    public virtual Member? Member { get; set; }
 
-    [InverseProperty("Service")]
-    public virtual ICollection<ServiceMessage> ServiceMessages { get; set; } = new List<ServiceMessage>();
+    [ForeignKey("ServiceId")]
+    [InverseProperty("ServiceMessages")]
+    public virtual Service Service { get; set; } = null!;
 }
