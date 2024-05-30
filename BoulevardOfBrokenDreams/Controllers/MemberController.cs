@@ -48,7 +48,6 @@ namespace BoulevardOfBrokenDreams.Controllers
 
                     await _emailSender.SendEmailAsync(receiver, subject, message);
 
-
                     return Ok(res);
                 }
                 else
@@ -154,7 +153,7 @@ namespace BoulevardOfBrokenDreams.Controllers
         {
             try
             {
-                var receiver = "yasmin.corwin16@ethereal.email";
+                var receiver = "u369258963@gmail.com";
                 var subject = "測試";
                 //StringBuilder mailBody = new StringBuilder();
                 //mailBody.AppendFormat("<h1>用戶註冊</h1>");
