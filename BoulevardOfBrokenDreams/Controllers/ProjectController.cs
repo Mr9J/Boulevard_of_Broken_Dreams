@@ -11,10 +11,12 @@ namespace BoulevardOfBrokenDreams.Controllers
     public class ProjectController : ControllerBase
     {
         private MumuDbContext db;
+        private readonly IHttpContextAccessor _httpContextAccessor;
 
-        public ProjectController(MumuDbContext _db)
+        public  ProjectController(MumuDbContext _db, IHttpContextAccessor httpContextAccessor)
         {
             this.db = _db;
+            _httpContextAccessor = httpContextAccessor;
         }
         // GET: api/<ProjectController>
         [HttpGet]
@@ -31,12 +33,14 @@ namespace BoulevardOfBrokenDreams.Controllers
                                EndDate = p.EndDate,
                                MemberId = p.MemberId,
                                GroupId = p.GroupId,
-                               Thumbnail = p.Thumbnail,
+                               Thumbnail = "https://" + _httpContextAccessor.HttpContext.Request.Host.Value+ "/resources/mumuThumbnail/Projects_Products_Thumbnail/" + p.Thumbnail,
+
+
                                StatusId = p.StatusId,
                                ProjectAmount = (from orderDetail in db.OrderDetails
                                                 where orderDetail.ProjectId == p.ProjectId
                                                 select orderDetail.Price).Sum(),
-            Products = (from product in db.Products
+                               Products = (from product in db.Products
                                            where product.ProjectId == p.ProjectId
                                            select new ProductDTO
                                            {
@@ -49,7 +53,7 @@ namespace BoulevardOfBrokenDreams.Controllers
                                                CurrentStock = product.CurrentStock,
                                                StartDate = product.StartDate,
                                                EndDate = product.EndDate,
-                                               Thumbnail = product.Thumbnail,
+                                               Thumbnail = "https://" + _httpContextAccessor.HttpContext.Request.Host.Value + "/resources/mumuThumbnail/Projects_Products_Thumbnail/" + product.Thumbnail,
                                                StatusId = product.StatusId,
                                                OrderBy = product.OrderBy,
                                            }).ToList()
@@ -117,5 +121,19 @@ namespace BoulevardOfBrokenDreams.Controllers
         public void Delete(int id)
         {
         }
+        private static string ConvertImageToBase64(string thumbnail)
+        {
+            var baseDirectory = AppContext.BaseDirectory;
+            var imagePath = Path.Combine(baseDirectory, "mumuThumbnail\\Projects_Products_Thumbnail", thumbnail);
+            
+            Console.WriteLine($"Image path: {imagePath}");
+            if (System.IO.File.Exists(imagePath))
+            {
+                var imageBytes = System.IO.File.ReadAllBytes(imagePath);
+                return Convert.ToBase64String(imageBytes);
+            }
+            return string.Empty; // 或者你可以返回一個默認的圖片
+        }
+
     }
 }
