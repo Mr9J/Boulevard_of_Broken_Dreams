@@ -19,6 +19,8 @@ public partial class MumuDbContext : DbContext
 
     public virtual DbSet<ActionDetail> ActionDetails { get; set; }
 
+    public virtual DbSet<ActionType> ActionTypes { get; set; }
+
     public virtual DbSet<Admin> Admins { get; set; }
 
     public virtual DbSet<AuthStatus> AuthStatuses { get; set; }
@@ -53,11 +55,15 @@ public partial class MumuDbContext : DbContext
 
     public virtual DbSet<Project> Projects { get; set; }
 
+    public virtual DbSet<ProjectFaq> ProjectFaqs { get; set; }
+
     public virtual DbSet<ProjectIdtype> ProjectIdtypes { get; set; }
 
     public virtual DbSet<ProjectType> ProjectTypes { get; set; }
 
     public virtual DbSet<Service> Services { get; set; }
+
+    public virtual DbSet<ServiceMessage> ServiceMessages { get; set; }
 
     public virtual DbSet<ShipmentStatus> ShipmentStatuses { get; set; }
 
@@ -70,6 +76,10 @@ public partial class MumuDbContext : DbContext
     {
         modelBuilder.Entity<Action>(entity =>
         {
+            entity.HasOne(d => d.Member).WithMany(p => p.Actions)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_Actions_Members");
+
             entity.HasOne(d => d.Project).WithMany(p => p.Actions)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_Actions_Projects");
@@ -82,6 +92,10 @@ public partial class MumuDbContext : DbContext
             entity.HasOne(d => d.Action).WithMany(p => p.ActionDetails)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_ActionDetails_Actions");
+
+            entity.HasOne(d => d.ActionType).WithMany(p => p.ActionDetails)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_ActionDetails_ActionTypes");
         });
 
         modelBuilder.Entity<Admin>(entity =>
@@ -89,11 +103,6 @@ public partial class MumuDbContext : DbContext
             entity.HasOne(d => d.Member).WithMany(p => p.Admins)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_Admins_Members");
-        });
-
-        modelBuilder.Entity<AuthStatus>(entity =>
-        {
-            entity.Property(e => e.AuthStatusId).ValueGeneratedNever();
         });
 
         modelBuilder.Entity<Cart>(entity =>
@@ -203,20 +212,8 @@ public partial class MumuDbContext : DbContext
                 .HasConstraintName("FK_OrderDetails_Projects");
         });
 
-        modelBuilder.Entity<PaymentMethodId>(entity =>
-        {
-            entity.Property(e => e.PaymentMethodId1).ValueGeneratedNever();
-        });
-
-        modelBuilder.Entity<PaymentStatusId>(entity =>
-        {
-            entity.Property(e => e.PaymentStatusId1).ValueGeneratedNever();
-        });
-
         modelBuilder.Entity<Product>(entity =>
         {
-            entity.Property(e => e.CurrentStock).IsFixedLength();
-
             entity.HasOne(d => d.Project).WithMany(p => p.Products)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_Products_Projects");
@@ -230,13 +227,18 @@ public partial class MumuDbContext : DbContext
         {
             entity.HasOne(d => d.Group).WithMany(p => p.Projects).HasConstraintName("FK_Projects_Groups");
 
-            entity.HasOne(d => d.Memeber).WithMany(p => p.Projects)
+            entity.HasOne(d => d.Member).WithMany(p => p.Projects)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_Projects_Members");
 
             entity.HasOne(d => d.Status).WithMany(p => p.Projects)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_Projects_Status");
+        });
+
+        modelBuilder.Entity<ProjectFaq>(entity =>
+        {
+            entity.HasOne(d => d.Project).WithMany(p => p.ProjectFaqs).HasConstraintName("FK_ProjectFAQ_Projects");
         });
 
         modelBuilder.Entity<ProjectIdtype>(entity =>
@@ -252,19 +254,24 @@ public partial class MumuDbContext : DbContext
 
         modelBuilder.Entity<Service>(entity =>
         {
-            entity.HasOne(d => d.Member).WithMany(p => p.Services).HasConstraintName("FK_Services_Members");
+            entity.Property(e => e.StartDate).HasDefaultValueSql("(getdate())");
 
-            entity.HasOne(d => d.Status).WithMany(p => p.Services).HasConstraintName("FK_Services_Status");
+            entity.HasOne(d => d.Admin).WithMany(p => p.Services).HasConstraintName("FK_Services_Admins");
+
+            entity.HasOne(d => d.Member).WithMany(p => p.Services)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_Services_Members");
         });
 
-        modelBuilder.Entity<ShipmentStatus>(entity =>
+        modelBuilder.Entity<ServiceMessage>(entity =>
         {
-            entity.Property(e => e.ShipmentStatusId).ValueGeneratedNever();
-        });
+            entity.HasOne(d => d.Admin).WithMany(p => p.ServiceMessages).HasConstraintName("FK_ServiceMessages_Admins");
 
-        modelBuilder.Entity<Status>(entity =>
-        {
-            entity.Property(e => e.StatusId).ValueGeneratedNever();
+            entity.HasOne(d => d.Member).WithMany(p => p.ServiceMessages).HasConstraintName("FK_ServiceMessages_Members");
+
+            entity.HasOne(d => d.Service).WithMany(p => p.ServiceMessages)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_ServiceMessages_Services");
         });
 
         OnModelCreatingPartial(modelBuilder);

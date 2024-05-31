@@ -18,4 +18,10 @@ public partial class Admin
     [ForeignKey("MemberId")]
     [InverseProperty("Admins")]
     public virtual Member Member { get; set; } = null!;
+
+    [InverseProperty("Admin")]
+    public virtual ICollection<ServiceMessage> ServiceMessages { get; set; } = new List<ServiceMessage>();
+
+    [InverseProperty("Admin")]
+    public virtual ICollection<Service> Services { get; set; } = new List<Service>();
 }

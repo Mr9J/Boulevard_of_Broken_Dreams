@@ -24,7 +24,4 @@ public partial class Status
 
     [InverseProperty("Status")]
     public virtual ICollection<Project> Projects { get; set; } = new List<Project>();
-
-    [InverseProperty("Status")]
-    public virtual ICollection<Service> Services { get; set; } = new List<Service>();
 }

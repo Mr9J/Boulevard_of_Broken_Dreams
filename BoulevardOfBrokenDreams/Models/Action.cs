@@ -15,8 +15,15 @@ public partial class Action
     [Column("ProjectID")]
     public int ProjectId { get; set; }
 
+    [Column("MemberID")]
+    public int MemberId { get; set; }
+
     [InverseProperty("Action")]
     public virtual ICollection<ActionDetail> ActionDetails { get; set; } = new List<ActionDetail>();
+
+    [ForeignKey("MemberId")]
+    [InverseProperty("Actions")]
+    public virtual Member Member { get; set; } = null!;
 
     [ForeignKey("ProjectId")]
     [InverseProperty("Actions")]
