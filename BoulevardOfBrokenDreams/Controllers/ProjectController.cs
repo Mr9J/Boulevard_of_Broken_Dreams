@@ -176,7 +176,7 @@ namespace BoulevardOfBrokenDreams.Controllers
         {
             var baseDirectory = AppContext.BaseDirectory;
             var imagePath = Path.Combine(baseDirectory, "mumuThumbnail\\Projects_Products_Thumbnail", thumbnail);
-
+            
             Console.WriteLine($"Image path: {imagePath}");
             if (System.IO.File.Exists(imagePath))
             {
