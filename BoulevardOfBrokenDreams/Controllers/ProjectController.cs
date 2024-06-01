@@ -11,19 +11,19 @@ namespace BoulevardOfBrokenDreams.Controllers
     [ApiController]
     public class ProjectController : ControllerBase
     {
-        private MumuDbContext db;
+        private MumuDbContext _db;
         private readonly IHttpContextAccessor _httpContextAccessor;
 
-        public ProjectController(MumuDbContext _db, IHttpContextAccessor httpContextAccessor)
+        public ProjectController(MumuDbContext db, IHttpContextAccessor httpContextAccessor)
         {
-            this.db = _db;
+            _db = db;
             _httpContextAccessor = httpContextAccessor;
         }
         // GET: api/<ProjectController>
         [HttpGet]
         public IEnumerable<ProjectDTO> Get()
         {
-            var projects = from p in db.Projects
+            var projects = from p in _db.Projects
                            select new ProjectDTO
                            {
                                ProjectId = p.ProjectId,
@@ -38,10 +38,10 @@ namespace BoulevardOfBrokenDreams.Controllers
 
 
                                StatusId = p.StatusId,
-                               ProjectAmount = (from orderDetail in db.OrderDetails
+                               ProjectAmount = (from orderDetail in _db.OrderDetails
                                                 where orderDetail.ProjectId == p.ProjectId
                                                 select orderDetail.Price).Sum(),
-                               Products = (from product in db.Products
+                               Products = (from product in _db.Products
                                            where product.ProjectId == p.ProjectId
                                            select new ProductDTO
                                            {
@@ -81,7 +81,7 @@ namespace BoulevardOfBrokenDreams.Controllers
 
             if (!string.IsNullOrEmpty(value.Thumbnail))
             {
-                var lastProject = db.Projects.OrderByDescending(p => p.ProjectId).FirstOrDefault();
+                var lastProject = _db.Projects.OrderByDescending(p => p.ProjectId).FirstOrDefault();
                 int lastprojectId = 0;
                 if (lastProject != null)
                 {
@@ -122,9 +122,9 @@ namespace BoulevardOfBrokenDreams.Controllers
                 StatusId = value.StatusId,
             };
 
-            db.Projects.Add(project);
-            db.SaveChanges();
-
+            var pj =  _db.Projects.Add(project);
+            _db.SaveChanges();
+            Console.WriteLine(pj.Entity.ProjectId);
             return Ok(value);
         }
 
@@ -132,7 +132,7 @@ namespace BoulevardOfBrokenDreams.Controllers
         [HttpPut("{id}")]
         public IActionResult Put(int id, [FromBody] ProjectDTO value)
         {
-            Project? p = db.Projects.FirstOrDefault(x => x.ProjectId == id);
+            Project? p = _db.Projects.FirstOrDefault(x => x.ProjectId == id);
             if (p == null)
             {
                 return NotFound("Project not found.");
@@ -163,28 +163,15 @@ namespace BoulevardOfBrokenDreams.Controllers
             p.StartDate = value.StartDate;
             p.EndDate = value.EndDate;
             //p.Thumbnail = value.Thumbnail;
-            db.SaveChanges();
+            _db.SaveChanges();
             return Ok(value);
         }
 
         // DELETE api/<ProjectController>/5
         [HttpDelete("{id}")]
-        public void Delete(int id)
+        public string Delete(int id)
         {
+            return "damedesuyo";
         }
-        private static string ConvertImageToBase64(string thumbnail)
-        {
-            var baseDirectory = AppContext.BaseDirectory;
-            var imagePath = Path.Combine(baseDirectory, "mumuThumbnail\\Projects_Products_Thumbnail", thumbnail);
-            
-            Console.WriteLine($"Image path: {imagePath}");
-            if (System.IO.File.Exists(imagePath))
-            {
-                var imageBytes = System.IO.File.ReadAllBytes(imagePath);
-                return Convert.ToBase64String(imageBytes);
-            }
-            return string.Empty; // 或者你可以返回一個默認的圖片
-        }
-
     }
 }
