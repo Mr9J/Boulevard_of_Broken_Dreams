@@ -167,6 +167,14 @@ public partial class MumuDbContext : DbContext
                 .HasConstraintName("FK_LikeDetails_Members");
         });
 
+        modelBuilder.Entity<Member>(entity =>
+        {
+            entity.Property(e => e.Eid).HasDefaultValueSql("(newid())");
+            entity.Property(e => e.Verified)
+                .HasDefaultValue("N")
+                .IsFixedLength();
+        });
+
         modelBuilder.Entity<MemberInterestProjectType>(entity =>
         {
             entity.HasOne(d => d.Member).WithMany(p => p.MemberInterestProjectTypes)

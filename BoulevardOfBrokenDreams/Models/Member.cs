@@ -40,6 +40,13 @@ public partial class Member
     [StringLength(50)]
     public string? Phone { get; set; }
 
+    [Column("EID")]
+    public Guid? Eid { get; set; }
+
+    [StringLength(1)]
+    [Unicode(false)]
+    public string? Verified { get; set; }
+
     [InverseProperty("Member")]
     public virtual ICollection<Action> Actions { get; set; } = new List<Action>();
 

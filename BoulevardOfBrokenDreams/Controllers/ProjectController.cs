@@ -2,6 +2,7 @@
 using BoulevardOfBrokenDreams.Models.DTO;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Numerics;
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
@@ -78,24 +79,28 @@ namespace BoulevardOfBrokenDreams.Controllers
             {
                 return BadRequest("Invalid project data.");
             }
-
-            if (!string.IsNullOrEmpty(value.Thumbnail))
+            var project = new Project
             {
-                var lastProject = _db.Projects.OrderByDescending(p => p.ProjectId).FirstOrDefault();
-                int lastprojectId = 0;
-                if (lastProject != null)
-                {
-                    lastprojectId = lastProject.ProjectId;
+                ProjectName = value.ProjectName,
+                ProjectDescription = value.ProjectDescription,
+                ProjectGoal = value.ProjectGoal,
+                StartDate = value.StartDate,
+                EndDate = value.EndDate,
+                MemberId = value.MemberId,
+                GroupId = value.GroupId,
+                //Thumbnail = value.Thumbnail,
+                StatusId = value.StatusId,
+            };
 
-                }
-                else
-                {
-                    Console.WriteLine("No projects found.");
-                }
-                lastprojectId ++;
+            var pj =  _db.Projects.Add(project);
+            _db.SaveChanges();
+            int newPjId = pj.Entity.ProjectId;
+
+            if(newPjId > 0 && value.Thumbnail!=null )
+            {
                 byte[] thumbnailBytes = Convert.FromBase64String(value.Thumbnail);
 
-                string uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "images", "mumuThumbnail", "Projects_Products_Thumbnail","project-"+ lastprojectId); //設置文件保存的文件夾路徑
+                string uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "images", "mumuThumbnail", "Projects_Products_Thumbnail", "project-" + newPjId); //設置文件保存的文件夾路徑
                 string fileName = "Thumbnail" + ".png"; // 使用唯一文件名
                 string filePath = Path.Combine(uploadsFolder, fileName); //構建文件的完整路徑
 
@@ -106,25 +111,9 @@ namespace BoulevardOfBrokenDreams.Controllers
                     imageFile.Write(thumbnailBytes, 0, thumbnailBytes.Length);
                 }
 
-                value.Thumbnail = "project-" + lastprojectId + "/" + fileName; // 設置圖片路徑
+                project.Thumbnail = "project-" + newPjId + "/" + fileName; // 設置圖片路徑
+                _db.SaveChanges(); // 再次保存更改
             }
-
-            var project = new Project
-            {
-                ProjectName = value.ProjectName,
-                ProjectDescription = value.ProjectDescription,
-                ProjectGoal = value.ProjectGoal,
-                StartDate = value.StartDate,
-                EndDate = value.EndDate,
-                MemberId = value.MemberId,
-                GroupId = value.GroupId,
-                Thumbnail = value.Thumbnail,
-                StatusId = value.StatusId,
-            };
-
-            var pj =  _db.Projects.Add(project);
-            _db.SaveChanges();
-            Console.WriteLine(pj.Entity.ProjectId);
             return Ok(value);
         }
 
@@ -162,7 +151,6 @@ namespace BoulevardOfBrokenDreams.Controllers
             p.ProjectGoal = value.ProjectGoal;
             p.StartDate = value.StartDate;
             p.EndDate = value.EndDate;
-            //p.Thumbnail = value.Thumbnail;
             _db.SaveChanges();
             return Ok(value);
         }

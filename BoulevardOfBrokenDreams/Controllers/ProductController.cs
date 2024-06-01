@@ -57,35 +57,7 @@ namespace BoulevardOfBrokenDreams.Controllers
             {
                 return BadRequest("Invalid product data.");
             }
-            if (!string.IsNullOrEmpty(value.Thumbnail))
-            {
-                var lastProduct = _db.Products.OrderByDescending(p => p.ProjectId).FirstOrDefault();
-                int lastproductId = 0;
-                if (lastProduct != null)
-                {
-                    lastproductId = lastProduct.ProductId;
-                }
-                else
-                {
-                    Console.WriteLine("No product found.");
-                }
-                lastproductId++;
 
-                byte[] thumbnailBytes = Convert.FromBase64String(value.Thumbnail);
-
-                string uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "images", "mumuThumbnail", "Projects_Products_Thumbnail", "project-" + value.ProjectId); //設置文件保存的文件夾路徑
-                string fileName = "product-"+ lastproductId + ".png"; // 使用唯一文件名
-                string filePath = Path.Combine(uploadsFolder, fileName); //構建文件的完整路徑
-
-                Directory.CreateDirectory(uploadsFolder);// 確保目錄存在
-                // 將圖片數據寫入文件
-                using (var imageFile = new FileStream(filePath, FileMode.Create))
-                {
-                    imageFile.Write(thumbnailBytes, 0, thumbnailBytes.Length);
-                }
-
-                value.Thumbnail = "project-" + value.ProjectId + "/" + fileName; // 設置圖片路徑
-            }
             var product = new Product
             {
                 ProductName = value.ProductName,
@@ -96,12 +68,33 @@ namespace BoulevardOfBrokenDreams.Controllers
                 CurrentStock = value.CurrentStock,
                 StartDate = value.StartDate,
                 EndDate = value.EndDate,
-                Thumbnail = value.Thumbnail,
                 StatusId = value.StatusId,
                 OrderBy = value.OrderBy,
             };
-            _db.Products.Add(product);
+            var pd = _db.Products.Add(product);
             _db.SaveChanges();
+            int newPdId = pd.Entity.ProductId;
+
+            if (newPdId > 0 && value.Thumbnail != null)
+            {
+
+                byte[] thumbnailBytes = Convert.FromBase64String(value.Thumbnail);
+
+                string uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "images", "mumuThumbnail", "Projects_Products_Thumbnail", "project-" + value.ProjectId); //設置文件保存的文件夾路徑
+                string fileName = "product-" + newPdId + ".png"; // 使用唯一文件名
+                string filePath = Path.Combine(uploadsFolder, fileName); //構建文件的完整路徑
+
+                Directory.CreateDirectory(uploadsFolder);// 確保目錄存在
+                // 將圖片數據寫入文件
+                using (var imageFile = new FileStream(filePath, FileMode.Create))
+                {
+                    imageFile.Write(thumbnailBytes, 0, thumbnailBytes.Length);
+                }
+
+                product.Thumbnail = "project-" + value.ProjectId + "/" + fileName; // 設置圖片路徑
+                _db.SaveChanges(); // 再次保存更改
+            }
+
             return Ok(value);
         }
 
@@ -116,22 +109,10 @@ namespace BoulevardOfBrokenDreams.Controllers
             }
             if (!string.IsNullOrEmpty(value.Thumbnail))
             {
-                var lastProduct = _db.Products.OrderByDescending(p => p.ProjectId).FirstOrDefault();
-                int lastproductId = 0;
-                if (lastProduct != null)
-                {
-                    lastproductId = lastProduct.ProjectId;
-                }
-                else
-                {
-                    Console.WriteLine("No product found.");
-                }
-                lastproductId++;
-
                 byte[] thumbnailBytes = Convert.FromBase64String(value.Thumbnail);
 
                 string uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "images", "mumuThumbnail", "Projects_Products_Thumbnail", "project-" + value.ProjectId); //設置文件保存的文件夾路徑
-                string fileName = "product-" + lastproductId + ".png"; // 使用唯一文件名
+                string fileName = "product-" + id + ".png"; // 使用唯一文件名
                 string filePath = Path.Combine(uploadsFolder, fileName); //構建文件的完整路徑
 
                 Directory.CreateDirectory(uploadsFolder);// 確保目錄存在
@@ -143,18 +124,16 @@ namespace BoulevardOfBrokenDreams.Controllers
 
                 value.Thumbnail = "project-" + value.ProjectId + "/" + fileName; // 設置圖片路徑
             }
-            var product = new Product
-            {
-                ProductName = value.ProductName,
-                ProductDescription = value.ProductDescription,
-                StatusId = value.StatusId,
-                ProductPrice = value.ProductPrice,
-                InitialStock = value.InitialStock,
-                CurrentStock = value.CurrentStock,
-                StartDate = value.StartDate,
-                EndDate = value.EndDate,
-                Thumbnail = value.Thumbnail,
-            };
+
+            p.ProductName = value.ProductName;
+            p.ProductDescription = value.ProductDescription;
+            p.StatusId = value.StatusId;
+            p.ProductPrice = value.ProductPrice;
+            p.InitialStock = value.InitialStock;
+            p.CurrentStock = value.CurrentStock;
+            p.StartDate = value.StartDate;
+            p.EndDate = value.EndDate;
+            p.Thumbnail = value.Thumbnail;
             _db.SaveChanges();
             return Ok(value);
         }
