@@ -161,5 +161,52 @@ namespace BoulevardOfBrokenDreams.Controllers
         {
             return "damedesuyo";
         }
+
+        [HttpGet("member/{memberId}")]
+        public IActionResult GetByMemberId(int memberId)
+        {
+            if (!_db.Projects.Any(p => p.MemberId == memberId))
+            {
+                return NotFound("No projects found for the given member ID.");
+            }
+
+            var projects = from p in _db.Projects.Where(p => p.MemberId == memberId)
+                           select new ProjectDTO
+                           {
+                               ProjectId = p.ProjectId,
+                               ProjectName = p.ProjectName,
+                               ProjectDescription = p.ProjectDescription,
+                               ProjectGoal = p.ProjectGoal,
+                               StartDate = p.StartDate,
+                               EndDate = p.EndDate,
+                               MemberId = p.MemberId,
+                               GroupId = p.GroupId,
+                               Thumbnail = "https://" + _httpContextAccessor.HttpContext.Request.Host.Value + "/resources/mumuThumbnail/Projects_Products_Thumbnail/" + p.Thumbnail,
+
+
+                               StatusId = p.StatusId,
+                               ProjectAmount = (from orderDetail in _db.OrderDetails
+                                                where orderDetail.ProjectId == p.ProjectId
+                                                select orderDetail.Price).Sum(),
+                               Products = (from product in _db.Products
+                                           where product.ProjectId == p.ProjectId
+                                           select new ProductDTO
+                                           {
+                                               ProductId = product.ProductId,
+                                               ProductName = product.ProductName,
+                                               OnSalePrice = product.OnSalePrice,
+                                               ProductPrice = product.ProductPrice,
+                                               ProductDescription = product.ProductDescription,
+                                               InitialStock = product.InitialStock,
+                                               CurrentStock = product.CurrentStock,
+                                               StartDate = product.StartDate,
+                                               EndDate = product.EndDate,
+                                               Thumbnail = "https://" + _httpContextAccessor.HttpContext.Request.Host.Value + "/resources/mumuThumbnail/Projects_Products_Thumbnail/" + product.Thumbnail,
+                                               StatusId = product.StatusId,
+                                               OrderBy = product.OrderBy,
+                                           }).ToList()
+                           };
+            return Ok(projects);
+        }
     }
 }
