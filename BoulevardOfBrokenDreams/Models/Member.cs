@@ -37,6 +37,19 @@ public partial class Member
     [Column(TypeName = "datetime")]
     public DateTime? RegistrationTime { get; set; }
 
+    [StringLength(50)]
+    public string? Phone { get; set; }
+
+    [Column("EID")]
+    public Guid? Eid { get; set; }
+
+    [StringLength(1)]
+    [Unicode(false)]
+    public string? Verified { get; set; }
+
+    [InverseProperty("Member")]
+    public virtual ICollection<Action> Actions { get; set; } = new List<Action>();
+
     [InverseProperty("Member")]
     public virtual ICollection<Admin> Admins { get; set; } = new List<Admin>();
 
@@ -58,8 +71,11 @@ public partial class Member
     [InverseProperty("Member")]
     public virtual ICollection<Order> Orders { get; set; } = new List<Order>();
 
-    [InverseProperty("Memeber")]
+    [InverseProperty("Member")]
     public virtual ICollection<Project> Projects { get; set; } = new List<Project>();
+
+    [InverseProperty("Member")]
+    public virtual ICollection<ServiceMessage> ServiceMessages { get; set; } = new List<ServiceMessage>();
 
     [InverseProperty("Member")]
     public virtual ICollection<Service> Services { get; set; } = new List<Service>();
