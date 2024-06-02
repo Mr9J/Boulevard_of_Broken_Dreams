@@ -1,5 +1,6 @@
 ﻿using BoulevardOfBrokenDreams.DataAccess;
 using BoulevardOfBrokenDreams.Models;
+using BoulevardOfBrokenDreams.Models.DTO;
 using BoulevardOfBrokenDreams.Props;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -13,10 +14,12 @@ namespace BoulevardOfBrokenDreams.Controllers
     {
         private readonly MumuDbContext context;
         private readonly IConfiguration configuration;
-        public MemberController(MumuDbContext _context, IConfiguration _configuration)
+        private readonly IHttpContextAccessor _httpContextAccessor;
+        public MemberController(MumuDbContext _context, IConfiguration _configuration , IHttpContextAccessor httpContextAccessor)
         {
             this.context = _context;
             this.configuration = _configuration;
+            this._httpContextAccessor = httpContextAccessor;
         }
 
         [HttpPost("sign-up")]
@@ -59,6 +62,24 @@ namespace BoulevardOfBrokenDreams.Controllers
             {
                 return BadRequest("伺服器錯誤，請稍後再試");
             }
+        }
+        [HttpGet]
+        public IEnumerable<MemberDTO> Get()
+        {
+            return context.Members
+              .Select(m => new MemberDTO
+              {
+                  MemberId = m.MemberId,
+                  Username = m.Username,
+                  Nickname = m.Nickname,
+                  Thumbnail = "https://" + _httpContextAccessor.HttpContext.Request.Host.Value + "/resources/mumuThumbnail/members_Thumbnail/" + m.Thumbnail,
+                  Email = m.Email,
+                  Address = m.Address,
+                  MemberIntroduction = m.MemberIntroduction,
+                  Phone = m.Phone,
+                  RegistrationTime = m.RegistrationTime,
+              })
+              .ToList();
         }
     }
 }
