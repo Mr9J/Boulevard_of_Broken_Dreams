@@ -14,5 +14,7 @@
         public int StatusId { get; set; }
         public decimal ProjectAmount { get; set; }
         public List<ProductDTO>? Products { get; set; }
+        public int OrderCount { get; set; }
+        public int SponsorCount { get; set; }
     }
 }
