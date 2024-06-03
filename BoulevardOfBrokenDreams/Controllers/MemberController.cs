@@ -137,6 +137,7 @@ namespace BoulevardOfBrokenDreams.Controllers
                     id = member.MemberId.ToString(),
                     username = member.Username,
                     email = member.Email ?? string.Empty,
+                    nickname = member.Nickname ?? string.Empty
                 };
 
                 return Ok(currentUser);
