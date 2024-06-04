@@ -109,7 +109,7 @@ public partial class MumuDbContext : DbContext
         {
             entity.HasOne(d => d.Member).WithMany(p => p.Carts)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_Carts_Members1");
+                .HasConstraintName("FK_Carts_Members");
         });
 
         modelBuilder.Entity<CartDetail>(entity =>
@@ -170,6 +170,9 @@ public partial class MumuDbContext : DbContext
         modelBuilder.Entity<Member>(entity =>
         {
             entity.Property(e => e.Eid).HasDefaultValueSql("(newid())");
+            entity.Property(e => e.ResetPassword)
+                .HasDefaultValue("N")
+                .IsFixedLength();
             entity.Property(e => e.Verified)
                 .HasDefaultValue("N")
                 .IsFixedLength();

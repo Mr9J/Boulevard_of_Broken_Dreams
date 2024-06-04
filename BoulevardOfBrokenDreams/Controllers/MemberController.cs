@@ -104,26 +104,20 @@ namespace BoulevardOfBrokenDreams.Controllers
         }
 
 
-        [HttpPost("get-current-user"), Authorize(Roles = "user")]
-        public async Task<IActionResult> getCurrentUser(string jwt)
+        [HttpGet("get-current-user"), Authorize(Roles = "user")]
+        public async Task<IActionResult> getCurrentUser()
         {
             try
             {
-                if (jwt == null || jwt == "")
-                {
-                    return BadRequest("請輸入 JWT");
-                }
+                string? jwt = HttpContext.Request.Headers["Authorization"];
 
-                jwt = jwt.Replace("Bearer ", "");
+                if (jwt == null || jwt == "") return BadRequest();
 
-                JwtSecurityTokenHandler tokenHandler = new JwtSecurityTokenHandler();
-                JwtSecurityToken decodedToken = tokenHandler.ReadJwtToken(jwt);
-
-                string? username = decodedToken.Claims.FirstOrDefault(claim => claim.Type == ClaimTypes.Name)?.Value;
+                string username = decodeJWT(jwt);
 
                 if (username == null)
                 {
-                    return NotFound("使用者不存在");
+                    return BadRequest();
                 }
 
                 Member? member = await _memberRepository.GetMember(username);
@@ -150,8 +144,8 @@ namespace BoulevardOfBrokenDreams.Controllers
         }
 
 
-        [HttpGet("resend-email/{username}")]
-        public async Task<IActionResult> ReSendEMail(string username)
+        [HttpPost("resend-verify-email"), Authorize(Roles = "user")]
+        public async Task<IActionResult> ReSendEmail(string username)
         {
             try
             {
@@ -179,7 +173,7 @@ namespace BoulevardOfBrokenDreams.Controllers
 
         }
 
-        [HttpGet("reset-password/{email}")]
+        [HttpPost("reset-password")]
         public async Task<IActionResult> ResetPassword(string email)
         {
             try
@@ -190,6 +184,9 @@ namespace BoulevardOfBrokenDreams.Controllers
                 {
                     return BadRequest("無此用戶");
                 }
+
+                member.ResetPassword = "Y";
+                await _context.SaveChangesAsync();
 
                 var receiver = member.Email;
                 var subject = "Mumu 重設密碼";
@@ -211,19 +208,15 @@ namespace BoulevardOfBrokenDreams.Controllers
         }
 
         [HttpPost("change-password"), Authorize(Roles = "guest")]
-        public async Task<IActionResult> ChangePassword(string password, string jwt)
+        public async Task<IActionResult> ChangePassword(string password)
         {
             try
             {
-                if (password == null || password == "")
-                {
-                    return BadRequest();
-                }
+                string? jwt = HttpContext.Request.Headers["Authorization"];
 
-                JwtSecurityTokenHandler tokenHandler = new JwtSecurityTokenHandler();
-                JwtSecurityToken decodedToken = tokenHandler.ReadJwtToken(jwt);
+                if (jwt == null || jwt == "") return BadRequest();
 
-                string? username = decodedToken.Claims.FirstOrDefault(claim => claim.Type == ClaimTypes.Name)?.Value;
+                string username = decodeJWT(jwt);
 
                 if (username == null)
                 {
@@ -243,7 +236,13 @@ namespace BoulevardOfBrokenDreams.Controllers
                     return BadRequest("帳號尚未驗證");
                 }
 
+                if (member.ResetPassword == "N")
+                {
+                    return BadRequest("無法重設密碼, 請重新要求密碼重設信");
+                }
+
                 member.Password = Hash.HashPassword(password);
+                member.ResetPassword = "N";
 
                 await _context.SaveChangesAsync();
 
@@ -253,6 +252,18 @@ namespace BoulevardOfBrokenDreams.Controllers
             {
                 return BadRequest();
             }
+        }
+
+        private string decodeJWT(string jwt)
+        {
+            jwt = jwt.Replace("Bearer ", "");
+
+            JwtSecurityTokenHandler tokenHandler = new JwtSecurityTokenHandler();
+            JwtSecurityToken decodedToken = tokenHandler.ReadJwtToken(jwt);
+
+            string? username = decodedToken.Claims.FirstOrDefault(claim => claim.Type == ClaimTypes.Name)?.Value;
+
+            return username!;
         }
     }
 }

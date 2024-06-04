@@ -47,6 +47,10 @@ public partial class Member
     [Unicode(false)]
     public string? Verified { get; set; }
 
+    [StringLength(1)]
+    [Unicode(false)]
+    public string? ResetPassword { get; set; }
+
     [InverseProperty("Member")]
     public virtual ICollection<Action> Actions { get; set; } = new List<Action>();
 
