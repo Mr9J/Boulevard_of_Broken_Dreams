@@ -76,9 +76,11 @@ namespace BoulevardOfBrokenDreams.Controllers
 
         // GET api/<ProjectController>/5
         [HttpGet("{id}")]
-        public string Get(int id)
+        public IActionResult Get(int id)
         {
-            return "value";
+            var project = _db.Projects.FirstOrDefault(proj =>  proj.ProjectId == id );
+            if (project == null) return NotFound();
+            return Ok(project);
         }
 
         // POST api/<ProjectController>
