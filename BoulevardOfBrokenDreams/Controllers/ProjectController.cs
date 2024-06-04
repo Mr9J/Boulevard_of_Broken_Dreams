@@ -208,5 +208,19 @@ namespace BoulevardOfBrokenDreams.Controllers
                            };
             return Ok(projects);
         }
+
+        [HttpGet("count")]
+        public List<int> GetProjectCounts()
+        {
+            List<int> projects = new List<int>();
+            int ProjectCount = _db.Projects.Count();
+            int activeProjectCount = _db.Projects.Count(p => p.StatusId == 1);
+            int inactiveProjectCount = _db.Projects.Count(p => p.StatusId == 0);
+            projects.Add(ProjectCount);
+            projects.Add(activeProjectCount);
+            projects.Add(inactiveProjectCount);
+            return projects;
+        }
+
     }
 }
