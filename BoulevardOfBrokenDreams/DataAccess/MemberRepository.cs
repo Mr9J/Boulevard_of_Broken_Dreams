@@ -21,8 +21,9 @@ namespace BoulevardOfBrokenDreams.DataAccess
             if (validationRes != string.Empty) { return validationRes; }
 
             bool isUserExist = _context.Members.Any(m => m.Username == user.username);
+            bool isEmailExist = _context.Members.Any(m => m.Email == user.email);
 
-            if (!isUserExist)
+            if (!isUserExist || !isEmailExist)
             {
                 Member member = new Member
                 {
@@ -34,6 +35,13 @@ namespace BoulevardOfBrokenDreams.DataAccess
                 };
 
                 _context.Members.Add(member);
+
+                await _context.SaveChangesAsync();
+
+                Cart cart = new Cart { MemberId = member.MemberId };
+
+                _context.Carts.Add(cart);
+
                 await _context.SaveChangesAsync();
 
                 return "註冊成功";
@@ -131,5 +139,11 @@ namespace BoulevardOfBrokenDreams.DataAccess
             return Regex.IsMatch(password, pattern);
         }
 
+        public async Task<Member?> GetMemberByEmail(string email)
+        {
+            Member? foundMember = await _context.Members.FirstOrDefaultAsync(m => m.Email == email);
+
+            return foundMember;
+        }
     }
 }

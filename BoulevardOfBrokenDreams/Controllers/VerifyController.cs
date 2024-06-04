@@ -22,8 +22,13 @@ namespace BoulevardOfBrokenDreams.Controllers
 
             if (member == null)
             {
-                return BadRequest("無此用戶");
+                return BadRequest("無此用戶");  
             }
+
+            //if(member.Verified == "Y")
+            //{
+            //    return BadRequest("用戶已驗證");
+            //}
 
             member.Verified = "Y";
             await _context.SaveChangesAsync();

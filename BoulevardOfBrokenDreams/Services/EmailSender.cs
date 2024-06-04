@@ -8,8 +8,8 @@ namespace BoulevardOfBrokenDreams.Services
     {
         public Task SendEmailAsync(string email, string subject, string message)
         {
-            var mail = "siechengye@gmail.com";
-            var password = "okqyobakvubpxewc";
+            var mail = "mumufundraising@gmail.com";
+            var password = "qnikxflaizlgdowb";
 
             var client = new SmtpClient("smtp.gmail.com", 587)
             {
@@ -17,8 +17,10 @@ namespace BoulevardOfBrokenDreams.Services
                 EnableSsl = true,
             };
 
-            return client.SendMailAsync(
-                new MailMessage(from: "no_reply@mumumsit158.com", to: email, subject, message));
+            var mailMessage = new MailMessage(from: "noreply@mumumsit158.com", to: email, subject, message);
+            mailMessage.IsBodyHtml = true;
+
+            return client.SendMailAsync(mailMessage);
         }
     }
 }

@@ -39,12 +39,13 @@ namespace BoulevardOfBrokenDreams.Controllers
 
                 if (res == "註冊成功")
                 {
-                    //測試用，應該要在前端做
                     Member? member = await _memberRepository.GetMember(user.username);
                     if (member == null) return BadRequest("註冊失敗");
                     var receiver = user.email;
                     var subject = "Mumu 用戶註冊驗證";
-                    var message = $"請點擊以下連結驗證您的帳號: https://localhost:7150/mumu/verify/verify-email/{member.Username}/{member.Eid}";
+                    var message = "<h1>歡迎註冊Mumu</h1>";
+                    message += "<p>請點擊以下連結驗證您的帳號:</p>";
+                    message += "<a href='https://mumumsit158.com/email-verify/" + member.Username + "/" + member.Eid + "'>點擊這裡</a>進行驗證";
 
                     await _emailSender.SendEmailAsync(receiver, subject, message);
 
@@ -55,9 +56,9 @@ namespace BoulevardOfBrokenDreams.Controllers
                     return BadRequest(res);
                 }
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                return BadRequest("伺服器錯誤，請稍後再試");
+                return BadRequest(ex.Message);
             }
         }
 
@@ -103,7 +104,7 @@ namespace BoulevardOfBrokenDreams.Controllers
         }
 
 
-        [HttpPost("get-current-user"), Authorize]
+        [HttpPost("get-current-user"), Authorize(Roles = "user")]
         public async Task<IActionResult> getCurrentUser(string jwt)
         {
             try
@@ -149,29 +150,109 @@ namespace BoulevardOfBrokenDreams.Controllers
         }
 
 
-        [HttpGet("send-email")]
-        public async Task<IActionResult> SendMail()
+        [HttpGet("resend-email/{username}")]
+        public async Task<IActionResult> ReSendEMail(string username)
         {
             try
             {
-                var receiver = "u369258963@gmail.com";
-                var subject = "測試";
-                //StringBuilder mailBody = new StringBuilder();
-                //mailBody.AppendFormat("<h1>用戶註冊</h1>");
-                //mailBody.AppendFormat("<br />");
-                //mailBody.AppendFormat("<p>感謝您的註冊</p>");
-                //var message = mailBody.ToString();
-                var message = "測試完成";
+                Member? member = await _memberRepository.GetMember(username);
 
-                await _emailSender.SendEmailAsync(receiver, subject, message);
+                if (member == null)
+                {
+                    return BadRequest("無此用戶");
+                }
+
+                var receiver = member.Email;
+                var subject = "Mumu 用戶註冊驗證";
+                var message = "<h1 style=\"background-color: cornflowerblue; color: aliceblue\">歡迎註冊MUMU</h1>";
+                message += "<p>請點擊以下連結驗證您的帳號 : </p>";
+                message += "<a href='https://mumumsit158.com/email-verify/" + member.Username + "/" + member.Eid + "'>點擊這裡</a>進行驗證";
+
+                await _emailSender.SendEmailAsync(receiver!, subject, message);
 
                 return Ok("信件已寄出");
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                return BadRequest(ex.Message);
+                return BadRequest();
             }
 
+        }
+
+        [HttpGet("reset-password/{email}")]
+        public async Task<IActionResult> ResetPassword(string email)
+        {
+            try
+            {
+                Member? member = await _memberRepository.GetMemberByEmail(email);
+
+                if (member == null)
+                {
+                    return BadRequest("無此用戶");
+                }
+
+                var receiver = member.Email;
+                var subject = "Mumu 重設密碼";
+                var message = "<h1 style=\"background-color: cornflowerblue; color: aliceblue\">Mumu 重設密碼</h1>";
+                message += "<p>請點擊以下連結重設您的密碼 : </p>";
+
+                var token = (new JwtGenerator(_configuration)).GenerateJwtToken(member.Username, "guest");
+
+                message += "<a href='https://mumumsit158.com/reset-password/" + token + "'>點擊這裡</a>進行重設";
+
+                await _emailSender.SendEmailAsync(receiver!, subject, message);
+
+                return Ok("信件已寄出");
+            }
+            catch (Exception)
+            {
+                return BadRequest();
+            }
+        }
+
+        [HttpPost("change-password"), Authorize(Roles = "guest")]
+        public async Task<IActionResult> ChangePassword(string password, string jwt)
+        {
+            try
+            {
+                if (password == null || password == "")
+                {
+                    return BadRequest();
+                }
+
+                JwtSecurityTokenHandler tokenHandler = new JwtSecurityTokenHandler();
+                JwtSecurityToken decodedToken = tokenHandler.ReadJwtToken(jwt);
+
+                string? username = decodedToken.Claims.FirstOrDefault(claim => claim.Type == ClaimTypes.Name)?.Value;
+
+                if (username == null)
+                {
+                    return BadRequest();
+                }
+
+                Member? member = await _memberRepository.GetMember(username);
+
+
+                if (member == null)
+                {
+                    return NotFound("使用者不存在");
+                }
+
+                if (member.Verified == "N")
+                {
+                    return BadRequest("帳號尚未驗證");
+                }
+
+                member.Password = Hash.HashPassword(password);
+
+                await _context.SaveChangesAsync();
+
+                return Ok("密碼已變更");
+            }
+            catch (Exception)
+            {
+                return BadRequest();
+            }
         }
     }
 }

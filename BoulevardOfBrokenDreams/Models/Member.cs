@@ -48,6 +48,12 @@ public partial class Member
     public string? Verified { get; set; }
 
     [InverseProperty("Member")]
+    public virtual ICollection<Action> Actions { get; set; } = new List<Action>();
+
+    [InverseProperty("Member")]
+    public virtual ICollection<Admin> Admins { get; set; } = new List<Admin>();
+
+    [InverseProperty("Member")]
     public virtual ICollection<Cart> Carts { get; set; } = new List<Cart>();
 
     [InverseProperty("Member")]
@@ -65,8 +71,11 @@ public partial class Member
     [InverseProperty("Member")]
     public virtual ICollection<Order> Orders { get; set; } = new List<Order>();
 
-    [InverseProperty("Memeber")]
+    [InverseProperty("Member")]
     public virtual ICollection<Project> Projects { get; set; } = new List<Project>();
+
+    [InverseProperty("Member")]
+    public virtual ICollection<ServiceMessage> ServiceMessages { get; set; } = new List<ServiceMessage>();
 
     [InverseProperty("Member")]
     public virtual ICollection<Service> Services { get; set; } = new List<Service>();

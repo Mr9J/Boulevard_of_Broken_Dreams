@@ -15,6 +15,8 @@ public partial class Project
     [StringLength(100)]
     public string ProjectName { get; set; } = null!;
 
+    public string? ProjectDescription { get; set; }
+
     [Column(TypeName = "money")]
     public decimal ProjectGoal { get; set; }
 
@@ -22,8 +24,8 @@ public partial class Project
 
     public DateOnly EndDate { get; set; }
 
-    [Column("MemeberID")]
-    public int MemeberId { get; set; }
+    [Column("MemberID")]
+    public int MemberId { get; set; }
 
     [Column("GroupID")]
     public int? GroupId { get; set; }
@@ -51,9 +53,9 @@ public partial class Project
     [InverseProperty("Project")]
     public virtual ICollection<Like> Likes { get; set; } = new List<Like>();
 
-    [ForeignKey("MemeberId")]
+    [ForeignKey("MemberId")]
     [InverseProperty("Projects")]
-    public virtual Member Memeber { get; set; } = null!;
+    public virtual Member Member { get; set; } = null!;
 
     [InverseProperty("Project")]
     public virtual ICollection<OrderDetail> OrderDetails { get; set; } = new List<OrderDetail>();

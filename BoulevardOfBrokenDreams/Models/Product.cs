@@ -28,8 +28,7 @@ public partial class Product
 
     public int InitialStock { get; set; }
 
-    [StringLength(10)]
-    public string CurrentStock { get; set; } = null!;
+    public int CurrentStock { get; set; }
 
     public DateOnly StartDate { get; set; }
 
