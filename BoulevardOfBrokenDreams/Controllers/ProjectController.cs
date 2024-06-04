@@ -42,7 +42,17 @@ namespace BoulevardOfBrokenDreams.Controllers
                                ProjectAmount = (from orderDetail in _db.OrderDetails
                                                 where orderDetail.ProjectId == p.ProjectId
                                                 select orderDetail.Price).Sum(),
-                               Products = (from product in _db.Products
+                               DonationAmount = (from order in _db.Orders
+                                                 join orderDetail in _db.OrderDetails on order.OrderId equals orderDetail.OrderId
+                                                 where orderDetail.ProjectId == p.ProjectId
+                                                 select order.Donate ?? 0).FirstOrDefault(),
+                               TotalAmount = ((from orderDetail in _db.OrderDetails
+                                               where orderDetail.ProjectId == p.ProjectId
+                                               select orderDetail.Price).Sum()) + ((from order in _db.Orders
+                                                                                   join orderDetail in _db.OrderDetails on order.OrderId equals orderDetail.OrderId
+                                                                                   where orderDetail.ProjectId == p.ProjectId
+                                                                                   select order.Donate ?? 0).FirstOrDefault()),
+            Products = (from product in _db.Products
                                            where product.ProjectId == p.ProjectId
                                            select new ProductDTO
                                            {
