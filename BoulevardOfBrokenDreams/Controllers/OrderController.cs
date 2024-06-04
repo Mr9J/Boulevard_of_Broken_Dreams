@@ -71,7 +71,7 @@ namespace BoulevardOfBrokenDreams.Controllers
             return ProjectDTO;
         }
 
-        [HttpGet("project/{projectId}")]
+        [HttpGet("Project/{projectId}")]
         public IActionResult GetByProjectId(int projectId)
         {
             if (!_db.OrderDetails.Any(p => p.ProjectId == projectId))
@@ -79,11 +79,13 @@ namespace BoulevardOfBrokenDreams.Controllers
                 return NotFound("No projects found for the given member ID.");
             }
             var orders = from o in _db.Orders
-                         where _db.OrderDetails.Any(od => od.OrderId == o.OrderId && od.ProjectId == projectId)
+                         join od in _db.OrderDetails on o.OrderId equals od.OrderId
+                         join p in _db.Projects on od.ProjectId equals p.ProjectId
+                         where od.ProjectId == projectId
                          select new OrderDTO
                          {
                              OrderId = o.OrderId,
-                             OrderDate = o.OrderDate,
+                             OrderDate = o.OrderDate.ToString("yyyy-MM-dd"),
                              MemberId = o.MemberId,
                              ShipDate = o.ShipDate,
                              ShipmentStatusId = o.ShipmentStatusId,
@@ -93,17 +95,21 @@ namespace BoulevardOfBrokenDreams.Controllers
                              Member = new MemberDTO
                              {
                                  MemberId = o.Member.MemberId,
-                                 Username = o.Member.Username
+                                 Username = o.Member.Username,
+                                 Thumbnail = "https://" + _httpContextAccessor.HttpContext.Request.Host.Value + "/resources/mumuThumbnail/members_Thumbnail/" + o.Member.Thumbnail,
                              },
-                             OrderDetails = o.OrderDetails.Select(od => new OrderDetailDTO
+                             OrderDetails =new OrderDetailDTO
                              {
                                  OrderDetailId = od.OrderDetailId,
                                  OrderId = od.OrderId,
                                  ProjectId = od.ProjectId,
                                  ProductId = od.ProductId,
+                                 ProjectName = (from projects in _db.Projects
+                                                 where projects.ProjectId == od.ProjectId
+                                                select projects.ProjectName).FirstOrDefault(),
                                  Count = od.Count,
                                  Price = od.Price
-                             }).ToList(),
+                             },
                              //ProjectId = projectId
                          };
 
