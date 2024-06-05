@@ -163,6 +163,8 @@ namespace BoulevardOfBrokenDreams.Controllers
         {
             try
             {
+                if (email == null || email == "") return BadRequest();
+
                 Member? member = await _memberRepository.GetMemberByEmail(email);
 
                 if (member == null)
@@ -249,6 +251,44 @@ namespace BoulevardOfBrokenDreams.Controllers
             string? username = decodedToken.Claims.FirstOrDefault(claim => claim.Type == ClaimTypes.Name)?.Value;
 
             return username!;
+        }
+
+        [HttpPost("sign-in-with-others")]
+        public async Task<IActionResult> SignInWithOthers(OuterSignInDTO user)
+        {
+            try
+            {
+                Member? member = await _memberRepository.GetMember(user.username);
+
+                if (member == null)
+                {
+                    Member newUser = new Member
+                    {
+                        Nickname = user.nickname,
+                        Username = user.username,
+                        Thumbnail = user.thumbnail,
+                        Password = Hash.HashPassword(user.uid)
+                    };
+
+                    _context.Members.Add(newUser);
+                    await _context.SaveChangesAsync();
+                }
+
+                if (member != null && !Hash.VerifyHashedPassword(user.uid, member!.Password!))
+                {
+                    return BadRequest("錯誤，請聯絡管理員");
+                }
+
+                var token = (new JwtGenerator(_configuration)).GenerateJwtToken(user.username, "user");
+
+                string jwt = "Bearer " + token;
+
+                return Ok(jwt);
+            }
+            catch (Exception)
+            {
+                return BadRequest();
+            }
         }
     }
 }
