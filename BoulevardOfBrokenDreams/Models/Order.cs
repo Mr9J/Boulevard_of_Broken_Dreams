@@ -30,6 +30,9 @@ public partial class Order
     [Column("PaymentStatusID")]
     public int PaymentStatusId { get; set; }
 
+    [Column(TypeName = "money")]
+    public decimal? Donate { get; set; }
+
     [ForeignKey("MemberId")]
     [InverseProperty("Orders")]
     public virtual Member Member { get; set; } = null!;

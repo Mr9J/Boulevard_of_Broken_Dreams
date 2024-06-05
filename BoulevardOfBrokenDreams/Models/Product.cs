@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Text.Json.Serialization;
 using Microsoft.EntityFrameworkCore;
 
 namespace BoulevardOfBrokenDreams.Models;
@@ -28,8 +29,7 @@ public partial class Product
 
     public int InitialStock { get; set; }
 
-    [StringLength(10)]
-    public string CurrentStock { get; set; } = null!;
+    public int CurrentStock { get; set; }
 
     public DateOnly StartDate { get; set; }
 
@@ -46,6 +46,7 @@ public partial class Product
     [InverseProperty("Product")]
     public virtual ICollection<OrderDetail> OrderDetails { get; set; } = new List<OrderDetail>();
 
+    [JsonIgnore]
     [ForeignKey("ProjectId")]
     [InverseProperty("Products")]
     public virtual Project Project { get; set; } = null!;

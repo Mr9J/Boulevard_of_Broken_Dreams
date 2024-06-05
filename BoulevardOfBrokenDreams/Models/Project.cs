@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Text.Json.Serialization;
 using Microsoft.EntityFrameworkCore;
 
 namespace BoulevardOfBrokenDreams.Models;
@@ -15,6 +16,8 @@ public partial class Project
     [StringLength(100)]
     public string ProjectName { get; set; } = null!;
 
+    public string? ProjectDescription { get; set; }
+
     [Column(TypeName = "money")]
     public decimal ProjectGoal { get; set; }
 
@@ -22,16 +25,13 @@ public partial class Project
 
     public DateOnly EndDate { get; set; }
 
-    [Column("MemeberID")]
-    public int MemeberId { get; set; }
+    [Column("MemberID")]
+    public int MemberId { get; set; }
 
     [Column("GroupID")]
     public int? GroupId { get; set; }
 
     public string? Campaign { get; set; }
-
-    [Column("FAQ")]
-    public string? Faq { get; set; }
 
     public string? Updates { get; set; }
 
@@ -54,15 +54,18 @@ public partial class Project
     [InverseProperty("Project")]
     public virtual ICollection<Like> Likes { get; set; } = new List<Like>();
 
-    [ForeignKey("MemeberId")]
+    [ForeignKey("MemberId")]
     [InverseProperty("Projects")]
-    public virtual Member Memeber { get; set; } = null!;
+    public virtual Member Member { get; set; } = null!;
 
     [InverseProperty("Project")]
     public virtual ICollection<OrderDetail> OrderDetails { get; set; } = new List<OrderDetail>();
 
     [InverseProperty("Project")]
     public virtual ICollection<Product> Products { get; set; } = new List<Product>();
+
+    [InverseProperty("Project")]
+    public virtual ICollection<ProjectFaq> ProjectFaqs { get; set; } = new List<ProjectFaq>();
 
     [InverseProperty("Project")]
     public virtual ICollection<ProjectIdtype> ProjectIdtypes { get; set; } = new List<ProjectIdtype>();
