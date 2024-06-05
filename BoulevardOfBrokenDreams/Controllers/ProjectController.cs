@@ -225,7 +225,7 @@ namespace BoulevardOfBrokenDreams.Controllers
             List<int> projects = new List<int>();
             int ProjectCount = _db.Projects.Count();
             int activeProjectCount = _db.Projects.Count(p => p.StatusId == 1);
-            int inactiveProjectCount = _db.Projects.Count(p => p.StatusId == 0);
+            int inactiveProjectCount = _db.Projects.Count(p => p.StatusId == 2);
             projects.Add(ProjectCount);
             projects.Add(activeProjectCount);
             projects.Add(inactiveProjectCount);
