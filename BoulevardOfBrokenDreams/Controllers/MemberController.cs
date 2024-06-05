@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.IdentityModel.Tokens.Jwt;
 using System.Net.Mail;
+using System.Runtime.InteropServices;
 using System.Security.Claims;
 using System.Text;
 
@@ -87,22 +88,6 @@ namespace BoulevardOfBrokenDreams.Controllers
                 return BadRequest("伺服器錯誤，請稍後再試");
             }
         }
-
-        [HttpGet("check-username"), Authorize]
-        public async Task<IActionResult> GetCurrentUser(string username)
-        {
-            Member? member = await _memberRepository.GetMember(username);
-
-            if (member != null)
-            {
-                return Ok(member);
-            }
-            else
-            {
-                return BadRequest(member);
-            }
-        }
-
 
         [HttpGet("get-current-user"), Authorize(Roles = "user")]
         public async Task<IActionResult> getCurrentUser()
@@ -267,3 +252,5 @@ namespace BoulevardOfBrokenDreams.Controllers
         }
     }
 }
+
+
