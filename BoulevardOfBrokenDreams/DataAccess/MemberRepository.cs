@@ -1,5 +1,5 @@
 ﻿using BoulevardOfBrokenDreams.Models;
-using BoulevardOfBrokenDreams.Props;
+using BoulevardOfBrokenDreams.Models.DTO;
 using BoulevardOfBrokenDreams.Services;
 using Microsoft.EntityFrameworkCore;
 
@@ -13,7 +13,7 @@ namespace BoulevardOfBrokenDreams.DataAccess
             this.context = _context;
         }
 
-        public async Task<string> CreateMember(SignUpProps user)
+        public async Task<string> CreateMember(SignUpDTO user)
         {
             if (!SignUpPropsValidation(user)) return "輸入不完整，請確認後再試";
 
@@ -43,7 +43,7 @@ namespace BoulevardOfBrokenDreams.DataAccess
             }
         }
 
-        private bool SignUpPropsValidation(SignUpProps user)
+        private bool SignUpPropsValidation(SignUpDTO user)
         {
             if (string.IsNullOrEmpty(user.nickname) ||
                 string.IsNullOrEmpty(user.username) ||
@@ -69,10 +69,17 @@ namespace BoulevardOfBrokenDreams.DataAccess
 
             return false;
         }
-
-        public async Task<string> AuthMember(SignInProps user)
+        
+        public async Task<Member?> GetMemberFull(string username)
         {
-            if (!SignInPropsValidation(user)) return "輸入不完整，請確認後再試";
+            Member? foundMember = await context.Members.FirstOrDefaultAsync(m => m.Username == username);
+
+            return foundMember;
+        }
+
+        public async Task<Member?> AuthMember(SignInDTO user)
+        {
+            if (!SignInPropsValidation(user)) return null;
 
             Member? foundMember = await context.Members.FirstOrDefaultAsync(m => m.Username == user.username);
 
@@ -80,21 +87,21 @@ namespace BoulevardOfBrokenDreams.DataAccess
             {
                 if (foundMember.Password == null)
                 {
-                    return "帳號或密碼錯誤";
+                    return null;
                 }
 
                 if (Hash.VerifyHashedPassword(user.password, foundMember.Password))
                 {
-                    return "登入成功";
+                    return foundMember;
                 }
 
-                return "帳號或密碼錯誤";
+                return null;
             }
 
-            return "帳號或密碼錯誤";
+            return null;
         }
 
-        private bool SignInPropsValidation(SignInProps user)
+        private bool SignInPropsValidation(SignInDTO user)
         {
             if (string.IsNullOrEmpty(user.username) ||
                 string.IsNullOrEmpty(user.password))
