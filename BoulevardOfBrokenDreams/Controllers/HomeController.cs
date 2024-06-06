@@ -47,6 +47,7 @@ namespace BoulevardOfBrokenDreams.Controllers
         }
 
         // GET api/<HomeController>/5
+
         [HttpGet("{pop}")]
         public IEnumerable<ProjectCardDTO> Get(string pop)
         {
@@ -69,6 +70,7 @@ namespace BoulevardOfBrokenDreams.Controllers
                                                select orderDetail.OrderId).Count(),
                            };
             return projects.OrderByDescending(x=>x.SponsorCount).Take(7);
+
         }
 
         // POST api/<HomeController>

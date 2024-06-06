@@ -6,6 +6,7 @@ using System.Numerics;
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
+
 namespace BoulevardOfBrokenDreams.Controllers
 {
     [Route("api/[controller]")]
@@ -183,6 +184,19 @@ namespace BoulevardOfBrokenDreams.Controllers
             return Ok(value);
         }
 
+        [HttpPut("ban/{id}")]
+        public IActionResult BanProject(int id, [FromBody] ProjectDTO value)
+        {
+            Project? p = _db.Projects.FirstOrDefault(x => x.ProjectId == id);
+            if (p == null)
+            {
+                return NotFound("Project not found.");
+            }
+            p.StatusId = 2;
+            _db.SaveChanges();
+            return Ok();
+        }
+
         // DELETE api/<ProjectController>/5
         [HttpDelete("{id}")]
         public string Delete(int id)
@@ -235,6 +249,19 @@ namespace BoulevardOfBrokenDreams.Controllers
                                            }).ToList()
                            };
             return Ok(projects);
+        }
+
+        [HttpGet("count")]
+        public List<int> GetProjectCounts()
+        {
+            List<int> projects = new List<int>();
+            int ProjectCount = _db.Projects.Count();
+            int activeProjectCount = _db.Projects.Count(p => p.StatusId == 1);
+            int inactiveProjectCount = _db.Projects.Count(p => p.StatusId == 2);
+            projects.Add(ProjectCount);
+            projects.Add(activeProjectCount);
+            projects.Add(inactiveProjectCount);
+            return projects;
         }
     }
 }
