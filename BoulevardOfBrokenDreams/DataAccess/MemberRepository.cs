@@ -2,38 +2,39 @@
 using BoulevardOfBrokenDreams.Models.DTO;
 using BoulevardOfBrokenDreams.Services;
 using Microsoft.EntityFrameworkCore;
+using System.Text.RegularExpressions;
 
 namespace BoulevardOfBrokenDreams.DataAccess
 {
     public class MemberRepository
     {
-        private MumuDbContext context;
-        public MemberRepository(MumuDbContext _context)
+        private readonly MumuDbContext _context;
+        public MemberRepository(MumuDbContext context)
         {
-            this.context = _context;
+            this._context = context;
         }
 
         public async Task<string> CreateMember(SignUpDTO user)
         {
-            if (!SignUpPropsValidation(user)) return "輸入不完整，請確認後再試";
+            string validationRes = SignUpValidation(user);
 
-            bool isUserExist = await GetMember(user.username);
+            if (validationRes != string.Empty) { return validationRes; }
+
+            bool isUserExist = _context.Members.Any(m => m.Username == user.username);
 
             if (!isUserExist)
             {
-                Member member = new Member();
+                Member member = new Member
+                {
+                    Nickname = user.nickname,
+                    Username = user.username,
+                    Email = user.email,
+                    RegistrationTime = DateTime.UtcNow,
+                    Password = Hash.HashPassword(user.password)
+                };
 
-                member.Nickname = user.nickname;
-                member.Username = user.username;
-                member.Email = user.email;
-                member.RegistrationTime = DateTime.UtcNow;
-
-                string hashedPassword = Hash.HashPassword(user.password);
-
-                member.Password = hashedPassword;
-
-                context.Members.Add(member);
-                await context.SaveChangesAsync();
+                _context.Members.Add(member);
+                await _context.SaveChangesAsync();
 
                 return "註冊成功";
             }
@@ -43,24 +44,9 @@ namespace BoulevardOfBrokenDreams.DataAccess
             }
         }
 
-        private bool SignUpPropsValidation(SignUpDTO user)
+        public async Task<Boolean> IsMemberExist(string username)
         {
-            if (string.IsNullOrEmpty(user.nickname) ||
-                string.IsNullOrEmpty(user.username) ||
-                string.IsNullOrEmpty(user.email) ||
-                string.IsNullOrEmpty(user.password))
-            {
-                return false;
-            }
-            else
-            {
-                return true;
-            }
-        }
-
-        public async Task<Boolean> GetMember(string username)
-        {
-            Member? foundMember = await context.Members.FirstOrDefaultAsync(m => m.Username == username);
+            Member? foundMember = await _context.Members.FirstOrDefaultAsync(m => m.Username == username);
 
             if (foundMember != null)
             {
@@ -69,10 +55,10 @@ namespace BoulevardOfBrokenDreams.DataAccess
 
             return false;
         }
-        
-        public async Task<Member?> GetMemberFull(string username)
+
+        public async Task<Member?> GetMember(string username)
         {
-            Member? foundMember = await context.Members.FirstOrDefaultAsync(m => m.Username == username);
+            Member? foundMember = await _context.Members.FirstOrDefaultAsync(m => m.Username == username);
 
             return foundMember;
         }
@@ -81,16 +67,11 @@ namespace BoulevardOfBrokenDreams.DataAccess
         {
             if (!SignInPropsValidation(user)) return null;
 
-            Member? foundMember = await context.Members.FirstOrDefaultAsync(m => m.Username == user.username);
+            Member? foundMember = await _context.Members.FirstOrDefaultAsync(m => m.Username == user.username);
 
             if (foundMember != null)
             {
-                if (foundMember.Password == null)
-                {
-                    return null;
-                }
-
-                if (Hash.VerifyHashedPassword(user.password, foundMember.Password))
+                if (Hash.VerifyHashedPassword(user.password, foundMember.Password!))
                 {
                     return foundMember;
                 }
@@ -101,17 +82,60 @@ namespace BoulevardOfBrokenDreams.DataAccess
             return null;
         }
 
+
+
+        private string SignUpValidation(SignUpDTO user)
+        {
+            if (user.nickname.Length < 2 || user.nickname.Length > 20)
+            {
+                return "暱稱長度必須在2至20之間";
+            }
+
+            if (user.username.Length < 8 || user.username.Length > 24)
+            {
+                return "帳號長度必須在8至24之間";
+            }
+
+            if (!IsValidEmail(user.email))
+            {
+                return "請輸入正確的電子郵件格式";
+            }
+
+            if (user.password.Length < 8 || user.password.Length > 24)
+            {
+                return "密碼長度必須在8至24之間";
+            }
+
+            if (!IsValidPassword(user.password))
+            {
+                return "密碼必須包含大小寫英文字母及數字";
+            }
+
+            return string.Empty;
+        }
+
         private bool SignInPropsValidation(SignInDTO user)
         {
-            if (string.IsNullOrEmpty(user.username) ||
-                string.IsNullOrEmpty(user.password))
-            {
-                return false;
-            }
-            else
-            {
-                return true;
-            }
+            return !string.IsNullOrEmpty(user.username) && !string.IsNullOrEmpty(user.password);
+        }
+
+        public bool IsValidEmail(string email)
+        {
+            string pattern = @"^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$";
+            return Regex.IsMatch(email, pattern);
+        }
+
+        public bool IsValidPassword(string password)
+        {
+            string pattern = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)[A-Za-z\\d]+$";
+            return Regex.IsMatch(password, pattern);
+        }
+
+        public async Task<Member?> GetMemberByEmail(string email)
+        {
+            Member? foundMember = await _context.Members.FirstOrDefaultAsync(m => m.Email == email);
+
+            return foundMember;
         }
     }
 }
