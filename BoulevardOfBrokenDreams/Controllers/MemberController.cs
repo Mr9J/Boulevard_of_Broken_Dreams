@@ -31,7 +31,7 @@ namespace BoulevardOfBrokenDreams.Controllers
             this._configuration = _configuration;
             this._memberRepository = new MemberRepository(this._context);
             this._emailSender = _emailSender;
-            _httpContextAccessor = _httpContextAccessor;
+            this._httpContextAccessor = _httpContextAccessor;
         }
 
         [HttpPost("sign-up")]
@@ -306,7 +306,7 @@ namespace BoulevardOfBrokenDreams.Controllers
                   MemberId = m.MemberId,
                   Username = m.Username,
                   Nickname = m.Nickname,
-                  Thumbnail = "https://" + _httpContextAccessor.HttpContext.Request.Host.Value + "/resources/mumuThumbnail/members_Thumbnail/" + m.Thumbnail,
+                  Thumbnail = "https://" + _httpContextAccessor.HttpContext!.Request.Host.Value + "/resources/mumuThumbnail/members_Thumbnail/" + m.Thumbnail,
                   Email = m.Email,
                   Address = m.Address,
                   MemberIntroduction = m.MemberIntroduction,
