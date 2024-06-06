@@ -12,10 +12,13 @@ namespace BoulevardOfBrokenDreams.Controllers
     [ApiController]
     public class MemberController : ControllerBase
     {
-        private readonly MumuDbContext context;
-        private readonly IConfiguration configuration;
+        private readonly MumuDbContext _context;
+        private readonly IConfiguration _configuration;
+        private MemberRepository _memberRepository;
+        private readonly IEmailSender _emailSender;
         private readonly IHttpContextAccessor _httpContextAccessor;
-        public MemberController(MumuDbContext _context, IConfiguration _configuration , IHttpContextAccessor httpContextAccessor)
+
+        public MemberController(MumuDbContext _context, IConfiguration _configuration, IEmailSender _emailSender, IHttpContextAccessor _httpContextAccessor)
         {
             this._context = _context;
             this._configuration = _configuration;
@@ -29,7 +32,7 @@ namespace BoulevardOfBrokenDreams.Controllers
         {
             try
             {
-                string res = await (new MemberRepository(context)).CreateMember(user);
+                string res = await (new MemberRepository(_context)).CreateMember(user);
 
                 if (res == "使用者已存在")
                 {
@@ -49,7 +52,7 @@ namespace BoulevardOfBrokenDreams.Controllers
         {
             try
             {
-                string res = await (new MemberRepository(context)).AuthMember(user);
+                string res = await (new MemberRepository(_context)).AuthMember(user);
 
                 if (res == "登入成功")
                 {
