@@ -23,12 +23,15 @@ namespace BoulevardOfBrokenDreams.Controllers
         private readonly IConfiguration _configuration;
         private MemberRepository _memberRepository;
         private readonly IEmailSender _emailSender;
-        public MemberController(MumuDbContext _context, IConfiguration _configuration, IEmailSender _emailSender)
+        private readonly IHttpContextAccessor _httpContextAccessor;
+
+        public MemberController(MumuDbContext _context, IConfiguration _configuration, IEmailSender _emailSender, IHttpContextAccessor _httpContextAccessor)
         {
             this._context = _context;
             this._configuration = _configuration;
             this._memberRepository = new MemberRepository(this._context);
             this._emailSender = _emailSender;
+            _httpContextAccessor = _httpContextAccessor;
         }
 
         [HttpPost("sign-up")]
@@ -297,7 +300,7 @@ namespace BoulevardOfBrokenDreams.Controllers
         [HttpGet]
         public IEnumerable<MemberDTO> Get()
         {
-            return context.Members
+            return _context.Members
               .Select(m => new MemberDTO
               {
                   MemberId = m.MemberId,
