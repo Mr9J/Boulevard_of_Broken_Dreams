@@ -6,6 +6,7 @@ using System.Numerics;
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
+
 namespace BoulevardOfBrokenDreams.Controllers
 {
     [Route("api/[controller]")]
@@ -244,6 +245,5 @@ namespace BoulevardOfBrokenDreams.Controllers
             projects.Add(inactiveProjectCount);
             return projects;
         }
-
     }
 }
