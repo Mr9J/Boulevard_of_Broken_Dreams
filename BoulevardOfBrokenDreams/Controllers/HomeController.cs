@@ -47,10 +47,30 @@ namespace BoulevardOfBrokenDreams.Controllers
         }
 
         // GET api/<HomeController>/5
-        [HttpGet("{id}")]
-        public string Get(int id)
+
+        [HttpGet("{pop}")]
+        public IEnumerable<ProjectCardDTO> Get(string pop)
         {
-            return "value";
+            var projects = from p in _db.Projects.Where(x => x.StatusId == 1)
+                           select new ProjectCardDTO
+                           {
+                               ProjectId = p.ProjectId,
+                               ProjectName = p.ProjectName,
+                               ProjectGoal = p.ProjectGoal,
+                               DayLeft = (p.EndDate.DayNumber - DateOnly.FromDateTime(DateTime.Today).DayNumber),
+                               Thumbnail = "https://" + _httpContextAccessor.HttpContext.Request.Host.Value + "/resources/mumuThumbnail/Projects_Products_Thumbnail/" + p.Thumbnail,
+                               TotalAmount = ((from orderDetail in _db.OrderDetails
+                                                             where orderDetail.ProjectId == p.ProjectId
+                                                             select orderDetail.Price).Sum()) + ((from order in _db.Orders
+                                                                                                  join orderDetail in _db.OrderDetails on order.OrderId equals orderDetail.OrderId
+                                                                                                  where orderDetail.ProjectId == p.ProjectId
+                                                                                                  select order.Donate ?? 0).FirstOrDefault()),
+                               SponsorCount = (from orderDetail in _db.OrderDetails
+                                               where orderDetail.ProjectId == p.ProjectId
+                                               select orderDetail.OrderId).Count(),
+                           };
+            return projects.OrderByDescending(x=>x.SponsorCount).Take(7);
+
         }
 
         // POST api/<HomeController>
