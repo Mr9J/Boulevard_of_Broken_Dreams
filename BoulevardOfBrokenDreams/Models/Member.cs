@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Text.Json.Serialization;
 using Microsoft.EntityFrameworkCore;
 
 namespace BoulevardOfBrokenDreams.Models;
@@ -78,6 +79,7 @@ public partial class Member
     [InverseProperty("Member")]
     public virtual ICollection<Order> Orders { get; set; } = new List<Order>();
 
+    [JsonIgnore]
     [InverseProperty("Member")]
     public virtual ICollection<Project> Projects { get; set; } = new List<Project>();
 
