@@ -48,8 +48,8 @@ namespace BoulevardOfBrokenDreams.Controllers
 
         // GET api/<HomeController>/5
 
-        [HttpGet("{pop}")]
-        public IEnumerable<ProjectCardDTO> Get(string pop)
+        [HttpGet("POP")]
+        public IEnumerable<ProjectCardDTO> POP()
         {
             var projects = from p in _db.Projects.Where(x => x.StatusId == 1)
                            select new ProjectCardDTO
