@@ -42,11 +42,9 @@ namespace BoulevardOfBrokenDreams.Controllers
                .ToList();
         }
 
-        
-        
         // GET api/<ProductController>/5
         [HttpGet("{id}")]
-        public string GetProjectByProjectId(int id)
+        public string Get(int id)
         {
             return "value";
         }
@@ -146,8 +144,5 @@ namespace BoulevardOfBrokenDreams.Controllers
         {
             return "damedesuyo";
         }
-        
-
-        
     }
 }

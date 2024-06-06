@@ -76,27 +76,11 @@ namespace BoulevardOfBrokenDreams.Controllers
 
         // GET api/<ProjectController>/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<Project>> GetProjectById(int id)
+        public IActionResult Get(int id)
         {
-            var project = await _db.Projects
-                .Include(x=>x.Products)
-                .Include(x=>x.Member)
-                .FirstOrDefaultAsync(proj =>  proj.ProjectId == id );
-            
-            if(project == null) return NotFound("Project not found.");
-
-            var p = new VMProjectInfo()
-            {
-                ProjectId = project.ProjectId,
-                ProjectName = project.ProjectName,
-                ProjectDescription = project.ProjectDescription,
-                ProjectThumbnail = "https://" + _httpContextAccessor.HttpContext.Request.Host.Value + "/resources/mumuThumbnail/Projects_Products_Thumbnail/" + project.Thumbnail,
-                ProjectGoal = project.ProjectGoal,
-                StartDate = project.StartDate,
-                EndDate = project.EndDate,
-            };
-
-            return Ok(p);
+            var project = _db.Projects.FirstOrDefault(proj =>  proj.ProjectId == id );
+            if (project == null) return NotFound();
+            return Ok(project);
         }
 
         // POST api/<ProjectController>
