@@ -117,7 +117,8 @@ namespace BoulevardOfBrokenDreams.Controllers
                     id = member.MemberId.ToString(),
                     username = member.Username,
                     email = member.Email ?? string.Empty,
-                    nickname = member.Nickname ?? string.Empty
+                    nickname = member.Nickname ?? string.Empty,
+                    thumbnail = member.Thumbnail ?? string.Empty
                 };
 
                 return Ok(currentUser);
@@ -267,7 +268,10 @@ namespace BoulevardOfBrokenDreams.Controllers
                         Nickname = user.nickname,
                         Username = user.username,
                         Thumbnail = user.thumbnail,
-                        Password = Hash.HashPassword(user.uid)
+                        Password = Hash.HashPassword(user.uid),
+                        ResetPassword = "N",
+                        Verified = "Y",
+                        RegistrationTime = DateTime.UtcNow,
                     };
 
                     _context.Members.Add(newUser);

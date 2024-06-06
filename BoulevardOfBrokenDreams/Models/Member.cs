@@ -51,6 +51,9 @@ public partial class Member
     [Unicode(false)]
     public string? ResetPassword { get; set; }
 
+    [Column("StatusID")]
+    public int? StatusId { get; set; }
+
     [InverseProperty("Member")]
     public virtual ICollection<Action> Actions { get; set; } = new List<Action>();
 
