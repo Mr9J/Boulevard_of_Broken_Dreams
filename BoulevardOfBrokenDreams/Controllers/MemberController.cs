@@ -294,6 +294,24 @@ namespace BoulevardOfBrokenDreams.Controllers
                 return BadRequest();
             }
         }
+        [HttpGet]
+        public IEnumerable<MemberDTO> Get()
+        {
+            return context.Members
+              .Select(m => new MemberDTO
+              {
+                  MemberId = m.MemberId,
+                  Username = m.Username,
+                  Nickname = m.Nickname,
+                  Thumbnail = "https://" + _httpContextAccessor.HttpContext.Request.Host.Value + "/resources/mumuThumbnail/members_Thumbnail/" + m.Thumbnail,
+                  Email = m.Email,
+                  Address = m.Address,
+                  MemberIntroduction = m.MemberIntroduction,
+                  Phone = m.Phone,
+                  RegistrationTime = m.RegistrationTime,
+              })
+              .ToList();
+        }
     }
 }
 

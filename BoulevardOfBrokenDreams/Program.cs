@@ -4,6 +4,7 @@ using BoulevardOfBrokenDreams.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.FileProviders;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 
@@ -80,6 +81,7 @@ builder.Services.AddDbContext<MumuDbContext>(options =>
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+builder.Services.AddHttpContextAccessor();
 
 var app = builder.Build();
 
@@ -91,7 +93,12 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-
+app.UseStaticFiles(new StaticFileOptions 
+{
+  FileProvider = new PhysicalFileProvider(
+    Path.Combine(Directory.GetCurrentDirectory(), "images")),
+    RequestPath = "/resources"
+});
 app.UseRouting();
 
 // Enable authentication

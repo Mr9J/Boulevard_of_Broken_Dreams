@@ -173,6 +173,7 @@ public partial class MumuDbContext : DbContext
             entity.Property(e => e.ResetPassword)
                 .HasDefaultValue("N")
                 .IsFixedLength();
+
             entity.Property(e => e.Verified)
                 .HasDefaultValue("N")
                 .IsFixedLength();
