@@ -6,6 +6,7 @@ using System.Numerics;
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
+
 namespace BoulevardOfBrokenDreams.Controllers
 {
     [Route("api/[controller]")]
@@ -76,9 +77,27 @@ namespace BoulevardOfBrokenDreams.Controllers
 
         // GET api/<ProjectController>/5
         [HttpGet("{id}")]
-        public string Get(int id)
+        public async Task<ActionResult<Project>> GetProjectById(int id)
         {
-            return "value";
+            var project = await _db.Projects
+                .Include(x=>x.Products)
+                .Include(x=>x.Member)
+                .FirstOrDefaultAsync(proj =>  proj.ProjectId == id );
+            
+            if(project == null) return NotFound("Project not found.");
+
+            var p = new VMProjectInfo()
+            {
+                ProjectId = project.ProjectId,
+                ProjectName = project.ProjectName,
+                ProjectDescription = project.ProjectDescription,
+                ProjectThumbnail = "https://" + _httpContextAccessor.HttpContext.Request.Host.Value + "/resources/mumuThumbnail/Projects_Products_Thumbnail/" + project.Thumbnail,
+                ProjectGoal = project.ProjectGoal,
+                StartDate = project.StartDate,
+                EndDate = project.EndDate,
+            };
+
+            return Ok(p);
         }
 
         // POST api/<ProjectController>
@@ -244,6 +263,5 @@ namespace BoulevardOfBrokenDreams.Controllers
             projects.Add(inactiveProjectCount);
             return projects;
         }
-
     }
 }
