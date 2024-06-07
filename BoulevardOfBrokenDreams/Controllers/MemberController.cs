@@ -312,6 +312,7 @@ namespace BoulevardOfBrokenDreams.Controllers
                   MemberIntroduction = m.MemberIntroduction,
                   Phone = m.Phone,
                   RegistrationTime = m.RegistrationTime,
+                  StatusId = m.StatusId,
               })
               .ToList();
         }
