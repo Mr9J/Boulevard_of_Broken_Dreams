@@ -172,6 +172,42 @@ namespace Mumu.Controllers
             return Ok();
         }
 
+        //增減購物車
+        [HttpPut("{productId}/{memberId}/{incrementOrdecrement}")]
+        public async Task<IActionResult> PutProductFromCart(int productId, int memberId , string incrementOrdecrement)
+        {
+            var user = await context.Carts.FirstOrDefaultAsync(m => m.MemberId == memberId);
+            if (user == null)
+            {
+                //如果找不到使用者
+                return NotFound();
+            }
+
+            var userCartCartDetail = await context.CartDetails.FirstOrDefaultAsync(cid => cid.CartId == user.CartId && cid.ProductId == productId);
+            if (userCartCartDetail == null)
+            {
+                return NotFound();
+            }
+            if(incrementOrdecrement == "Increment")
+            {
+                userCartCartDetail.Count++;
+            }
+            else if (incrementOrdecrement == "Decrement")
+            {
+                if (userCartCartDetail.Count > 0)
+                {
+                    userCartCartDetail.Count--; // 减少数量，确保不会减为负值
+                }
+            }
+
+            await context.SaveChangesAsync();
+            return Ok();
+
+
+
+        }
+
+
         //刪除購物車
         //DELETE api/<ProjectController>/5
         [HttpDelete("{productId}/{memberId}")]
@@ -181,13 +217,13 @@ namespace Mumu.Controllers
             if (user == null)
             {
                 //如果找不到使用者
-                return BadRequest();
+                return NotFound();
             }
 
             var userCartCartDetail = await context.CartDetails.FirstOrDefaultAsync(cid => cid.CartId == user.CartId && cid.ProductId == productId);
             if (userCartCartDetail == null)
             {
-                return BadRequest();
+                return NotFound();
             }
 
             context.CartDetails.Remove(userCartCartDetail);
