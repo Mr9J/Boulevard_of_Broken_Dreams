@@ -31,7 +31,7 @@ namespace BoulevardOfBrokenDreams.Controllers
             this._configuration = _configuration;
             this._memberRepository = new MemberRepository(this._context);
             this._emailSender = _emailSender;
-            _httpContextAccessor = _httpContextAccessor;
+            this._httpContextAccessor = _httpContextAccessor;
         }
 
         [HttpPost("sign-up")]
@@ -306,14 +306,25 @@ namespace BoulevardOfBrokenDreams.Controllers
                   MemberId = m.MemberId,
                   Username = m.Username,
                   Nickname = m.Nickname,
-                  Thumbnail = "https://" + _httpContextAccessor.HttpContext.Request.Host.Value + "/resources/mumuThumbnail/members_Thumbnail/" + m.Thumbnail,
+                  Thumbnail = "https://" + _httpContextAccessor.HttpContext!.Request.Host.Value + "/resources/mumuThumbnail/members_Thumbnail/" + m.Thumbnail,
                   Email = m.Email,
                   Address = m.Address,
                   MemberIntroduction = m.MemberIntroduction,
                   Phone = m.Phone,
                   RegistrationTime = m.RegistrationTime,
+                  StatusId = m.StatusId,
               })
               .ToList();
+        }
+        [HttpGet("count")]
+        public List<int> GetMemberCounts() //計算被正常與被停權會員數
+        {
+            List<int> members = new List<int>();
+            int activeMemberCount = _context.Members.Count(p => p.StatusId == 7);
+            int inactiveMemberCount = _context.Members.Count(p => p.StatusId == 8);
+            members.Add(activeMemberCount);
+            members.Add(inactiveMemberCount);
+            return members;
         }
     }
 }
