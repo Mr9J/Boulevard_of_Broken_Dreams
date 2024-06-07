@@ -18,20 +18,26 @@ public partial class Post
     [StringLength(2200)]
     public string? Caption { get; set; }
 
-    public string? Tags { get; set; }
+    [Column("imgUrl")]
+    public string? ImgUrl { get; set; }
 
-    [Column("LikesPostID")]
-    public int? LikesPostId { get; set; }
-
-    [StringLength(100)]
+    [StringLength(2200)]
     public string? Location { get; set; }
 
-    public string? ImageUrl { get; set; }
+    [StringLength(2200)]
+    public string? Tags { get; set; }
+
+    [Column(TypeName = "datetime")]
+    public DateTime? PostTime { get; set; }
+
+    [Column("StatusID")]
+    public int? StatusId { get; set; }
+
+    [StringLength(1)]
+    [Unicode(false)]
+    public string? IsAnonymous { get; set; }
 
     [ForeignKey("MemberId")]
     [InverseProperty("Posts")]
     public virtual Member Member { get; set; } = null!;
-
-    [InverseProperty("Post")]
-    public virtual ICollection<MemberLikesPost> MemberLikesPosts { get; set; } = new List<MemberLikesPost>();
 }
