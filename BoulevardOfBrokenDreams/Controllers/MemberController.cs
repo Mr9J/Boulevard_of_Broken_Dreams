@@ -73,6 +73,13 @@ namespace BoulevardOfBrokenDreams.Controllers
             {
                 Member? member = await _memberRepository.AuthMember(user);
 
+                if (member == null) return BadRequest("帳號或密碼錯誤");
+
+                if (member != null && member.StatusId == 8)
+                {
+                    return BadRequest("帳號已被停權");
+                }
+
                 if (member != null)
                 {
                     var token = (new JwtGenerator(_configuration)).GenerateJwtToken(user.username, "user");

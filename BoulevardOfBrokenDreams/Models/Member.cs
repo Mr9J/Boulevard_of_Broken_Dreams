@@ -79,9 +79,6 @@ public partial class Member
     public virtual ICollection<Order> Orders { get; set; } = new List<Order>();
 
     [InverseProperty("Member")]
-    public virtual ICollection<Post> Posts { get; set; } = new List<Post>();
-
-    [InverseProperty("Member")]
     public virtual ICollection<Project> Projects { get; set; } = new List<Project>();
 
     [InverseProperty("Member")]

@@ -37,7 +37,7 @@ namespace BoulevardOfBrokenDreams.Controllers
                 PostTime = DateTime.UtcNow,
             };
 
-            _context.Posts.Add(post);
+            //_context.Posts.Add(post);
             await _context.SaveChangesAsync();
 
             return Ok("新增成功");
