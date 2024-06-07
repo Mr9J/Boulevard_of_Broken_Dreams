@@ -1,4 +1,5 @@
 ﻿namespace BoulevardOfBrokenDreams.Models.DTO
+
 {
     public class ProductCardDTO
     {
