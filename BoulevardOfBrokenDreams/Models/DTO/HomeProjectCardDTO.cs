@@ -1,7 +1,7 @@
 
 ﻿namespace BoulevardOfBrokenDreams.Models.DTO
 {
-    public class ProjectCardDTO
+    public class HomeProjectCardDTO
     {
         public int ProjectId { get; set; }
         public int MemberId { get; set; }
