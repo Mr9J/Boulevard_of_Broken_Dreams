@@ -1,5 +1,4 @@
 namespace BoulevardOfBrokenDreams.Models.DTO;
-{
     public class ProjectCardDTO
     {
         public int ProjectId { get; set; }
@@ -17,4 +16,3 @@ namespace BoulevardOfBrokenDreams.Models.DTO;
 
         public List<int>? ProductInCartCount { get; set; }
     }
-}
