@@ -1,4 +1,6 @@
+using BoulevardOfBrokenDreams.Interface;
 using BoulevardOfBrokenDreams.Models;
+using BoulevardOfBrokenDreams.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -13,13 +15,17 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowAll", builder =>
+    options.AddDefaultPolicy(builder =>
     {
         builder.AllowAnyOrigin()
                .AllowAnyMethod()
                .AllowAnyHeader();
     });
 });
+
+builder.Services.AddTransient<IEmailSender, EmailSender>();
+
+builder.Services.AddSingleton(builder.Configuration);
 
 builder.Services.AddSwaggerGen(options =>
 {
@@ -72,6 +78,7 @@ builder.Services.AddControllers();
 builder.Services.AddDbContext<MumuDbContext>(options =>
    options.UseSqlServer(builder.Configuration.GetConnectionString("Mumu")));
 
+builder.Services.AddScoped<BoulevardOfBrokenDreams.Services.ServiceMessage>();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
@@ -99,7 +106,7 @@ app.UseRouting();
 app.UseAuthentication();
 app.UseAuthorization();
 
-app.UseCors("AllowAll");
+app.UseCors();
 
 app.MapControllers();
 

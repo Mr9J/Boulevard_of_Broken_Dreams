@@ -1,6 +1,5 @@
-﻿using BoulevardOfBrokenDreams.Models.DTO;
 
-namespace Mumu.Models.DTO
+﻿namespace BoulevardOfBrokenDreams.Models.DTO
 {
     public class ProjectCardDTO
     {
@@ -18,8 +17,5 @@ namespace Mumu.Models.DTO
         public List<int>? ProductInCart { get; set; }
 
         public List<int>? ProductInCartCount { get; set; }
-
-
-
     }
 }
