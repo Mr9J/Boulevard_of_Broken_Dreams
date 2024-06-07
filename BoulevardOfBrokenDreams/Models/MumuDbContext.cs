@@ -170,6 +170,10 @@ public partial class MumuDbContext : DbContext
         modelBuilder.Entity<Member>(entity =>
         {
             entity.Property(e => e.Eid).HasDefaultValueSql("(newid())");
+            entity.Property(e => e.ResetPassword)
+                .HasDefaultValue("N")
+                .IsFixedLength();
+
             entity.Property(e => e.Verified)
                 .HasDefaultValue("N")
                 .IsFixedLength();

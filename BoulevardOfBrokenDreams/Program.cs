@@ -1,9 +1,13 @@
+using BoulevardOfBrokenDreams.Interface;
 using BoulevardOfBrokenDreams.Models;
+using BoulevardOfBrokenDreams.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Models;
+
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -18,6 +22,36 @@ builder.Services.AddCors(options =>
                .AllowAnyHeader();
     });
 });
+
+builder.Services.AddTransient<IEmailSender, EmailSender>();
+
+builder.Services.AddSingleton(builder.Configuration);
+
+builder.Services.AddSwaggerGen(options =>
+{
+    options.AddSecurityDefinition("oauth2", new OpenApiSecurityScheme
+    {
+        In = ParameterLocation.Header,
+        Name = "Authorization",
+        Type = SecuritySchemeType.ApiKey,
+    });
+
+    options.AddSecurityRequirement(new OpenApiSecurityRequirement
+    {
+        {
+            new OpenApiSecurityScheme
+            {
+                Reference = new OpenApiReference
+                {
+                    Type = ReferenceType.SecurityScheme,
+                    Id = "oauth2"
+                }
+            },
+            new List<string>()
+        }
+    });
+});
+
 
 // Configure JWT authentication
 builder.Services.AddAuthentication(options =>
@@ -44,6 +78,7 @@ builder.Services.AddControllers();
 builder.Services.AddDbContext<MumuDbContext>(options =>
    options.UseSqlServer(builder.Configuration.GetConnectionString("Mumu")));
 
+builder.Services.AddScoped<BoulevardOfBrokenDreams.Services.ServiceMessage>();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();

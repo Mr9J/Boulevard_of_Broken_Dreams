@@ -1,6 +1,8 @@
 ﻿using BoulevardOfBrokenDreams.Models;
 using BoulevardOfBrokenDreams.Models.DTO;
 using Microsoft.AspNetCore.Mvc;
+using BoulevardOfBrokenDreams.Models.DTO;
+
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
@@ -39,6 +41,50 @@ namespace BoulevardOfBrokenDreams.Controllers
         {
         }
 
+        [HttpPost("CreateOrder")]
+        public string CreateOrder([FromBody] CreateOrderDTO orderDTO)
+        {
+            var newOrder = new Order
+            {
+                OrderDate = DateTime.Now,
+                MemberId = orderDTO.MemberId,
+                ShipDate = DateTime.Now.AddDays(7),
+                ShipmentStatusId = 1,
+                PaymentMethodId = orderDTO.PaymentMethodId,
+                PaymentStatusId = 1,
+                Donate = orderDTO.Donate
+            };
+
+            _db.Orders.Add(newOrder);
+            _db.SaveChanges();
+            //取得剛新增的OrderID
+            int orderId = newOrder.OrderId;
+            orderDTO.ProductData.ForEach(product =>
+            {
+                if (product.Count == 0)
+                { return; }
+                //productId迭代price
+                int productId = int.Parse(product.ProductId);
+                decimal price = _db.Products.FirstOrDefault(od => od.ProductId == productId)?.ProductPrice ?? 0;
+
+                decimal total = price * product.Count;
+
+                var newOrderDetails = new OrderDetail
+                {
+                    OrderId = orderId,
+                    ProjectId = orderDTO.ProjectId,
+                    ProductId = productId,
+                    Count = product.Count,
+                    Price = total
+                };
+
+                _db.OrderDetails.Add(newOrderDetails);
+            });
+            _db.SaveChanges();
+            return "代單完成";
+        }
+
+
         // PUT api/<OrderController>/5
         [HttpPut("{id}")]
         public void Put(int id, [FromBody] string value)
@@ -60,6 +106,7 @@ namespace BoulevardOfBrokenDreams.Controllers
                                  ProjectId = p.ProjectId,
                                  ProjectName = p.ProjectName,
                                  GroupId = p.GroupId,
+                                 StatusId= p.StatusId,
                                  Thumbnail = "https://" + _httpContextAccessor.HttpContext.Request.Host.Value + "/resources/mumuThumbnail/Projects_Products_Thumbnail/" + p.Thumbnail,
                                  OrderCount = (from orderDetail in _db.OrderDetails
                                                where orderDetail.ProjectId == p.ProjectId

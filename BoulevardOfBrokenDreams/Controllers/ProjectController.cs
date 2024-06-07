@@ -1,10 +1,13 @@
 ﻿using BoulevardOfBrokenDreams.Models;
 using BoulevardOfBrokenDreams.Models.DTO;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using BoulevardOfBrokenDreams.Models.DTO;
 using System.Numerics;
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+
 
 namespace BoulevardOfBrokenDreams.Controllers
 {
@@ -76,10 +79,115 @@ namespace BoulevardOfBrokenDreams.Controllers
 
         // GET api/<ProjectController>/5
         [HttpGet("{id}")]
-        public string Get(int id)
+        public async Task<ActionResult<Project>> GetProjectById(int id)
         {
-            return "value";
+            var project = await _db.Projects
+                .Include(x=>x.Products)
+                .Include(x=>x.Member)
+                .FirstOrDefaultAsync(proj =>  proj.ProjectId == id );
+            
+            if(project == null) return NotFound("Project not found.");
+
+            var p = new VMProjectInfo()
+            {
+                ProjectId = project.ProjectId,
+                ProjectName = project.ProjectName,
+                ProjectDescription = project.ProjectDescription,
+                ProjectThumbnail = "https://" + _httpContextAccessor.HttpContext.Request.Host.Value + "/resources/mumuThumbnail/Projects_Products_Thumbnail/" + project.Thumbnail,
+                ProjectGoal = project.ProjectGoal,
+                StartDate = project.StartDate,
+                EndDate = project.EndDate,
+            };
+
+            return Ok(p);
         }
+
+        [HttpGet("{id}/{memberId}")]
+
+        //要討論cart建立時間點 ProductInCart應該可以改到member
+        public async Task<ActionResult<ProjectCardDTO>> GetProductAndPayPageData(int id, int memberId)
+        {
+
+
+            var path = "https://" + _httpContextAccessor.HttpContext.Request.Host.Value + "/resources/mumuThumbnail/Projects_Products_Thumbnail/";
+            // 首先根据成员ID获取购物车ID
+            var cart = await _db.Carts.FirstOrDefaultAsync(m => m.MemberId == memberId);
+            if (cart == null)
+            {
+                return NotFound("No cart found for the specified member ID.");
+            }
+
+            var cartId = cart.CartId;
+
+            var totalDonate = _db.Orders
+                           .Where(o => _db.OrderDetails
+                           .Any(od => od.ProjectId == id && od.OrderId == o.OrderId))
+                           .Sum(o => o.Donate);
+
+            var totalPrice = _db.OrderDetails
+                                    .Where(od => od.ProjectId == id)
+                                    .Sum(od => od.Price);
+
+            var total = totalDonate + totalPrice;
+
+
+
+            var productCounts = await _db.CartDetails
+     .Where(cd => cd.CartId == cartId && cd.ProjectId == id)
+     .ToListAsync();
+
+            var productIdList = productCounts.Select(pc => pc.ProductId).ToList();
+            var countList = productCounts.Select(pc => pc.Count).ToList();
+
+
+            var data = await _db.Projects
+                .Where(x => x.ProjectId == id)
+                .Include(m => m.Member)
+                .Include(p => p.Products)
+                .Select(p => new ProjectCardDTO
+                {
+                    ProjectId = p.ProjectId,
+                    MemberId = p.MemberId,
+                    Total = (decimal)total,
+                    ProjectGoal = p.ProjectGoal,
+                    ProjectName = p.ProjectName,
+                    ProjectDescription = p.ProjectDescription,
+                    Thumbnail = path + p.Thumbnail,
+                    ProductInCart = productIdList,
+                    ProductInCartCount = countList,
+                    Member = new MemberDTO
+                    {
+                        MemberId = p.Member.MemberId,
+                        Nickname = p.Member.Nickname,
+                        //ProductCount = productDetails
+
+                    },
+                    Products = p.Products.Select(pt => new ProductCardDTO
+                    {
+                        ProductId = pt.ProductId,
+                        ProductName = pt.ProductName,
+                        ProductDescription = pt.ProductDescription,
+                        InitialStock = pt.InitialStock,
+                        ProductPrice = pt.ProductPrice,
+                        CurrentStock = pt.CurrentStock,
+                        StartDate = pt.StartDate,
+                        EndDate = pt.EndDate,
+                        Thumbnail = path + pt.Thumbnail,
+                        //CartDetail = cartDetaildto,
+
+                    }).ToList()
+                })
+                  .ToListAsync();
+
+            if (data == null)
+            {
+                return NotFound();
+            }
+
+            return Ok(data);
+        }
+
+
 
         // POST api/<ProjectController>
         [HttpPost]
@@ -225,12 +333,11 @@ namespace BoulevardOfBrokenDreams.Controllers
             List<int> projects = new List<int>();
             int ProjectCount = _db.Projects.Count();
             int activeProjectCount = _db.Projects.Count(p => p.StatusId == 1);
-            int inactiveProjectCount = _db.Projects.Count(p => p.StatusId == 0);
+            int inactiveProjectCount = _db.Projects.Count(p => p.StatusId == 2);
             projects.Add(ProjectCount);
             projects.Add(activeProjectCount);
             projects.Add(inactiveProjectCount);
             return projects;
         }
-
     }
 }
