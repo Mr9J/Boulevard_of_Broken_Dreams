@@ -1,5 +1,7 @@
 
-﻿namespace BoulevardOfBrokenDreams.Models.DTO
+using Mumu.Models.DTO;
+
+namespace BoulevardOfBrokenDreams.Models.DTO
 {
     public class ProjectCardDTO
     {
