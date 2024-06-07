@@ -1,8 +1,4 @@
-﻿//using BoulevardOfBrokenDreams.Models.DTO;
-
-//namespace Mumu.Models.DTO
-namespace BoulevardOfBrokenDreams.Models.DTO
-{
+namespace BoulevardOfBrokenDreams.Models.DTO;
     public class ProjectCardDTO
     {
         public int ProjectId { get; set; }
@@ -19,8 +15,4 @@ namespace BoulevardOfBrokenDreams.Models.DTO
         public List<int>? ProductInCart { get; set; }
 
         public List<int>? ProductInCartCount { get; set; }
-
-
-
     }
-}

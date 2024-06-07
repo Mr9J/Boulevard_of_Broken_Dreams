@@ -1,5 +1,5 @@
-﻿//namespace Mumu.Models.DTO
-namespace BoulevardOfBrokenDreams.Models.DTO
+﻿namespace BoulevardOfBrokenDreams.Models.DTO
+
 {
     public class ProductCardDTO
     {

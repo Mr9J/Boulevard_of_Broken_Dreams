@@ -1,12 +1,12 @@
 ﻿using BoulevardOfBrokenDreams.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Mumu.Models;
-using Mumu.Models.DTO;
+using BoulevardOfBrokenDreams.Models;
+using BoulevardOfBrokenDreams.Models.DTO;
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
-namespace Mumu.Controllers
+namespace BoulevardOfBrokenDreams.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
