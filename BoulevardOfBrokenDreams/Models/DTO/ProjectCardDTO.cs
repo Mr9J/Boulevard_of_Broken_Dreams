@@ -1,5 +1,6 @@
 
-﻿namespace BoulevardOfBrokenDreams.Models.DTO
+namespace BoulevardOfBrokenDreams.Models.DTO
+
 {
     public class ProjectCardDTO
     {

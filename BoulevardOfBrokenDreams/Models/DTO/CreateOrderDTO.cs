@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 
-namespace Mumu.Models.DTO
+namespace BoulevardOfBrokenDreams.Models.DTO
+
 {
     public class CreateOrderDTO
     {
