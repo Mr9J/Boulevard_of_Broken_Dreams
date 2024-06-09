@@ -112,12 +112,21 @@ namespace BoulevardOfBrokenDreams.Controllers
             var path = "https://" + _httpContextAccessor.HttpContext.Request.Host.Value + "/resources/mumuThumbnail/Projects_Products_Thumbnail/";
             // 首先根据成员ID获取购物车ID
             var cart = await _db.Carts.FirstOrDefaultAsync(m => m.MemberId == memberId);
+            int cartId;
             if (cart == null)
             {
-                return NotFound("No cart found for the specified member ID.");
-            }
+                var newCart = new Cart
+                {
+                    MemberId = memberId,
+                };
+                _db.Carts.Add(newCart);
+                await _db.SaveChangesAsync();
 
-            var cartId = cart.CartId;
+                 cartId = newCart.CartId;
+            }
+            else {
+                cartId = cart.CartId;
+            }
 
             var totalDonate = _db.Orders
                            .Where(o => _db.OrderDetails

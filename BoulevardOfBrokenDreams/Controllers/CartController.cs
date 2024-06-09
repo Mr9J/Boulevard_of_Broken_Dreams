@@ -73,20 +73,7 @@ namespace BoulevardOfBrokenDreams.Controllers
                     Count = joined.CartDetail.Count
                 })
                 .ToList()
-                            //.Select(pt => new ProductDTO
-                            //{
-                            //    ProductId = pt.ProductId,
-                            //    ProductName = pt.ProductName,
-                            //    ProductDescription = pt.ProductDescription,
-                            //    InitialStock = pt.InitialStock,
-                            //    ProductPrice = pt.ProductPrice,
-                            //    CurrentStock = pt.CurrentStock,
-                            //    StartDate = pt.StartDate,
-                            //    EndDate = pt.EndDate,
-                            //    Thumbnail = path + pt.Thumbnail,
-
-                            //})
-                            //.ToList()
+                          
                         })
                         .FirstOrDefaultAsync(); // 在這裡使用FirstOrDefaultAsync而不是ToListAsync
 
