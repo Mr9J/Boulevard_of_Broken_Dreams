@@ -51,6 +51,8 @@ public partial class MumuDbContext : DbContext
 
     public virtual DbSet<PaymentStatusId> PaymentStatusIds { get; set; }
 
+    public virtual DbSet<Post> Posts { get; set; }
+
     public virtual DbSet<Product> Products { get; set; }
 
     public virtual DbSet<Project> Projects { get; set; }
@@ -221,6 +223,19 @@ public partial class MumuDbContext : DbContext
             entity.HasOne(d => d.Project).WithMany(p => p.OrderDetails)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_OrderDetails_Projects");
+        });
+
+        modelBuilder.Entity<Post>(entity =>
+        {
+            entity.HasKey(e => e.PostId).HasName("PK__Posts__AA126038C7576EF9");
+
+            entity.Property(e => e.IsAnonymous)
+                .HasDefaultValue("N")
+                .IsFixedLength();
+
+            entity.HasOne(d => d.Member).WithMany(p => p.Posts)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_Posts_Members");
         });
 
         modelBuilder.Entity<Product>(entity =>

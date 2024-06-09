@@ -18,7 +18,6 @@ public partial class Post
     [StringLength(2200)]
     public string? Caption { get; set; }
 
-    [Column("imgUrl")]
     public string? ImgUrl { get; set; }
 
     [StringLength(2200)]
