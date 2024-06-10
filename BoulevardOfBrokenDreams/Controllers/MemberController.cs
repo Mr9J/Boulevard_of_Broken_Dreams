@@ -60,9 +60,9 @@ namespace BoulevardOfBrokenDreams.Controllers
                     return BadRequest(res);
                 }
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                return BadRequest(ex.Message);
+                return BadRequest("伺服器錯誤，請稍後再試");
             }
         }
 
@@ -154,7 +154,7 @@ namespace BoulevardOfBrokenDreams.Controllers
 
                 var receiver = member.Email;
                 var subject = "Mumu 用戶註冊驗證";
-                var message = "<h1 style=\"background-color: cornflowerblue; color: aliceblue\">歡迎註冊MUMU</h1>";
+                var message = "<h1 style=\"background-color: cornflowerblue; color: aliceblue\">Mumu 用戶註冊驗證</h1>";
                 message += "<p>請點擊以下連結驗證您的帳號 : </p>";
                 message += "<a href='https://mumumsit158.com/email-verify/" + member.Username + "/" + member.Eid + "'>點擊這裡</a>進行驗證";
 
@@ -290,7 +290,12 @@ namespace BoulevardOfBrokenDreams.Controllers
 
                 if (member != null && !Hash.VerifyHashedPassword(user.uid, member!.Password!))
                 {
-                    return BadRequest("錯誤，請聯絡管理員");
+                    return BadRequest("錯誤，請聯絡客服");
+                }
+
+                if (member != null && member.StatusId == 8)
+                {
+                    return BadRequest("帳號已被停權");
                 }
 
                 var token = (new JwtGenerator(_configuration)).GenerateJwtToken(user.username, "user");
@@ -301,7 +306,7 @@ namespace BoulevardOfBrokenDreams.Controllers
             }
             catch (Exception)
             {
-                return BadRequest();
+                return BadRequest("伺服器錯誤，請稍後再試");
             }
         }
 

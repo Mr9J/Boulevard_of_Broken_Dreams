@@ -39,4 +39,10 @@ public partial class Post
     [ForeignKey("MemberId")]
     [InverseProperty("Posts")]
     public virtual Member Member { get; set; } = null!;
+
+    [InverseProperty("Post")]
+    public virtual ICollection<PostLiked> PostLikeds { get; set; } = new List<PostLiked>();
+
+    [InverseProperty("Post")]
+    public virtual ICollection<PostSaved> PostSaveds { get; set; } = new List<PostSaved>();
 }

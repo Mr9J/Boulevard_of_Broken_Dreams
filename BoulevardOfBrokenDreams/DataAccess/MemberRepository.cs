@@ -18,11 +18,13 @@ namespace BoulevardOfBrokenDreams.DataAccess
         {
             string validationRes = SignUpValidation(user);
 
-            if (validationRes != string.Empty) { return validationRes; }
+            if (validationRes != string.Empty) { return "註冊資料格式錯誤"; }
 
             bool isUserExist = _context.Members.Any(m => m.Username == user.username);
 
-            if (!isUserExist)
+            bool isEmailExist = _context.Members.Any(m => m.Email == user.email);
+
+            if (!isUserExist && !isEmailExist)
             {
                 Member member = new Member
                 {
@@ -86,9 +88,9 @@ namespace BoulevardOfBrokenDreams.DataAccess
 
         private string SignUpValidation(SignUpDTO user)
         {
-            if (user.nickname.Length < 2 || user.nickname.Length > 20)
+            if (user.nickname.Length < 2 || user.nickname.Length > 50)
             {
-                return "暱稱長度必須在2至20之間";
+                return "暱稱長度必須在2至50之間";
             }
 
             if (user.username.Length < 8 || user.username.Length > 24)
@@ -98,7 +100,7 @@ namespace BoulevardOfBrokenDreams.DataAccess
 
             if (!IsValidEmail(user.email))
             {
-                return "請輸入正確的電子郵件格式";
+                return "請輸入正確的Email格式";
             }
 
             if (user.password.Length < 8 || user.password.Length > 24)
