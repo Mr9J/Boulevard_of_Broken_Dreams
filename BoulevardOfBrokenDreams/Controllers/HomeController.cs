@@ -102,6 +102,40 @@ namespace BoulevardOfBrokenDreams.Controllers
             return _db.ProjectTypes;
         }
 
+        [HttpGet("Searching")]
+        public SearchProjectDTO Searching([FromQuery] string keyword="", [FromQuery] int page=1, [FromQuery] int type = 0)
+        {
+            var projects = from p in _db.Projects.Where(x =>  x.StatusId == 1 && x.ProjectName.Contains(keyword))
+                           join t in _db.ProjectIdtypes
+                           on p.ProjectId equals t.ProjectId
+                           where (type == 0 ? true : t.ProjectTypeId == type)
+                           select new HomeProjectCardDTO
+                           {
+                               ProjectId = p.ProjectId,
+                               ProjectName = p.ProjectName,
+                               ProjectGoal = p.ProjectGoal,
+                               DayLeft = (p.EndDate.DayNumber - DateOnly.FromDateTime(DateTime.Today).DayNumber),
+                               Thumbnail = "https://" + _httpContextAccessor.HttpContext.Request.Host.Value + "/resources/mumuThumbnail/Projects_Products_Thumbnail/" + p.Thumbnail,
+                               TotalAmount = ((from orderDetail in _db.OrderDetails
+                                               where orderDetail.ProjectId == p.ProjectId
+                                               select orderDetail.Price).Sum()) + ((from order in _db.Orders
+                                                                                    join orderDetail in _db.OrderDetails on order.OrderId equals orderDetail.OrderId
+                                                                                    where orderDetail.ProjectId == p.ProjectId
+                                                                                    select order.Donate ?? 0).FirstOrDefault()),
+                               SponsorCount = (from orderDetail in _db.OrderDetails
+                                               where orderDetail.ProjectId == p.ProjectId
+                                               select orderDetail.OrderId).Count(),
+                           };
+            SearchProjectDTO searchProjectDTO = new SearchProjectDTO()
+            {
+                projectData = projects.Skip((page - 1) * 12).Take(12).ToList(),
+                totalPage = (int)Math.Ceiling((double)projects.Count() / 12),
+            };
+            
+                       
+            return searchProjectDTO;
+        }
+
         // POST api/<HomeController>
         [HttpPost]
         public void Post([FromBody] string value)
