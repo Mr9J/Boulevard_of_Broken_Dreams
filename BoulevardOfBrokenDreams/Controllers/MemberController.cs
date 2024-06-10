@@ -326,16 +326,16 @@ namespace BoulevardOfBrokenDreams.Controllers
             members.Add(inactiveMemberCount);
             return members;
         }
-        [HttpGet("count")]
-        public List<int> GetMemberCounts() //計算被正常與被停權會員數
-        {
-            List<int> members = new List<int>();
-            int activeMemberCount = _context.Members.Count(p => p.StatusId == 7);
-            int inactiveMemberCount = _context.Members.Count(p => p.StatusId == 8);
-            members.Add(activeMemberCount);
-            members.Add(inactiveMemberCount);
-            return members;
-        }
+        //[HttpGet("count")]
+        //public List<int> GetMemberCounts() //計算被正常與被停權會員數
+        //{
+        //    List<int> members = new List<int>();
+        //    int activeMemberCount = _context.Members.Count(p => p.StatusId == 7);
+        //    int inactiveMemberCount = _context.Members.Count(p => p.StatusId == 8);
+        //    members.Add(activeMemberCount);
+        //    members.Add(inactiveMemberCount);
+        //    return members;
+        //}
 
         [HttpPut("{id}")]
         public IActionResult Put(int id, [FromBody] MemberDTO member)

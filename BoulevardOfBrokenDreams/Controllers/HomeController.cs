@@ -96,6 +96,12 @@ namespace BoulevardOfBrokenDreams.Controllers
             return projects.ToList().OrderBy(x => x.DayLeft).Take(7);
         }
 
+        [HttpGet("ProjectType")]
+        public IEnumerable<ProjectType> ProjectType()
+        {
+            return _db.ProjectTypes;
+        }
+
         // POST api/<HomeController>
         [HttpPost]
         public void Post([FromBody] string value)
