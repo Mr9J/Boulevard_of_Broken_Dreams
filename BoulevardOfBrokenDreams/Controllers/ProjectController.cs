@@ -334,9 +334,11 @@ namespace BoulevardOfBrokenDreams.Controllers
             int ProjectCount = _db.Projects.Count();
             int activeProjectCount = _db.Projects.Count(p => p.StatusId == 1);
             int inactiveProjectCount = _db.Projects.Count(p => p.StatusId == 2);
+            int pendingProjectCount = _db.Projects.Count(p => p.StatusId == 3);
             projects.Add(ProjectCount);
             projects.Add(activeProjectCount);
             projects.Add(inactiveProjectCount);
+            projects.Add(pendingProjectCount);
             return projects;
         }
     }
