@@ -24,12 +24,14 @@ namespace BoulevardOfBrokenDreams.Controllers
         {
             var likes = _db.LikeDetails
                         .Where(x => x.MemberId == userId)
-                        .Include(x=>x.Like)
+                        .Include(x => x.Like)
                         .ThenInclude(lk => lk.Project)
                         .Select(x => new LikeDTO
                         {
+
                             LikePrjName = x.Like.Project.ProjectName,
-                            LikePrjThumb = "https://" + _httpContextAccessor.HttpContext.Request.Host.Value + "/resources/mumuThumbnail/Projects_Products_Thumbnail/" + x.Like.Project.Thumbnail
+                            LikePrjThumb = "https://" + _httpContextAccessor.HttpContext.Request.Host.Value + "/resources/mumuThumbnail/Projects_Products_Thumbnail/" + x.Like.Project.Thumbnail,
+                            LikePrjId = x.LikeDetailId
                         }).ToList();
 
 
@@ -39,6 +41,30 @@ namespace BoulevardOfBrokenDreams.Controllers
             }
 
             return Ok(likes);
+        }
+
+        [HttpDelete("{LikeDetailId}")]
+        public async Task<IActionResult> DeleteLike(int LikeDetailId)
+        {
+            //等同於var dislikeDetail= await _db.LikeDetails.Where(x=>x.LikeDetailId == LikeDetailId).FirstOrDefaultAsync(); 但僅限於LikeDetailId為PK的狀況
+            var delLikeDetail = await _db.LikeDetails.FindAsync(LikeDetailId);
+            if (delLikeDetail == null)
+            {
+                return NotFound();
+            }
+            var delLike = await _db.Likes.FirstOrDefaultAsync(x => x.LikeId == delLikeDetail.LikeId);
+
+            if(delLike != null)
+            {
+                _db.Likes.Remove(delLike);
+            }
+
+            _db.LikeDetails.Remove(delLikeDetail);
+            await _db.SaveChangesAsync();
+            return NoContent();
+
+
+
         }
 
 
