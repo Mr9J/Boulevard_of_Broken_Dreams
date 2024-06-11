@@ -27,7 +27,6 @@ namespace BoulevardOfBrokenDreams.Controllers
         [HttpGet]
         public IEnumerable<ProjectDTO> Get()
         {
-            getc
             var projects = from p in _db.Projects
                            select new ProjectDTO
                            {
