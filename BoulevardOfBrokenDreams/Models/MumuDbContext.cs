@@ -53,6 +53,12 @@ public partial class MumuDbContext : DbContext
 
     public virtual DbSet<Post> Posts { get; set; }
 
+    public virtual DbSet<PostComment> PostComments { get; set; }
+
+    public virtual DbSet<PostLiked> PostLikeds { get; set; }
+
+    public virtual DbSet<PostSaved> PostSaveds { get; set; }
+
     public virtual DbSet<Product> Products { get; set; }
 
     public virtual DbSet<Project> Projects { get; set; }
@@ -227,6 +233,8 @@ public partial class MumuDbContext : DbContext
 
         modelBuilder.Entity<Post>(entity =>
         {
+            entity.HasKey(e => e.PostId).HasName("PK__Posts__AA126038C7576EF9");
+
             entity.Property(e => e.IsAnonymous)
                 .HasDefaultValue("N")
                 .IsFixedLength();
@@ -234,6 +242,39 @@ public partial class MumuDbContext : DbContext
             entity.HasOne(d => d.Member).WithMany(p => p.Posts)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_Posts_Members");
+        });
+
+        modelBuilder.Entity<PostComment>(entity =>
+        {
+            entity.HasOne(d => d.Member).WithMany(p => p.PostComments)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_PostComment_Members");
+
+            entity.HasOne(d => d.Post).WithMany(p => p.PostComments)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_PostComment_Posts");
+        });
+
+        modelBuilder.Entity<PostLiked>(entity =>
+        {
+            entity.HasOne(d => d.Member).WithMany(p => p.PostLikeds)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_PostLiked_Members");
+
+            entity.HasOne(d => d.Post).WithMany(p => p.PostLikeds)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_PostLiked_Posts");
+        });
+
+        modelBuilder.Entity<PostSaved>(entity =>
+        {
+            entity.HasOne(d => d.Member).WithMany(p => p.PostSaveds)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_PostSaved_Members");
+
+            entity.HasOne(d => d.Post).WithMany(p => p.PostSaveds)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_PostSaved_Posts");
         });
 
         modelBuilder.Entity<Product>(entity =>
