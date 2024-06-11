@@ -26,6 +26,8 @@ public partial class ServiceMessage
     [Column(TypeName = "datetime")]
     public DateTime MessageDate { get; set; }
 
+    public bool IsRead { get; set; }
+
     [ForeignKey("AdminId")]
     [InverseProperty("ServiceMessages")]
     public virtual Admin? Admin { get; set; }
