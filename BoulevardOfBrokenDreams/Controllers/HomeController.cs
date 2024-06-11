@@ -49,10 +49,10 @@ namespace BoulevardOfBrokenDreams.Controllers
         // GET api/<HomeController>/5
 
         [HttpGet("POP")]
-        public IEnumerable<ProjectCardDTO> POP()
+        public IEnumerable<HomeProjectCardDTO> POP()
         {
             var projects = from p in _db.Projects.Where(x => x.StatusId == 1)
-                           select new ProjectCardDTO
+                           select new HomeProjectCardDTO
                            {
                                ProjectId = p.ProjectId,
                                ProjectName = p.ProjectName,
@@ -73,10 +73,10 @@ namespace BoulevardOfBrokenDreams.Controllers
         }
 
         [HttpGet("DayLeft")]
-        public IEnumerable<ProjectCardDTO> DayLeft()
+        public IEnumerable<HomeProjectCardDTO> DayLeft()
         {
             var projects = from p in _db.Projects.Where(x => x.StatusId == 1)
-                           select new ProjectCardDTO
+                           select new HomeProjectCardDTO
                            {
                                ProjectId = p.ProjectId,
                                ProjectName = p.ProjectName,
