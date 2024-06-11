@@ -22,7 +22,7 @@ namespace BoulevardOfBrokenDreams.Controllers
         [HttpGet]
         public IEnumerable<HomeProjectDTO> Get()
         {
-            var projects = from p in _db.Projects.Where(x=>x.StatusId ==1)
+            var projects = from p in _db.Projects.Where(x => x.StatusId == 1)
                            select new HomeProjectDTO
                            {
                                ProjectId = p.ProjectId,
@@ -42,7 +42,7 @@ namespace BoulevardOfBrokenDreams.Controllers
                                                select orderDetail.OrderId).Count(),
                            };
             Random rd = new Random();
-            var randomProjects = projects.ToList().OrderBy(x => rd.Next()).Take(9);//tolist才能用隨機 不然EF沒辦法把random轉成sql語法
+            var randomProjects = projects.ToList().Where(x => (x.EndDate.DayNumber - DateOnly.FromDateTime(DateTime.Today).DayNumber) >= 0).OrderBy(x => rd.Next()).Take(9);//tolist才能用隨機 不然EF沒辦法把random轉成sql語法
             return randomProjects;
         }
 
@@ -57,19 +57,21 @@ namespace BoulevardOfBrokenDreams.Controllers
                                ProjectId = p.ProjectId,
                                ProjectName = p.ProjectName,
                                ProjectGoal = p.ProjectGoal,
+                               StartDate = p.StartDate,
+                               EndDate = p.EndDate,
                                DayLeft = (p.EndDate.DayNumber - DateOnly.FromDateTime(DateTime.Today).DayNumber),
                                Thumbnail = "https://" + _httpContextAccessor.HttpContext.Request.Host.Value + "/resources/mumuThumbnail/Projects_Products_Thumbnail/" + p.Thumbnail,
                                TotalAmount = ((from orderDetail in _db.OrderDetails
-                                                             where orderDetail.ProjectId == p.ProjectId
-                                                             select orderDetail.Price).Sum()) + ((from order in _db.Orders
-                                                                                                  join orderDetail in _db.OrderDetails on order.OrderId equals orderDetail.OrderId
-                                                                                                  where orderDetail.ProjectId == p.ProjectId
-                                                                                                  select order.Donate ?? 0).FirstOrDefault()),
+                                               where orderDetail.ProjectId == p.ProjectId
+                                               select orderDetail.Price).Sum()) + ((from order in _db.Orders
+                                                                                    join orderDetail in _db.OrderDetails on order.OrderId equals orderDetail.OrderId
+                                                                                    where orderDetail.ProjectId == p.ProjectId
+                                                                                    select order.Donate ?? 0).FirstOrDefault()),
                                SponsorCount = (from orderDetail in _db.OrderDetails
                                                where orderDetail.ProjectId == p.ProjectId
                                                select orderDetail.OrderId).Count(),
                            };
-            return projects.OrderByDescending(x=>x.SponsorCount).Take(7);
+            return projects.ToList().Where(x => x.DayLeft >= 0).OrderByDescending(x => x.SponsorCount).Take(7);
         }
 
         [HttpGet("DayLeft")]
@@ -81,6 +83,8 @@ namespace BoulevardOfBrokenDreams.Controllers
                                ProjectId = p.ProjectId,
                                ProjectName = p.ProjectName,
                                ProjectGoal = p.ProjectGoal,
+                               StartDate = p.StartDate,
+                               EndDate = p.EndDate,
                                DayLeft = (p.EndDate.DayNumber - DateOnly.FromDateTime(DateTime.Today).DayNumber),
                                Thumbnail = "https://" + _httpContextAccessor.HttpContext.Request.Host.Value + "/resources/mumuThumbnail/Projects_Products_Thumbnail/" + p.Thumbnail,
                                TotalAmount = ((from orderDetail in _db.OrderDetails
@@ -93,7 +97,7 @@ namespace BoulevardOfBrokenDreams.Controllers
                                                where orderDetail.ProjectId == p.ProjectId
                                                select orderDetail.OrderId).Count(),
                            };
-            return projects.ToList().OrderBy(x => x.DayLeft).Take(7);
+            return projects.ToList().Where(x => x.DayLeft >= 0).OrderBy(x => x.DayLeft).Take(7);
         }
 
         [HttpGet("ProjectType")]
@@ -103,9 +107,9 @@ namespace BoulevardOfBrokenDreams.Controllers
         }
 
         [HttpGet("Searching")]
-        public SearchProjectDTO Searching([FromQuery] string keyword="", [FromQuery] int page=1, [FromQuery] int type = 0)
+        public SearchProjectDTO Searching([FromQuery] string keyword = "", [FromQuery] int page = 1, [FromQuery] int type = 0, [FromQuery] string orderby = "all")
         {
-            var projects = from p in _db.Projects.Where(x =>  x.StatusId == 1 && x.ProjectName.Contains(keyword))
+            var projects = from p in _db.Projects.Where(x => x.StatusId == 1 && x.ProjectName.Contains(keyword))
                            join t in _db.ProjectIdtypes
                            on p.ProjectId equals t.ProjectId
                            where (type == 0 ? true : t.ProjectTypeId == type)
@@ -114,6 +118,8 @@ namespace BoulevardOfBrokenDreams.Controllers
                                ProjectId = p.ProjectId,
                                ProjectName = p.ProjectName,
                                ProjectGoal = p.ProjectGoal,
+                               StartDate = p.StartDate,
+                               EndDate = p.EndDate,
                                DayLeft = (p.EndDate.DayNumber - DateOnly.FromDateTime(DateTime.Today).DayNumber),
                                Thumbnail = "https://" + _httpContextAccessor.HttpContext.Request.Host.Value + "/resources/mumuThumbnail/Projects_Products_Thumbnail/" + p.Thumbnail,
                                TotalAmount = ((from orderDetail in _db.OrderDetails
@@ -126,13 +132,34 @@ namespace BoulevardOfBrokenDreams.Controllers
                                                where orderDetail.ProjectId == p.ProjectId
                                                select orderDetail.OrderId).Count(),
                            };
+            var filteredProjects = projects.AsEnumerable().Where(x => x.DayLeft >= 0);
+            switch (orderby)
+            {
+                case "all":
+                    break;
+                case "goal":
+                    filteredProjects = filteredProjects.OrderByDescending(x => x.TotalAmount);
+                    break;
+                case "sponsor":
+                    filteredProjects = filteredProjects.OrderByDescending(x => x.SponsorCount);
+                    break;
+                case "enddate":
+                    filteredProjects = filteredProjects.OrderBy(x => x.DayLeft);
+                    break;
+                case "startdate":
+                    filteredProjects = filteredProjects.OrderByDescending(x => x.StartDate);
+                    break;
+                default:
+                    break;
+            }
+
             SearchProjectDTO searchProjectDTO = new SearchProjectDTO()
             {
-                projectData = projects.Skip((page - 1) * 12).Take(12).ToList(),
-                totalPage = (int)Math.Ceiling((double)projects.Count() / 12),
+                projectData = filteredProjects.Skip((page - 1) * 12).Take(12).ToList(),
+                totalPage = (int)Math.Ceiling((double)filteredProjects.Count() / 12),
             };
-            
-                       
+
+
             return searchProjectDTO;
         }
 
