@@ -326,6 +326,7 @@ public partial class MumuDbContext : DbContext
             entity.HasOne(d => d.Member).WithMany(p => p.Services)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_Services_Members");
+           
         });
 
         modelBuilder.Entity<ServiceMessage>(entity =>
@@ -337,6 +338,7 @@ public partial class MumuDbContext : DbContext
             entity.HasOne(d => d.Service).WithMany(p => p.ServiceMessages)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_ServiceMessages_Services");
+                 entity.Property(e => e.IsRead).HasDefaultValue(false);
         });
 
         OnModelCreatingPartial(modelBuilder);
