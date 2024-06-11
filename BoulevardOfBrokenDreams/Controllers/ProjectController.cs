@@ -27,6 +27,7 @@ namespace BoulevardOfBrokenDreams.Controllers
         [HttpGet]
         public IEnumerable<ProjectDTO> Get()
         {
+            getc
             var projects = from p in _db.Projects
                            select new ProjectDTO
                            {
@@ -110,7 +111,7 @@ namespace BoulevardOfBrokenDreams.Controllers
 
 
             var path = "https://" + _httpContextAccessor.HttpContext.Request.Host.Value + "/resources/mumuThumbnail/Projects_Products_Thumbnail/";
-            // 首先根据成员ID获取购物车ID
+            // 首先根據成員ID獲取購物車ID
             var cart = await _db.Carts.FirstOrDefaultAsync(m => m.MemberId == memberId);
             if (cart == null)
             {
