@@ -1,4 +1,6 @@
+using BoulevardOfBrokenDreams.Interface;
 using BoulevardOfBrokenDreams.Models;
+using BoulevardOfBrokenDreams.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -13,13 +15,17 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowAll", builder =>
+    options.AddDefaultPolicy(builder =>
     {
         builder.AllowAnyOrigin()
                .AllowAnyMethod()
                .AllowAnyHeader();
     });
 });
+
+builder.Services.AddTransient<IEmailSender, EmailSender>();
+
+builder.Services.AddSingleton(builder.Configuration);
 
 builder.Services.AddSwaggerGen(options =>
 {
@@ -100,7 +106,7 @@ app.UseRouting();
 app.UseAuthentication();
 app.UseAuthorization();
 
-app.UseCors("AllowAll");
+app.UseCors();
 
 app.MapControllers();
 

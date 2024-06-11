@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using System.Text.Json.Serialization;
 using Microsoft.EntityFrameworkCore;
 
 namespace BoulevardOfBrokenDreams.Models;
@@ -48,6 +47,13 @@ public partial class Member
     [Unicode(false)]
     public string? Verified { get; set; }
 
+    [StringLength(1)]
+    [Unicode(false)]
+    public string? ResetPassword { get; set; }
+
+    [Column("StatusID")]
+    public int? StatusId { get; set; }
+
     [InverseProperty("Member")]
     public virtual ICollection<Action> Actions { get; set; } = new List<Action>();
 
@@ -72,7 +78,9 @@ public partial class Member
     [InverseProperty("Member")]
     public virtual ICollection<Order> Orders { get; set; } = new List<Order>();
 
-    [JsonIgnore]
+    [InverseProperty("Member")]
+    public virtual ICollection<Post> Posts { get; set; } = new List<Post>();
+
     [InverseProperty("Member")]
     public virtual ICollection<Project> Projects { get; set; } = new List<Project>();
 
