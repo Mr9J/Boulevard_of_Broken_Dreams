@@ -15,7 +15,7 @@ namespace BoulevardOfBrokenDreams.Controllers
         private readonly IConfiguration _configuration;
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly MemberRepository _memberRepository;
-        private readonly ServicesServiceMessage _serviceMessage; // 使用 ServicesServiceMessage 別名
+        private readonly ServicesServiceMessage _serviceMessage;
 
         public ServiceController(MumuDbContext context, IConfiguration configuration, IHttpContextAccessor httpContextAccessor, ServicesServiceMessage serviceMessage)
         {
@@ -43,25 +43,23 @@ namespace BoulevardOfBrokenDreams.Controllers
         }
 
         // 創建新服務
-        // 創建新服務
         [HttpPost]
         public async Task<ActionResult<ServiceDTO>> CreateService(ServiceDTO serviceDto)
         {
             var createdService = await _serviceMessage.CreateServiceAsync(serviceDto);
-            return Ok(createdService); // 或者使用 CreatedAtRoute 方法
+            return Ok(createdService);
         }
-
 
         // 創建服務訊息
         [HttpPost("{serviceId}/messages")]
         public async Task<ActionResult<ServiceMessageDTO>> CreateServiceMessage(int serviceId, ServiceMessageDTO messageDto)
         {
-            messageDto.ServiceId = serviceId;
+            messageDto.ServiceId = serviceId; 
             var createdMessage = await _serviceMessage.CreateServiceMessageAsync(messageDto);
             return CreatedAtAction(nameof(GetMessagesByServiceId), new { serviceId = createdMessage.ServiceId }, createdMessage);
         }
 
-        // 獲取所有客戶的最新訊息
+        //獲取所有客戶的最新訊息
         [HttpGet("latest-messages")]
         public async Task<ActionResult<List<CustomerMessageDTO>>> GetLatestMessages()
         {
@@ -86,6 +84,66 @@ namespace BoulevardOfBrokenDreams.Controllers
         {
             var latestServiceId = await _serviceMessage.GetLatestServiceIdByMemberIdAsync(memberId);
             return Ok(latestServiceId);
+        }
+
+        [HttpGet("unread-count")]
+        public async Task<IActionResult> GetUnreadCount()
+        {
+            var unreadCount = await _context.ServiceMessages.CountAsync(m => !m.IsRead);
+            return Ok(unreadCount);
+        }
+        [HttpGet("unread-count/{memberId}")]
+        public async Task<IActionResult> GetUnreadCountForMember(int memberId)
+        {
+            var unreadCount = await _context.ServiceMessages
+                .Where(m => m.MemberId == memberId && !m.IsRead)
+                .CountAsync();
+
+            return Ok(unreadCount);
+        }
+        [HttpPost("mark-as-read/{memberId}")]
+        public async Task<IActionResult> MarkMessagesAsReadForMember(int memberId)
+        {
+            var messages = await _context.ServiceMessages
+                .Where(m => m.MemberId == memberId && !m.IsRead)
+                .ToListAsync();
+
+            foreach (var message in messages)
+            {
+                message.IsRead = true;
+            }
+
+            await _context.SaveChangesAsync();
+
+            return Ok();
+        }
+        [HttpGet("members/nicknames")]
+        public async Task<ActionResult<IEnumerable<MemberDTO>>> GetMembersNicknames()
+        {
+            var members = await _context.Members
+                .Select(m => new MemberDTO
+                {
+                    MemberId = m.MemberId,
+                    Nickname = m.Nickname
+                })
+                .ToListAsync();
+
+            return Ok(members);
+        }
+        [HttpPut("close/{serviceId}")] // 使用PUT因為這是一個更新操作
+        public async Task<IActionResult> CloseService(int serviceId)
+        {
+            var service = await _context.Services.FindAsync(serviceId);
+            if (service == null)
+            {
+                return NotFound();
+            }
+
+            service.StatusId = 6; // 假設6代表服務已結束
+            service.EndDate = DateTime.UtcNow; // 使用UTC時間以避免時區問題
+            await _context.SaveChangesAsync();
+
+            return NoContent(); // 回應204 No Content表示更新成功
         }
     }
 }

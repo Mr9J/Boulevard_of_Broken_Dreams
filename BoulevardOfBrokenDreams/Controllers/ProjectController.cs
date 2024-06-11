@@ -78,27 +78,11 @@ namespace BoulevardOfBrokenDreams.Controllers
 
         // GET api/<ProjectController>/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<Project>> GetProjectById(int id)
+        public IActionResult Get(int id)
         {
-            var project = await _db.Projects
-                .Include(x=>x.Products)
-                .Include(x=>x.Member)
-                .FirstOrDefaultAsync(proj =>  proj.ProjectId == id );
-            
-            if(project == null) return NotFound("Project not found.");
-
-            var p = new VMProjectInfo()
-            {
-                ProjectId = project.ProjectId,
-                ProjectName = project.ProjectName,
-                ProjectDescription = project.ProjectDescription,
-                ProjectThumbnail = "https://" + _httpContextAccessor.HttpContext.Request.Host.Value + "/resources/mumuThumbnail/Projects_Products_Thumbnail/" + project.Thumbnail,
-                ProjectGoal = project.ProjectGoal,
-                StartDate = project.StartDate,
-                EndDate = project.EndDate,
-            };
-
-            return Ok(p);
+            var project = _db.Projects.FirstOrDefault(proj =>  proj.ProjectId == id );
+            if (project == null) return NotFound();
+            return Ok(project);
         }
 
         [HttpGet("{id}/{memberId}")]
@@ -111,12 +95,21 @@ namespace BoulevardOfBrokenDreams.Controllers
             var path = "https://" + _httpContextAccessor.HttpContext.Request.Host.Value + "/resources/mumuThumbnail/Projects_Products_Thumbnail/";
             // 首先根據成員ID獲取購物車ID
             var cart = await _db.Carts.FirstOrDefaultAsync(m => m.MemberId == memberId);
+            int cartId;
             if (cart == null)
             {
-                return NotFound("No cart found for the specified member ID.");
-            }
+                var newCart = new Cart
+                {
+                    MemberId = memberId,
+                };
+                _db.Carts.Add(newCart);
+                await _db.SaveChangesAsync();
 
-            var cartId = cart.CartId;
+                 cartId = newCart.CartId;
+            }
+            else {
+                cartId = cart.CartId;
+            }
 
             var totalDonate = _db.Orders
                            .Where(o => _db.OrderDetails

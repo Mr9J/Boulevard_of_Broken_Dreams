@@ -10,7 +10,7 @@
         public DateOnly StartDate { get; set; }
         public DateOnly EndDate { get; set; }
 
-        //public int MemberId { get; set; }
+        public int MemberId { get; set; }
 
         //public int StatusId { get; set; }
         //public string? GroupName { get; set; }
