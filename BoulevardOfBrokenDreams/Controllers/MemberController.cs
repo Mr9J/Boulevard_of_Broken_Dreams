@@ -359,8 +359,6 @@ namespace BoulevardOfBrokenDreams.Controllers
             return members;
         }
 
-    
-
         [HttpPut("{id}")]
         public IActionResult Put(int id, [FromBody] MemberDTO member)
         {

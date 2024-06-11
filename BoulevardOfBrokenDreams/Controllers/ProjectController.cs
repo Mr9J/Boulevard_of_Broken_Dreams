@@ -3,7 +3,6 @@ using BoulevardOfBrokenDreams.Models.DTO;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using BoulevardOfBrokenDreams.Models.DTO;
 using System.Numerics;
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
@@ -94,7 +93,7 @@ namespace BoulevardOfBrokenDreams.Controllers
 
 
             var path = "https://" + _httpContextAccessor.HttpContext.Request.Host.Value + "/resources/mumuThumbnail/Projects_Products_Thumbnail/";
-            // 首先根据成员ID获取购物车ID
+            // 首先根據成員ID獲取購物車ID
             var cart = await _db.Carts.FirstOrDefaultAsync(m => m.MemberId == memberId);
             int cartId;
             if (cart == null)
@@ -327,9 +326,11 @@ namespace BoulevardOfBrokenDreams.Controllers
             int ProjectCount = _db.Projects.Count();
             int activeProjectCount = _db.Projects.Count(p => p.StatusId == 1);
             int inactiveProjectCount = _db.Projects.Count(p => p.StatusId == 2);
+            int pendingProjectCount = _db.Projects.Count(p => p.StatusId == 3);
             projects.Add(ProjectCount);
             projects.Add(activeProjectCount);
             projects.Add(inactiveProjectCount);
+            projects.Add(pendingProjectCount);
             return projects;
         }
     }
