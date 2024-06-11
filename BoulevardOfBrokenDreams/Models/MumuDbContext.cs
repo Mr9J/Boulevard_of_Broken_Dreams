@@ -53,6 +53,8 @@ public partial class MumuDbContext : DbContext
 
     public virtual DbSet<Post> Posts { get; set; }
 
+    public virtual DbSet<PostComment> PostComments { get; set; }
+
     public virtual DbSet<PostLiked> PostLikeds { get; set; }
 
     public virtual DbSet<PostSaved> PostSaveds { get; set; }
@@ -240,6 +242,17 @@ public partial class MumuDbContext : DbContext
             entity.HasOne(d => d.Member).WithMany(p => p.Posts)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_Posts_Members");
+        });
+
+        modelBuilder.Entity<PostComment>(entity =>
+        {
+            entity.HasOne(d => d.Member).WithMany(p => p.PostComments)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_PostComment_Members");
+
+            entity.HasOne(d => d.Post).WithMany(p => p.PostComments)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_PostComment_Posts");
         });
 
         modelBuilder.Entity<PostLiked>(entity =>

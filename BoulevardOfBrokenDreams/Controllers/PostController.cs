@@ -262,6 +262,35 @@ namespace BoulevardOfBrokenDreams.Controllers
             }
         }
 
+        [HttpDelete("delete-post/{postId}"), Authorize(Roles = "user")]
+        public async Task<IActionResult> DeletePost(int postId)
+        {
+            try
+            {
+                string? jwt = HttpContext.Request.Headers["Authorization"];
+
+                if (jwt == null || jwt == "") return BadRequest();
+
+                string id = decodeJwtId(jwt);
+
+                var post = await _context.Posts.FirstOrDefaultAsync(p => p.PostId == postId && p.MemberId == int.Parse(id));
+
+                if (post == null)
+                {
+                    return BadRequest("找不到該貼文或權限不足");
+                }
+
+                _context.Posts.Remove(post);
+                await _context.SaveChangesAsync();
+
+                return Ok("刪除成功");
+            }
+            catch (Exception)
+            {
+                return BadRequest("伺服器錯誤，請稍後再試");
+            }
+        }
+
         [HttpPatch("update-post/{postId}"), Authorize(Roles = "user")]
         public async Task<IActionResult> UpdatePost(UpdatePostDTO update)
         {
@@ -285,9 +314,15 @@ namespace BoulevardOfBrokenDreams.Controllers
 
                 var post = await _context.Posts.FirstOrDefaultAsync(p => p.PostId == update.postId);
 
+
                 if (post == null)
                 {
                     return BadRequest("找不到該貼文");
+                }
+
+                if (member.MemberId != post.MemberId)
+                {
+                    return BadRequest("無法修改他人貼文");
                 }
 
                 if (!string.IsNullOrEmpty(update.caption))
@@ -300,20 +335,84 @@ namespace BoulevardOfBrokenDreams.Controllers
                     post.ImgUrl = update.file;
                 }
 
-                if (!string.IsNullOrEmpty(update.location))
-                {
-                    post.Location = update.location;
-                }
-
-                if (!string.IsNullOrEmpty(update.tags))
-                {
-                    post.Tags = update.tags;
-                }
-
                 _context.Posts.Update(post);
                 await _context.SaveChangesAsync();
 
                 return Ok("更新成功");
+            }
+            catch (Exception)
+            {
+                return BadRequest("伺服器錯誤，請稍後再試");
+            }
+        }
+
+        [HttpPost("comment-post"), Authorize(Roles = "user")]
+        public async Task<IActionResult> CommentPost(NewCommentPostDTO newComment)
+        {
+            try
+            {
+                string? jwt = HttpContext.Request.Headers["Authorization"];
+
+                if (jwt == null || jwt == "") return BadRequest();
+
+                string id = decodeJwtId(jwt);
+
+                if (newComment.userId != id)
+                {
+                    return BadRequest("異常行為，權限錯誤");
+                }
+
+                var post = await _context.Posts.AnyAsync(p => p.PostId == int.Parse(newComment.postId));
+
+                if (!post)
+                {
+                    return BadRequest("找不到該貼文");
+                }
+
+                PostComment comment = new PostComment
+                {
+                    PostId = int.Parse(newComment.postId),
+                    MemberId = int.Parse(newComment.userId),
+                    Comment = newComment.comment,
+                    Time = DateTime.UtcNow
+                };
+
+                _context.PostComments.Add(comment);
+                await _context.SaveChangesAsync();
+
+                return Ok("留言完成");
+
+            }
+            catch (Exception)
+            {
+                return BadRequest("伺服器錯誤，請稍後再試");
+            }
+        }
+
+        [HttpGet("get-comments/{postId}"), Authorize(Roles = "user")]
+        public async Task<IActionResult> GetComments(string postId)
+        {
+            try
+            {
+                var comments = await _context.PostComments.OrderByDescending(p => p.Time).Where(p => p.PostId == int.Parse(postId)).ToListAsync();
+
+                if (comments.Count == 0) return Ok("沒有留言");
+
+                var commentDTOs = new List<CommentPostDTO>();
+
+                foreach (var comment in comments)
+                {
+                    var commentDTO = new CommentPostDTO
+                    {
+                        postId = comment.PostId,
+                        userId = comment.MemberId,
+                        comment = comment.Comment,
+                        time = comment.Time.ToString()
+                    };
+                    commentDTOs.Add(commentDTO);
+                }
+
+                return Ok(commentDTOs);
             }
             catch (Exception)
             {
@@ -331,6 +430,18 @@ namespace BoulevardOfBrokenDreams.Controllers
             string? username = decodedToken.Claims.FirstOrDefault(claim => claim.Type == ClaimTypes.Name)?.Value;
 
             return username!;
+        }
+
+        private string decodeJwtId(string jwt)
+        {
+            jwt = jwt.Replace("Bearer ", "");
+
+            JwtSecurityTokenHandler tokenHandler = new JwtSecurityTokenHandler();
+            JwtSecurityToken decodedToken = tokenHandler.ReadJwtToken(jwt);
+
+            string? id = decodedToken.Claims.FirstOrDefault(claim => claim.Type == ClaimTypes.NameIdentifier)?.Value;
+
+            return id!;
         }
 
         private string PostValidation(NewPostDTO newPost)
