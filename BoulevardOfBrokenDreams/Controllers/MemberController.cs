@@ -82,7 +82,7 @@ namespace BoulevardOfBrokenDreams.Controllers
 
                 if (member != null)
                 {
-                    var token = (new JwtGenerator(_configuration)).GenerateJwtToken(user.username, "user");
+                    var token = (new JwtGenerator(_configuration)).GenerateJwtToken(user.username, "user", member.MemberId);
 
                     string jwt = "Bearer " + token;
 
@@ -191,7 +191,7 @@ namespace BoulevardOfBrokenDreams.Controllers
                 var message = "<h1 style=\"background-color: cornflowerblue; color: aliceblue\">Mumu 重設密碼</h1>";
                 message += "<p>請點擊以下連結重設您的密碼 : </p>";
 
-                var token = (new JwtGenerator(_configuration)).GenerateJwtToken(member.Username, "guest");
+                var token = (new JwtGenerator(_configuration)).GenerateJwtToken(member.Username, "guest", member.MemberId);
 
                 message += "<a href='https://mumumsit158.com/reset-password/" + token + "'>點擊這裡</a>進行重設";
 
@@ -264,6 +264,18 @@ namespace BoulevardOfBrokenDreams.Controllers
             return username!;
         }
 
+        private string decodeJwtId(string jwt)
+        {
+            jwt = jwt.Replace("Bearer ", "");
+
+            JwtSecurityTokenHandler tokenHandler = new JwtSecurityTokenHandler();
+            JwtSecurityToken decodedToken = tokenHandler.ReadJwtToken(jwt);
+
+            string? id = decodedToken.Claims.FirstOrDefault(claim => claim.Type == ClaimTypes.NameIdentifier)?.Value;
+
+            return id!;
+        }
+
         [HttpPost("sign-in-with-others")]
         public async Task<IActionResult> SignInWithOthers(OuterSignInDTO user)
         {
@@ -286,6 +298,12 @@ namespace BoulevardOfBrokenDreams.Controllers
 
                     _context.Members.Add(newUser);
                     await _context.SaveChangesAsync();
+
+                    var tokenNew = (new JwtGenerator(_configuration)).GenerateJwtToken(user.username, "user", newUser.MemberId);
+
+                    string jwtNew = "Bearer " + tokenNew;
+
+                    return Ok(jwtNew);
                 }
 
                 if (member != null && !Hash.VerifyHashedPassword(user.uid, member!.Password!))
@@ -298,7 +316,8 @@ namespace BoulevardOfBrokenDreams.Controllers
                     return BadRequest("帳號已被停權");
                 }
 
-                var token = (new JwtGenerator(_configuration)).GenerateJwtToken(user.username, "user");
+
+                var token = (new JwtGenerator(_configuration)).GenerateJwtToken(user.username, "user", member!.MemberId);
 
                 string jwt = "Bearer " + token;
 

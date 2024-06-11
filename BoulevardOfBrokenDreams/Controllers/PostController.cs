@@ -87,12 +87,12 @@ namespace BoulevardOfBrokenDreams.Controllers
         }
 
 
-        [HttpGet("get-posts"), Authorize(Roles = "user")]
-        public async Task<IActionResult> GetPosts()
+        [HttpGet("get-posts/{page}"), Authorize(Roles = "user")]
+        public async Task<IActionResult> GetPosts(int page)
         {
             try
             {
-                var posts = await _context.Posts.OrderByDescending(p => p.PostTime).Take(10).ToListAsync();
+                var posts = await _context.Posts.OrderByDescending(p => p.PostTime).Skip(page * 10).Take(10).ToListAsync();
 
                 var postDTOs = new List<PostDTO>();
                 foreach (var post in posts)
