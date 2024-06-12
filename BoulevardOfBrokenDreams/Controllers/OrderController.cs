@@ -3,6 +3,9 @@ using BoulevardOfBrokenDreams.Models.DTO;
 using Microsoft.AspNetCore.Mvc;
 using BoulevardOfBrokenDreams.Models.DTO;
 using Microsoft.EntityFrameworkCore;
+using System.Security.Cryptography;
+using System.Text;
+using System.Web;
 
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
@@ -37,12 +40,42 @@ namespace BoulevardOfBrokenDreams.Controllers
         }
 
         // POST api/<OrderController>
-        [HttpPost]
-        public void Post([FromBody] string value)
-        {
-        }
+        [HttpPost("CalculateChecksum")]
 
-        [HttpPost("CreateOrder")]
+    public IActionResult CalculateChecksum([FromBody] Dictionary<string, string> data)
+    {
+
+        var param = data.Keys.OrderBy(x => x).Select(key => key + "=" + data[key]).ToList();
+        var checkValue = string.Join("&", param);
+        //測試用的 HashKey
+        var hashKey = "pwFHCqoQZGmho4w6";
+        //測試用的 HashIV
+        var HashIV = "EkRm7iFT261dpevs";
+        checkValue = $"HashKey={hashKey}" + "&" + checkValue + $"&HashIV={HashIV}";
+        checkValue = HttpUtility.UrlEncode(checkValue).ToLower();
+        checkValue = GetSHA256(checkValue);
+       string  checksum = checkValue.ToUpper();
+        return Ok(new { Checksum = checksum });
+
+
+
+    }
+
+    private string GetSHA256(string value)
+    {
+        var result = new StringBuilder();
+        var sha256 = SHA256.Create();
+        var bts = Encoding.UTF8.GetBytes(value);
+        var hash = sha256.ComputeHash(bts);
+        for (int i = 0; i < hash.Length; i++)
+        {
+            result.Append(hash[i].ToString("X2"));
+        }
+        return result.ToString();
+    }
+
+
+    [HttpPost("CreateOrder")]
         public string CreateOrder([FromBody] CreateOrderDTO orderDTO)
         {
             var newOrder = new Order
