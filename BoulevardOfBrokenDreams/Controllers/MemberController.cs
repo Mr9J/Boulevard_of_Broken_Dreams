@@ -373,6 +373,48 @@ namespace BoulevardOfBrokenDreams.Controllers
             _context.SaveChanges();
             return Ok(member);
         }
+
+        [HttpGet("GetStaff"), Authorize(Roles = "user")]
+        public IEnumerable<MemberDTO> GetStaff()
+        {
+            string? jwt = HttpContext.Request.Headers["Authorization"];
+
+            if (jwt == null || jwt == "") return null;
+
+            string id = decodeJwtId(jwt);
+            int mId = int.Parse(id);
+
+            var groupDetails = _context.GroupDetails
+                            .Where(gd => gd.MemberId == mId)
+                            .Select(gd => gd.GroupId)
+                            .ToList();
+            if (groupDetails.Any())
+            {
+                // 獲取所有相關的 GroupId
+                var groupIds = groupDetails.Distinct().ToList();
+
+                // 使用這些 GroupId 查詢所有成員
+                var members = from m in _context.Members
+                              join gd in _context.GroupDetails on m.MemberId equals gd.MemberId
+                              where groupIds.Contains(gd.GroupId)
+                              select new MemberDTO
+                              {
+                                  MemberId = m.MemberId,
+                                  Username = m.Username,
+                                  Nickname = m.Nickname,
+                                  Thumbnail = m.Thumbnail,
+                                  Email = m.Email,
+                                  Phone = m.Phone,
+                                  GroupDetail = new GroupDetailDTO
+                                  {
+                                      AuthStatusId = gd.AuthStatusId
+                                  },
+                              };
+
+                return members.ToList();
+            }
+            return null;
+        }
     }
 }
 
