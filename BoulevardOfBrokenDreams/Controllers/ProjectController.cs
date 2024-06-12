@@ -1,9 +1,12 @@
 ﻿using BoulevardOfBrokenDreams.Models;
 using BoulevardOfBrokenDreams.Models.DTO;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.IdentityModel.Tokens.Jwt;
 using System.Numerics;
+using System.Security.Claims;
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
@@ -327,6 +330,102 @@ namespace BoulevardOfBrokenDreams.Controllers
             int activeProjectCount = _db.Projects.Count(p => p.StatusId == 1);
             int inactiveProjectCount = _db.Projects.Count(p => p.StatusId == 2);
             int pendingProjectCount = _db.Projects.Count(p => p.StatusId == 3);
+            projects.Add(ProjectCount);
+            projects.Add(activeProjectCount);
+            projects.Add(inactiveProjectCount);
+            projects.Add(pendingProjectCount);
+            return projects;
+        }
+        private string decodeJwtId(string jwt)
+        {
+            jwt = jwt.Replace("Bearer ", "");
+
+            JwtSecurityTokenHandler tokenHandler = new JwtSecurityTokenHandler();
+            JwtSecurityToken decodedToken = tokenHandler.ReadJwtToken(jwt);
+
+            string? id = decodedToken.Claims.FirstOrDefault(claim => claim.Type == ClaimTypes.NameIdentifier)?.Value;
+
+            return id!;
+        }
+        //限定登入者為user
+        [HttpGet("userProject"), Authorize(Roles = "user")]
+        public IActionResult GetUserProject()
+        {
+            //前端的token資料
+            string? jwt = HttpContext.Request.Headers["Authorization"];
+
+            if (jwt == null || jwt == "") return BadRequest();
+
+            string id = decodeJwtId(jwt);
+            int mId = int.Parse(id);
+            var projects = from p in _db.Projects.Where(p => p.MemberId == mId)
+                           select new ProjectDTO
+                           {
+                               ProjectId = p.ProjectId,
+                               ProjectName = p.ProjectName,
+                               ProjectDescription = p.ProjectDescription,
+                               ProjectGoal = p.ProjectGoal,
+                               StartDate = p.StartDate,
+                               EndDate = p.EndDate,
+                               MemberId = p.MemberId,
+                               GroupId = p.GroupId,
+                               Thumbnail = p.Thumbnail,
+
+
+                               StatusId = p.StatusId,
+                               ProjectAmount = (from orderDetail in _db.OrderDetails
+                                                where orderDetail.ProjectId == p.ProjectId
+                                                select orderDetail.Price).Sum(),
+                               DonationAmount = (from order in _db.Orders
+                                                 join orderDetail in _db.OrderDetails on order.OrderId equals orderDetail.OrderId
+                                                 where orderDetail.ProjectId == p.ProjectId
+                                                 select order.Donate ?? 0).FirstOrDefault(),
+                               TotalAmount = ((from orderDetail in _db.OrderDetails
+                                               where orderDetail.ProjectId == p.ProjectId
+                                               select orderDetail.Price).Sum()) + ((from order in _db.Orders
+                                                                                    join orderDetail in _db.OrderDetails on order.OrderId equals orderDetail.OrderId
+                                                                                    where orderDetail.ProjectId == p.ProjectId
+                                                                                    select order.Donate ?? 0).FirstOrDefault()),
+                               Products = (from product in _db.Products
+                                           where product.ProjectId == p.ProjectId
+                                           select new ProductDTO
+                                           {
+                                               ProductId = product.ProductId,
+                                               ProductName = product.ProductName,
+                                               OnSalePrice = product.OnSalePrice,
+                                               ProductPrice = product.ProductPrice,
+                                               ProductDescription = product.ProductDescription,
+                                               InitialStock = product.InitialStock,
+                                               CurrentStock = product.CurrentStock,
+                                               StartDate = product.StartDate,
+                                               EndDate = product.EndDate,
+                                               Thumbnail = product.Thumbnail,
+                                               StatusId = product.StatusId,
+                                               OrderBy = product.OrderBy,
+                                           }).ToList()
+                           };
+
+            return Ok(projects);
+        }
+        [HttpGet("UserProject/Count"), Authorize(Roles = "user")]
+        public ActionResult<List<int>> GetUserProjectCounts()
+        {
+            string? jwt = HttpContext.Request.Headers["Authorization"];
+
+            if (string.IsNullOrEmpty(jwt))
+            {
+                return BadRequest("Authorization header is missing or empty.");
+            }
+
+
+            string id = decodeJwtId(jwt);
+            int mId = int.Parse(id);
+
+            List<int> projects = new List<int>();
+            int ProjectCount = _db.Projects.Count(p => p.MemberId == mId);
+            int activeProjectCount = _db.Projects.Count(p => p.StatusId == 1&&  p.MemberId == mId);
+            int inactiveProjectCount = _db.Projects.Count(p => p.StatusId == 2 && p.MemberId == mId);
+            int pendingProjectCount = _db.Projects.Count(p => p.StatusId == 3 && p.MemberId == mId);
             projects.Add(ProjectCount);
             projects.Add(activeProjectCount);
             projects.Add(inactiveProjectCount);
