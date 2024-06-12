@@ -415,11 +415,15 @@ namespace BoulevardOfBrokenDreams.Controllers
             return Ok(projects);
         }
         [HttpGet("UserProject/Count"), Authorize(Roles = "user")]
-        public List<int> GetUserProjectCounts()
+        public ActionResult<List<int>> GetUserProjectCounts()
         {
             string? jwt = HttpContext.Request.Headers["Authorization"];
 
-            if (jwt == null || jwt == "") return null;
+            if (string.IsNullOrEmpty(jwt))
+            {
+                return BadRequest("Authorization header is missing or empty.");
+            }
+
 
             string id = decodeJwtId(jwt);
             int mId = int.Parse(id);
