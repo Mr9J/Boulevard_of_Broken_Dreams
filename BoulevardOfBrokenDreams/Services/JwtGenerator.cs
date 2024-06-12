@@ -14,7 +14,7 @@ namespace BoulevardOfBrokenDreams.Services
             _config = config;
         }
 
-        public string GenerateJwtToken(string username, string role,int id)
+        public string GenerateJwtToken(string username, string role, int id)
         {
             List<Claim> claims = new List<Claim> {
                     new Claim(ClaimTypes.Name, username),

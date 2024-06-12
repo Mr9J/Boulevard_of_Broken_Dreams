@@ -6,7 +6,6 @@ using Microsoft.EntityFrameworkCore;
 
 namespace BoulevardOfBrokenDreams.Models;
 
-[Table("PostComment")]
 public partial class PostComment
 {
     [Key]
@@ -22,7 +21,7 @@ public partial class PostComment
     [StringLength(2200)]
     public string Comment { get; set; } = null!;
 
-    [Column("time", TypeName = "datetime")]
+    [Column(TypeName = "datetime")]
     public DateTime Time { get; set; }
 
     [ForeignKey("MemberId")]

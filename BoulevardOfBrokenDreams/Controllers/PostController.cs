@@ -377,7 +377,7 @@ namespace BoulevardOfBrokenDreams.Controllers
                     Time = DateTime.UtcNow
                 };
 
-                _context.PostComments.Add(comment);
+                //_context.PostComments.Add(comment);
                 await _context.SaveChangesAsync();
 
                 return Ok("留言完成");
