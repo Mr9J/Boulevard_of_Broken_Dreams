@@ -1,9 +1,9 @@
 ﻿using BoulevardOfBrokenDreams.Models;
 using BoulevardOfBrokenDreams.Models.DTO;
 using Microsoft.AspNetCore.Mvc;
-using BoulevardOfBrokenDreams.Models.DTO;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using Microsoft.EntityFrameworkCore;
 
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
@@ -82,7 +82,31 @@ namespace BoulevardOfBrokenDreams.Controllers
 
                 _db.OrderDetails.Add(newOrderDetails);
             });
+            _db.SaveChanges(); 
+            
+            //從購物車中尋找是否有符合的商品，如果有就對該購物車商品進行數量修改
+            var memberCartId = _db.Carts.FirstOrDefault(m => m.MemberId == orderDTO.MemberId)?.CartId;
+            if (memberCartId == 0)
+                return "找不到使用者購物車";
+            orderDTO.ProductData.ForEach(product =>
+            {
+
+                int productId = int.Parse(product.ProductId);
+                var cartHasProduct = _db.CartDetails.FirstOrDefault(c => c.CartId == memberCartId && c.ProductId == productId);
+                if (cartHasProduct != null)
+                {
+                    cartHasProduct.Count -= product.Count;
+
+                    // 如果 product.Count 大於購物車中的產品數量，則刪除該產品
+                    if (cartHasProduct.Count <= 0)
+                    {
+                        _db.CartDetails.Remove(cartHasProduct);
+                    }
+                }
+
+            });
             _db.SaveChanges();
+
             return "代單完成";
         }
 

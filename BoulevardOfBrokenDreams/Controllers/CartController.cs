@@ -23,7 +23,7 @@ namespace BoulevardOfBrokenDreams.Controllers
         //仔入購物車頁面
         [HttpGet("{memberId}")]
         public async Task<ActionResult<IEnumerable<CartDetailDTO>>> GetCartsDetailData(int memberId)
-        {
+        {//還沒寫:如果購物車沒有資料 顯示為空頁面
             try
             {
                 var path = "https://" + httpContextAccessor.HttpContext.Request.Host.Value + "/resources/mumuThumbnail/Projects_Products_Thumbnail/";
@@ -73,20 +73,7 @@ namespace BoulevardOfBrokenDreams.Controllers
                     Count = joined.CartDetail.Count
                 })
                 .ToList()
-                            //.Select(pt => new ProductDTO
-                            //{
-                            //    ProductId = pt.ProductId,
-                            //    ProductName = pt.ProductName,
-                            //    ProductDescription = pt.ProductDescription,
-                            //    InitialStock = pt.InitialStock,
-                            //    ProductPrice = pt.ProductPrice,
-                            //    CurrentStock = pt.CurrentStock,
-                            //    StartDate = pt.StartDate,
-                            //    EndDate = pt.EndDate,
-                            //    Thumbnail = path + pt.Thumbnail,
-
-                            //})
-                            //.ToList()
+                          
                         })
                         .FirstOrDefaultAsync(); // 在這裡使用FirstOrDefaultAsync而不是ToListAsync
 
@@ -103,9 +90,9 @@ namespace BoulevardOfBrokenDreams.Controllers
         }
 
 
-        [HttpPost("{productId}/{projectId}/{memberId}")]
+        [HttpPost("{productId}/{productCounts}/{projectId}/{memberId}")]
         //加入購物車
-        public async Task<IActionResult> AddToCart(int productId, int projectId, int memberId)
+        public async Task<IActionResult> AddToCart(int productId,int productCounts, int projectId, int memberId)
         {
 
             var user = context.Carts.FirstOrDefault(m => m.MemberId == memberId);
@@ -128,7 +115,7 @@ namespace BoulevardOfBrokenDreams.Controllers
                     CartId = newCartId,
                     ProjectId = projectId,
                     ProductId = productId,
-                    Count = 1,
+                    Count = productCounts,
                     Price = price,
                     StatusId = 1
                 };
@@ -144,7 +131,7 @@ namespace BoulevardOfBrokenDreams.Controllers
                 var alreadyinCart = context.CartDetails.FirstOrDefault(pt => pt.ProductId == productId && pt.CartId == memberCart.CartId);
                 if (alreadyinCart != null)
                 {
-                    alreadyinCart.Count += 1;
+                    alreadyinCart.Count += productCounts;
                 }
                 //if (price == 0)
                 //{ return BadRequest(); }
@@ -155,7 +142,7 @@ namespace BoulevardOfBrokenDreams.Controllers
                         CartId = memberCart.CartId,
                         ProjectId = projectId,
                         ProductId = productId,
-                        Count = 1,
+                        Count = productCounts,
                         Price = price,
                         StatusId = 1
                     };

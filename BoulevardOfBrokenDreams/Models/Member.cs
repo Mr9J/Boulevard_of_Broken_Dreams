@@ -79,6 +79,15 @@ public partial class Member
     public virtual ICollection<Order> Orders { get; set; } = new List<Order>();
 
     [InverseProperty("Member")]
+    public virtual ICollection<PostComment> PostComments { get; set; } = new List<PostComment>();
+
+    [InverseProperty("Member")]
+    public virtual ICollection<PostLiked> PostLikeds { get; set; } = new List<PostLiked>();
+
+    [InverseProperty("Member")]
+    public virtual ICollection<PostSaved> PostSaveds { get; set; } = new List<PostSaved>();
+
+    [InverseProperty("Member")]
     public virtual ICollection<Post> Posts { get; set; } = new List<Post>();
 
     [InverseProperty("Member")]
