@@ -31,7 +31,8 @@ namespace BoulevardOfBrokenDreams.Controllers
 
                             LikePrjName = x.Like.Project.ProjectName,
                             LikePrjThumb = "https://" + _httpContextAccessor.HttpContext.Request.Host.Value + "/resources/mumuThumbnail/Projects_Products_Thumbnail/" + x.Like.Project.Thumbnail,
-                            LikePrjId = x.LikeDetailId
+                            LikeDetailId = x.LikeDetailId,
+                            LikePrjId=x.Like.ProjectId
                         }).ToList();
 
 
