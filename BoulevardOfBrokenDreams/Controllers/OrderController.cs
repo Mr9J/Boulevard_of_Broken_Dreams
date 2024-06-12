@@ -169,7 +169,7 @@ namespace BoulevardOfBrokenDreams.Controllers
                              {
                                  MemberId = o.Member.MemberId,
                                  Username = o.Member.Username,
-                                 Thumbnail = "https://" + _httpContextAccessor.HttpContext.Request.Host.Value + "/resources/mumuThumbnail/members_Thumbnail/" + o.Member.Thumbnail,
+                                 Thumbnail = o.Member.Thumbnail,
                              },
                              OrderDetails =new OrderDetailDTO
                              {

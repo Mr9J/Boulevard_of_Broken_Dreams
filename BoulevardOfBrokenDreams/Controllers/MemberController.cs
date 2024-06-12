@@ -338,7 +338,7 @@ namespace BoulevardOfBrokenDreams.Controllers
                   MemberId = m.MemberId,
                   Username = m.Username,
                   Nickname = m.Nickname,
-                  Thumbnail = "https://" + _httpContextAccessor.HttpContext!.Request.Host.Value + "/resources/mumuThumbnail/members_Thumbnail/" + m.Thumbnail,
+                  Thumbnail = m.Thumbnail,
                   Email = m.Email,
                   Address = m.Address,
                   MemberIntroduction = m.MemberIntroduction,
