@@ -2,6 +2,8 @@
 using BoulevardOfBrokenDreams.Models.DTO;
 using Microsoft.AspNetCore.Mvc;
 using BoulevardOfBrokenDreams.Models.DTO;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
@@ -161,6 +163,45 @@ namespace BoulevardOfBrokenDreams.Controllers
                          };
 
             return Ok(orders.ToList());
+        }
+        private string decodeJwtId(string jwt)
+        {
+            jwt = jwt.Replace("Bearer ", "");
+
+            JwtSecurityTokenHandler tokenHandler = new JwtSecurityTokenHandler();
+            JwtSecurityToken decodedToken = tokenHandler.ReadJwtToken(jwt);
+
+            string? id = decodedToken.Claims.FirstOrDefault(claim => claim.Type == ClaimTypes.NameIdentifier)?.Value;
+
+            return id!;
+        }
+
+        [HttpGet("UserOrder/list")]
+        public IEnumerable<ProjectDTO> GetUserOrderList()
+        {
+            string? jwt = HttpContext.Request.Headers["Authorization"];
+
+            if (jwt == null || jwt == "") return null;
+
+            string id = decodeJwtId(jwt);
+            int mId = int.Parse(id);
+
+            var ProjectDTO = from p in _db.Projects.Where(p=>p.MemberId == mId)
+                             select new ProjectDTO
+                             {
+                                 ProjectId = p.ProjectId,
+                                 ProjectName = p.ProjectName,
+                                 GroupId = p.GroupId,
+                                 StatusId = p.StatusId,
+                                 Thumbnail = p.Thumbnail,
+                                 OrderCount = (from orderDetail in _db.OrderDetails
+                                               where orderDetail.ProjectId == p.ProjectId
+                                               select orderDetail.Count).Sum(),
+                                 SponsorCount = (from orderDetail in _db.OrderDetails
+                                                 where orderDetail.ProjectId == p.ProjectId
+                                                 select orderDetail.OrderId).Count(),
+                             };
+            return ProjectDTO;
         }
     }
 }
