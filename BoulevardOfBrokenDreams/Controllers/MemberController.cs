@@ -60,9 +60,9 @@ namespace BoulevardOfBrokenDreams.Controllers
                     return BadRequest(res);
                 }
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                return BadRequest(ex.Message);
+                return BadRequest("伺服器錯誤，請稍後再試");
             }
         }
 
@@ -73,9 +73,16 @@ namespace BoulevardOfBrokenDreams.Controllers
             {
                 Member? member = await _memberRepository.AuthMember(user);
 
+                if (member == null) return BadRequest("帳號或密碼錯誤");
+
+                if (member != null && member.StatusId == 8)
+                {
+                    return BadRequest("帳號已被停權");
+                }
+
                 if (member != null)
                 {
-                    var token = (new JwtGenerator(_configuration)).GenerateJwtToken(user.username, "user");
+                    var token = (new JwtGenerator(_configuration)).GenerateJwtToken(user.username, "user", member.MemberId);
 
                     string jwt = "Bearer " + token;
 
@@ -147,7 +154,7 @@ namespace BoulevardOfBrokenDreams.Controllers
 
                 var receiver = member.Email;
                 var subject = "Mumu 用戶註冊驗證";
-                var message = "<h1 style=\"background-color: cornflowerblue; color: aliceblue\">歡迎註冊MUMU</h1>";
+                var message = "<h1 style=\"background-color: cornflowerblue; color: aliceblue\">Mumu 用戶註冊驗證</h1>";
                 message += "<p>請點擊以下連結驗證您的帳號 : </p>";
                 message += "<a href='https://mumumsit158.com/email-verify/" + member.Username + "/" + member.Eid + "'>點擊這裡</a>進行驗證";
 
@@ -184,7 +191,7 @@ namespace BoulevardOfBrokenDreams.Controllers
                 var message = "<h1 style=\"background-color: cornflowerblue; color: aliceblue\">Mumu 重設密碼</h1>";
                 message += "<p>請點擊以下連結重設您的密碼 : </p>";
 
-                var token = (new JwtGenerator(_configuration)).GenerateJwtToken(member.Username, "guest");
+                var token = (new JwtGenerator(_configuration)).GenerateJwtToken(member.Username, "guest", member.MemberId);
 
                 message += "<a href='https://mumumsit158.com/reset-password/" + token + "'>點擊這裡</a>進行重設";
 
@@ -257,6 +264,18 @@ namespace BoulevardOfBrokenDreams.Controllers
             return username!;
         }
 
+        private string decodeJwtId(string jwt)
+        {
+            jwt = jwt.Replace("Bearer ", "");
+
+            JwtSecurityTokenHandler tokenHandler = new JwtSecurityTokenHandler();
+            JwtSecurityToken decodedToken = tokenHandler.ReadJwtToken(jwt);
+
+            string? id = decodedToken.Claims.FirstOrDefault(claim => claim.Type == ClaimTypes.NameIdentifier)?.Value;
+
+            return id!;
+        }
+
         [HttpPost("sign-in-with-others")]
         public async Task<IActionResult> SignInWithOthers(OuterSignInDTO user)
         {
@@ -279,14 +298,26 @@ namespace BoulevardOfBrokenDreams.Controllers
 
                     _context.Members.Add(newUser);
                     await _context.SaveChangesAsync();
+
+                    var tokenNew = (new JwtGenerator(_configuration)).GenerateJwtToken(user.username, "user", newUser.MemberId);
+
+                    string jwtNew = "Bearer " + tokenNew;
+
+                    return Ok(jwtNew);
                 }
 
                 if (member != null && !Hash.VerifyHashedPassword(user.uid, member!.Password!))
                 {
-                    return BadRequest("錯誤，請聯絡管理員");
+                    return BadRequest("錯誤，請聯絡客服");
                 }
 
-                var token = (new JwtGenerator(_configuration)).GenerateJwtToken(user.username, "user");
+                if (member != null && member.StatusId == 8)
+                {
+                    return BadRequest("帳號已被停權");
+                }
+
+
+                var token = (new JwtGenerator(_configuration)).GenerateJwtToken(user.username, "user", member!.MemberId);
 
                 string jwt = "Bearer " + token;
 
@@ -294,9 +325,10 @@ namespace BoulevardOfBrokenDreams.Controllers
             }
             catch (Exception)
             {
-                return BadRequest();
+                return BadRequest("伺服器錯誤，請稍後再試");
             }
         }
+
         [HttpGet]
         public IEnumerable<MemberDTO> Get()
         {
@@ -312,8 +344,34 @@ namespace BoulevardOfBrokenDreams.Controllers
                   MemberIntroduction = m.MemberIntroduction,
                   Phone = m.Phone,
                   RegistrationTime = m.RegistrationTime,
+                  StatusId = m.StatusId,
               })
               .ToList();
+        }
+        [HttpGet("count")]
+        public List<int> GetMemberCounts() //計算被正常與被停權會員數
+        {
+            List<int> members = new List<int>();
+            int activeMemberCount = _context.Members.Count(p => p.StatusId == 7);
+            int inactiveMemberCount = _context.Members.Count(p => p.StatusId == 8);
+            members.Add(activeMemberCount);
+            members.Add(inactiveMemberCount);
+            return members;
+        }
+
+        [HttpPut("{id}")]
+        public IActionResult Put(int id, [FromBody] MemberDTO member)
+        {
+            Member? m = _context.Members.FirstOrDefault(x => x.MemberId == id);
+            if (m == null)
+            {
+                return NotFound("Member not found.");
+            }
+            m.MemberId = id;
+            m.Username = member.Username;
+            m.StatusId = member.StatusId;  
+            _context.SaveChanges();
+            return Ok(member);
         }
     }
 }
