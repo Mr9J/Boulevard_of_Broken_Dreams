@@ -27,15 +27,24 @@ namespace BoulevardOfBrokenDreams.Controllers
             try
             {
                 var path = "https://" + httpContextAccessor.HttpContext.Request.Host.Value + "/resources/mumuThumbnail/Projects_Products_Thumbnail/";
-
+                int cartId;
                 var memberCart = await context.Carts.FirstOrDefaultAsync(m => m.MemberId == memberId);
                 if (memberCart == null)
                 {
-                    return NotFound(); // 如果找不到對應的會員購物車，返回404
+                    var newCart = new Cart
+                    {
+                        MemberId = memberId,
+                    };
+                    context.Carts.Add(newCart);
+                    await context.SaveChangesAsync(); ; // 如果找不到對應的會員購物車，返回404
+                    cartId = newCart.CartId;
+                }
+                else {
+                    cartId = memberCart.CartId;
                 }
 
                 var cartDetailsData = await context.CartDetails
-                    .Where(cd => cd.CartId == memberCart.CartId)
+                    .Where(cd => cd.CartId == cartId)
                     .GroupBy(cd => cd.ProjectId) // 按照 ProjectId 分組
                     .Select(group => new
                     {

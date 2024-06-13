@@ -136,7 +136,8 @@ namespace BoulevardOfBrokenDreams.Controllers
                 _db.Orders.Add(newOrder);
                 _db.SaveChanges();
                 //取得剛新增的OrderID
-                int orderId = newOrder.OrderId;
+                int orderId = newOrder.OrderId; 
+                var memberCartId = _db.Carts.FirstOrDefault(m => m.MemberId == orderDTO.MemberId)?.CartId;
                 orderDTO.ProductData.ForEach(product =>
                 {
                     if (product.Count == 0)
@@ -156,18 +157,11 @@ namespace BoulevardOfBrokenDreams.Controllers
                         Price = total
                     };
 
-                    _db.OrderDetails.Add(newOrderDetails);
-                });
-                _db.SaveChanges();
-
-                //從購物車中尋找是否有符合的商品，如果有就對該購物車商品進行數量修改
-                var memberCartId = _db.Carts.FirstOrDefault(m => m.MemberId == orderDTO.MemberId)?.CartId;
-                if (memberCartId == 0)
-                    return "找不到使用者購物車";
-                orderDTO.ProductData.ForEach(product =>
+                    _db.OrderDetails.Add(newOrderDetails);   
+                                                            
+                if (memberCartId != null)
                 {
-
-                    int productId = int.Parse(product.ProductId);
+                    
                     var cartHasProduct = _db.CartDetails.FirstOrDefault(c => c.CartId == memberCartId && c.ProductId == productId);
                     if (cartHasProduct != null)
                     {
@@ -178,10 +172,28 @@ namespace BoulevardOfBrokenDreams.Controllers
                         {
                             _db.CartDetails.Remove(cartHasProduct);
                         }
+                    }            
+                }
+
+                    var deductInventory = _db.Products.FirstOrDefault(pt => pt.ProductId == productId);
+                    if (deductInventory != null)
+                    {
+                        deductInventory.CurrentStock -= product.Count;
+                        if (deductInventory.CurrentStock <= 0)
+                        {
+                            deductInventory.CurrentStock = 0;
+                        }
+                        
                     }
+
+
 
                 });
                 _db.SaveChanges();
+
+                //從購物車中尋找是否有符合的商品，如果有就對該購物車商品進行數量修改
+             
+              
 
                 return "訂單完成";
             }

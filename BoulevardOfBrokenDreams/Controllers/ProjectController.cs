@@ -123,6 +123,7 @@ namespace BoulevardOfBrokenDreams.Controllers
                 await _db.SaveChangesAsync();
 
                  cartId = newCart.CartId;
+
             }
             else {
                 cartId = cart.CartId;
