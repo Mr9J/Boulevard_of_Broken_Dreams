@@ -86,7 +86,7 @@ namespace BoulevardOfBrokenDreams.Controllers
                         })
                         .FirstOrDefaultAsync(); // 在這裡使用FirstOrDefaultAsync而不是ToListAsync
 
-                    dataList.Add(data); // 將每個結果添加到列表中
+                    dataList.Add(data!); // 將每個結果添加到列表中
                 }
 
                 return Ok(dataList); // 返回整個列表
@@ -137,7 +137,7 @@ namespace BoulevardOfBrokenDreams.Controllers
             {
                 var memberCart = context.Carts.FirstOrDefault(m => m.MemberId == memberId);
                 decimal price = context.Products.FirstOrDefault(pt => pt.ProductId == productId)?.ProductPrice ?? 0;
-                var alreadyinCart = context.CartDetails.FirstOrDefault(pt => pt.ProductId == productId && pt.CartId == memberCart.CartId);
+                var alreadyinCart = context.CartDetails.FirstOrDefault(pt => pt.ProductId == productId && pt.CartId == memberCart!.CartId);
                 if (alreadyinCart != null)
                 {
                     alreadyinCart.Count += productCounts;
@@ -148,7 +148,7 @@ namespace BoulevardOfBrokenDreams.Controllers
                 {
                     var addCartDetail = new CartDetail
                     {
-                        CartId = memberCart.CartId,
+                        CartId = memberCart!.CartId,
                         ProjectId = projectId,
                         ProductId = productId,
                         Count = productCounts,

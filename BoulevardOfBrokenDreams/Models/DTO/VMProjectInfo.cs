@@ -7,6 +7,7 @@
         public string? ProjectThumbnail { get; set; }
         public string? ProjectDescription { get; set; }
         public decimal ProjectGoal { get; set; }
+        public decimal ProjectTotal { get; set; }
         public DateOnly StartDate { get; set; }
         public DateOnly EndDate { get; set; }
 
@@ -14,8 +15,9 @@
 
         //public int StatusId { get; set; }
         //public string? GroupName { get; set; }
-        //public string? MemberName { get; set; }
-        //public string? MemberThumbnail { get; set; }
+        public string? MemberName { get; set; }
+        public string? MemberThumbnail { get; set; }
         //public string? StatusName { get; set; }
+        public bool IsLiked { get; set; }
     }
 }

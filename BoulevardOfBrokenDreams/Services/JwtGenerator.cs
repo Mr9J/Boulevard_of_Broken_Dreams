@@ -14,11 +14,12 @@ namespace BoulevardOfBrokenDreams.Services
             _config = config;
         }
 
-        public string GenerateJwtToken(string username, string role)
+        public string GenerateJwtToken(string username, string role, int id)
         {
             List<Claim> claims = new List<Claim> {
                     new Claim(ClaimTypes.Name, username),
                     new Claim(ClaimTypes.Role, role),
+                    new Claim(ClaimTypes.NameIdentifier,id.ToString())
                 };
 
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(
