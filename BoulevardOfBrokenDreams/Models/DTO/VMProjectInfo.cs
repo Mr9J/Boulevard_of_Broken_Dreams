@@ -19,5 +19,17 @@
         public string? MemberThumbnail { get; set; }
         //public string? StatusName { get; set; }
         public bool IsLiked { get; set; }
+        public List<DTOProduct> Products { get; set; } = new List<DTOProduct>();
+    }
+    public class DTOProduct
+    {
+        public int ProductId { get; set; }
+        public string ProductName { get; set; } = null!;
+        public string? ProductThumbnail { get; set; }
+        public string? ProductDescription { get; set; }
+        public decimal ProductPrice { get; set; }
+
+        public int InitialStock { get; set; }
+        public int CurrentStock { get; set; }
     }
 }

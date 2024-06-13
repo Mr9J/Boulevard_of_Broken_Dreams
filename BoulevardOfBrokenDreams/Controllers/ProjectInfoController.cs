@@ -57,7 +57,17 @@ namespace BoulevardOfBrokenDreams.Controllers
                 EndDate = project.EndDate,
                 MemberName = project.Member.Username,
                 ProjectTotal = total,
-                
+
+                Products = project.Products.Select(p => new DTOProduct
+                {
+                    ProductId = p.ProductId,
+                    ProductName = p.ProductName,
+                    ProductPrice = p.ProductPrice,
+                    ProductDescription = p.ProductDescription,
+                    ProductThumbnail = "https://" + HttpContext.Request.Host.Value + "/resources/mumuThumbnail/Projects_Products_Thumbnail/" + p.Thumbnail,
+                    InitialStock = p.InitialStock,
+                    CurrentStock = p.CurrentStock
+                }).ToList()
                 //MemberThumbnail = "https://" + HttpContext.Request.Host.Value + "/resources/mumuThumbnail/members_Thumbnail/" + project.Member.Thumbnail
             };
 
@@ -165,7 +175,7 @@ namespace BoulevardOfBrokenDreams.Controllers
             var removeLikeDetail = await _db.LikeDetails.Include(ld => ld.Like)
                 .FirstOrDefaultAsync(ld => ld.MemberId == memberId && ld.Like.ProjectId == projectId);
 
-            if(removeLikeDetail == null) return NotFound("Like not found.");
+            if (removeLikeDetail == null) return NotFound("Like not found.");
             _db.LikeDetails.Remove(removeLikeDetail);
 
             var removeLike = await _db.Likes.FindAsync(removeLikeDetail.LikeId);
