@@ -218,6 +218,7 @@ namespace BoulevardOfBrokenDreams.Controllers
                                  GroupId = p.GroupId,
                                  StatusId = p.StatusId,
                                  Thumbnail = p.Thumbnail,
+                                 ProjectDescription = p.ProjectDescription,
                                  OrderCount = (from orderDetail in _db.OrderDetails
                                                where orderDetail.ProjectId == p.ProjectId
                                                select orderDetail.Count).Sum(),
