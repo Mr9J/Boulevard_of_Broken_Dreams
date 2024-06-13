@@ -40,7 +40,7 @@ namespace BoulevardOfBrokenDreams.Controllers
                                EndDate = p.EndDate,
                                MemberId = p.MemberId,
                                GroupId = p.GroupId,
-                               Thumbnail = "https://" + _httpContextAccessor.HttpContext.Request.Host.Value + "/resources/mumuThumbnail/Projects_Products_Thumbnail/" + p.Thumbnail,
+                               Thumbnail = p.Thumbnail,
 
 
                                StatusId = p.StatusId,
@@ -70,7 +70,7 @@ namespace BoulevardOfBrokenDreams.Controllers
                                                CurrentStock = product.CurrentStock,
                                                StartDate = product.StartDate,
                                                EndDate = product.EndDate,
-                                               Thumbnail = "https://" + _httpContextAccessor.HttpContext.Request.Host.Value + "/resources/mumuThumbnail/Projects_Products_Thumbnail/" + product.Thumbnail,
+                                               Thumbnail = product.Thumbnail,
                                                StatusId = product.StatusId,
                                                OrderBy = product.OrderBy,
                                            }).ToList()
