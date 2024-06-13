@@ -65,7 +65,7 @@ namespace BoulevardOfBrokenDreams.Controllers
                         {
                             ProjectId = p.ProjectId,
                             ProjectName = p.ProjectName,
-                            Thumbnail = path + p.Thumbnail,
+                            Thumbnail = p.Thumbnail,
                             Products = p.Products
                                 .Join(context.CartDetails,
                       product => product.ProductId,
@@ -78,7 +78,7 @@ namespace BoulevardOfBrokenDreams.Controllers
                     ProductName = joined.Product.ProductName,
                     ProductPrice = joined.Product.ProductPrice,
                     CurrentStock = joined.Product.CurrentStock,
-                    Thumbnail = path + joined.Product.Thumbnail,
+                    Thumbnail = joined.Product.Thumbnail,
                     Count = joined.CartDetail.Count
                 })
                 .ToList()

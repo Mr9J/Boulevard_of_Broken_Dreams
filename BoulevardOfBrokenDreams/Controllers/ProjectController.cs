@@ -162,7 +162,7 @@ namespace BoulevardOfBrokenDreams.Controllers
                     ProjectGoal = p.ProjectGoal,
                     ProjectName = p.ProjectName,
                     ProjectDescription = p.ProjectDescription,
-                    Thumbnail = path + p.Thumbnail,
+                    Thumbnail = p.Thumbnail,
                     ProductInCart = productIdList,
                     ProductInCartCount = countList,
                     Member = new MemberDTO
@@ -184,7 +184,7 @@ namespace BoulevardOfBrokenDreams.Controllers
                         CurrentStock = pt.CurrentStock,
                         StartDate = pt.StartDate,
                         EndDate = pt.EndDate,
-                        Thumbnail = path + pt.Thumbnail,
+                        Thumbnail = pt.Thumbnail,
                         //CartDetail = cartDetaildto,
 
                     }).ToList()

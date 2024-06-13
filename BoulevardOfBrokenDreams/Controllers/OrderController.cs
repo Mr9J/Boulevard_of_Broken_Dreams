@@ -118,7 +118,7 @@ namespace BoulevardOfBrokenDreams.Controllers
    [HttpPost("CreateOrder")]
         public async Task<string> CreateOrder([FromBody] CreateOrderDTO orderDTO)
         {
-           //await WaitForPaymentResponse();
+           await WaitForPaymentResponse();
 
             try
             {
@@ -192,8 +192,8 @@ namespace BoulevardOfBrokenDreams.Controllers
                 _db.SaveChanges();
 
                 //從購物車中尋找是否有符合的商品，如果有就對該購物車商品進行數量修改
-             
-              
+
+                _paymentResponseReceived = false;
 
                 return "訂單完成";
             }
