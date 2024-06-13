@@ -6,17 +6,18 @@ using Microsoft.EntityFrameworkCore;
 
 namespace BoulevardOfBrokenDreams.Models;
 
+[Table("PostComment")]
 public partial class PostComment
 {
     [Key]
     [Column("id")]
     public int Id { get; set; }
 
-    [Column("PostID")]
-    public int PostId { get; set; }
-
     [Column("MemberID")]
     public int MemberId { get; set; }
+
+    [Column("PostID")]
+    public int PostId { get; set; }
 
     [StringLength(2200)]
     public string Comment { get; set; } = null!;

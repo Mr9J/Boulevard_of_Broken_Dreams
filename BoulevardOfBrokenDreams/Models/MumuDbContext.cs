@@ -248,11 +248,11 @@ public partial class MumuDbContext : DbContext
         {
             entity.HasOne(d => d.Member).WithMany(p => p.PostComments)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_PostComments_Members");
+                .HasConstraintName("FK_PostComment_Members");
 
             entity.HasOne(d => d.Post).WithMany(p => p.PostComments)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_PostComments_Posts");
+                .HasConstraintName("FK_PostComment_Posts");
         });
 
         modelBuilder.Entity<PostLiked>(entity =>
