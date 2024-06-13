@@ -157,7 +157,9 @@ namespace BoulevardOfBrokenDreams.Controllers
                         //ProductCount = productDetails
 
                     },
-                    Products = p.Products.Select(pt => new ProductCardDTO
+                    Products = p.Products
+                    .Where(pt => pt.CurrentStock != 0)
+                    .Select(pt => new ProductCardDTO
                     {
                         ProductId = pt.ProductId,
                         ProductName = pt.ProductName,

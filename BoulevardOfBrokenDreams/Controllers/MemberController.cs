@@ -264,6 +264,21 @@ namespace BoulevardOfBrokenDreams.Controllers
             return username!;
         }
 
+
+        //限定登入者為user
+        [HttpGet("get-user-id"), Authorize(Roles = "user")]
+        public IActionResult GetUserId()
+        {
+            //前端的token資料
+            string? jwt = HttpContext.Request.Headers["Authorization"];
+
+            if (jwt == null || jwt == "") return BadRequest();
+
+            string id = decodeJwtId(jwt);
+
+            return Ok(id);
+        }
+
         private string decodeJwtId(string jwt)
         {
             jwt = jwt.Replace("Bearer ", "");
@@ -369,7 +384,7 @@ namespace BoulevardOfBrokenDreams.Controllers
             }
             m.MemberId = id;
             m.Username = member.Username;
-            m.StatusId = member.StatusId;  
+            m.StatusId = member.StatusId;
             _context.SaveChanges();
             return Ok(member);
         }
