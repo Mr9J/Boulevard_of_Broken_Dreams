@@ -4,6 +4,8 @@ using Microsoft.AspNetCore.Mvc;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using Microsoft.EntityFrameworkCore;
+using BoulevardOfBrokenDreams.DataAccess;
+using BoulevardOfBrokenDreams.Interface;
 
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
@@ -16,9 +18,10 @@ namespace BoulevardOfBrokenDreams.Controllers
     {
         private MumuDbContext _db;
         private readonly IHttpContextAccessor _httpContextAccessor;
-
-        public OrderController(MumuDbContext db, IHttpContextAccessor httpContextAccessor)
+        private readonly IEmailSender _emailSender;
+        public OrderController(MumuDbContext db, IHttpContextAccessor httpContextAccessor, IEmailSender emailSender)
         {
+            _emailSender = emailSender;
             _db = db;
             _httpContextAccessor = httpContextAccessor;
         }
@@ -226,6 +229,40 @@ namespace BoulevardOfBrokenDreams.Controllers
                                                  select orderDetail.OrderId).Count(),
                              };
             return ProjectDTO;
+        }
+
+        [HttpGet("ShipOrderNoticeByEmail")]
+        public async Task<IActionResult> ShipOrderNoticeByEmail(int OrderID)
+        {
+            try
+            {
+
+                var OrderInfo = await _db.Orders
+                                .Where(x => x.OrderId == OrderID)
+                                .Include(x=>x.Member)
+                                .ThenInclude(x=>x.Projects)
+                                .ThenInclude (x=>x.Products)
+                                .ToListAsync();
+
+                foreach (var order in OrderInfo) {
+                    var receiver = order.Member.Email;
+                    var subject = "訂單確認"+order.OrderId;
+                    var message = $"<h1>您的訂單{order.OrderId}已發貨 </h1>";
+                    message += $"您購買的商品{order.Member.Projects}已經發貨，請耐心等待，如果超過14天未到貨請聯繫客服 ";
+                    //await _emailSender.SendEmailAsync(receiver, subject, message);
+
+                }
+
+
+                    
+
+                    return Ok();
+               
+            }
+            catch (Exception)
+            {
+                return BadRequest("伺服器錯誤，請稍後再試");
+            }
         }
     }
 }
