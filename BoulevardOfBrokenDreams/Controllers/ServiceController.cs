@@ -54,7 +54,7 @@ namespace BoulevardOfBrokenDreams.Controllers
         [HttpPost("{serviceId}/messages")]
         public async Task<ActionResult<ServiceMessageDTO>> CreateServiceMessage(int serviceId, ServiceMessageDTO messageDto)
         {
-            messageDto.ServiceId = serviceId; 
+            messageDto.ServiceId = serviceId;
             var createdMessage = await _serviceMessage.CreateServiceMessageAsync(messageDto);
             return CreatedAtAction(nameof(GetMessagesByServiceId), new { serviceId = createdMessage.ServiceId }, createdMessage);
         }
