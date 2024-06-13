@@ -60,7 +60,7 @@ namespace BoulevardOfBrokenDreams.Controllers
             _db.SaveChanges();
             //取得剛新增的OrderID
             int orderId = newOrder.OrderId;
-            orderDTO.ProductData.ForEach(product =>
+            orderDTO.ProductData!.ForEach(product =>
             {
                 if (product.Count == 0)
                 { return; }

@@ -57,6 +57,7 @@ namespace BoulevardOfBrokenDreams.Controllers
                 EndDate = project.EndDate,
                 MemberName = project.Member.Username,
                 ProjectTotal = total,
+                
                 //MemberThumbnail = "https://" + HttpContext.Request.Host.Value + "/resources/mumuThumbnail/members_Thumbnail/" + project.Member.Thumbnail
             };
 
@@ -79,6 +80,8 @@ namespace BoulevardOfBrokenDreams.Controllers
         // 審核中的專案不能買
 
         // POST api/<ProjectInfoController>/sendComment
+
+        #region 留言相關
         [HttpPost("SendComment")]
         public async Task<IActionResult> SendComment([FromBody] CommentDto commentDto)
         {
@@ -115,6 +118,10 @@ namespace BoulevardOfBrokenDreams.Controllers
             if (comments == null) return NotFound("No comments found.");
             return Ok(comments);
         }
+
+        #endregion
+
+        #region 收藏相關
 
         // POST api/<ProjectInfoController>/like
         [HttpPost("Like"), Authorize(Roles = "user")]
@@ -170,6 +177,9 @@ namespace BoulevardOfBrokenDreams.Controllers
 
             return Ok("Unliked.");
         }
+
+        #endregion
+
         private static int DecodeJwtToMemberId(string? jwt)
         {
             jwt = jwt.Replace("Bearer ", "");
