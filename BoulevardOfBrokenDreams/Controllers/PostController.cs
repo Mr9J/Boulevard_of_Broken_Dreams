@@ -394,7 +394,9 @@ namespace BoulevardOfBrokenDreams.Controllers
         {
             try
             {
-                var comments = await _context.PostComments.OrderByDescending(p => p.Time).Where(p => p.PostId == int.Parse(postId)).ToListAsync();
+                var comments = await _context.PostComments.OrderBy(p => p.Time).Where(p => p.PostId == int.Parse(postId)).Join(
+                    _context.Members, p => p.MemberId, m => m.MemberId, (p, m) => new { p.MemberId, p.PostId, p.Id, p.Comment, p.Time, m.Nickname, m.Thumbnail }).ToListAsync();
+
 
                 if (comments.Count == 0) return Ok("沒有留言");
 
@@ -404,10 +406,13 @@ namespace BoulevardOfBrokenDreams.Controllers
                 {
                     var commentDTO = new CommentPostDTO
                     {
+                        id = comment.Id,
                         postId = comment.PostId,
                         userId = comment.MemberId,
                         comment = comment.Comment,
-                        time = comment.Time.ToString()
+                        time = comment.Time.ToString(),
+                        username = comment.Nickname!,
+                        thumbnail = comment.Thumbnail!
                     };
                     commentDTOs.Add(commentDTO);
                 }
@@ -461,15 +466,15 @@ namespace BoulevardOfBrokenDreams.Controllers
                 return "file 不能為空";
             }
 
-            if (newPost.location == null || newPost.location == "")
-            {
-                return "location 不能為空";
-            }
+            //if (newPost.location == null || newPost.location == "")
+            //{
+            //    return "location 不能為空";
+            //}
 
-            if (newPost.tags == null || newPost.tags == "")
-            {
-                return "tags 不能為空";
-            }
+            //if (newPost.tags == null || newPost.tags == "")
+            //{
+            //    return "tags 不能為空";
+            //}
 
             if (newPost.userId == null || newPost.userId == "")
             {
