@@ -69,7 +69,15 @@ namespace BoulevardOfBrokenDreams.Controllers
 
 
 
+            _db.LikeDetails.Remove(delLikeDetail);
 
+            if (delLike != null)
+            {
+                _db.Likes.Remove(delLike);
+            }
 
+            await _db.SaveChangesAsync();
+            return NoContent();
+        }
     }
 }
