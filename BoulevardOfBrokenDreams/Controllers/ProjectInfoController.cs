@@ -51,7 +51,7 @@ namespace BoulevardOfBrokenDreams.Controllers
                 ProjectId = project.ProjectId,
                 ProjectName = project.ProjectName,
                 ProjectDescription = project.ProjectDescription,
-                ProjectThumbnail = "https://" + HttpContext.Request.Host.Value + "/resources/mumuThumbnail/Projects_Products_Thumbnail/" + project.Thumbnail,
+                ProjectThumbnail =  project.Thumbnail,
                 ProjectGoal = project.ProjectGoal,
                 StartDate = project.StartDate,
                 EndDate = project.EndDate,
