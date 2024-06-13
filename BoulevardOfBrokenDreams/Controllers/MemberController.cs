@@ -73,6 +73,8 @@ namespace BoulevardOfBrokenDreams.Controllers
             {
                 Member? member = await _memberRepository.AuthMember(user);
 
+                var token = "";
+
                 if (member == null) return BadRequest("帳號或密碼錯誤");
 
                 if (member != null && member.StatusId == 8)
@@ -80,18 +82,23 @@ namespace BoulevardOfBrokenDreams.Controllers
                     return BadRequest("帳號已被停權");
                 }
 
-                if (member != null)
-                {
-                    var token = (new JwtGenerator(_configuration)).GenerateJwtToken(user.username, "user", member.MemberId);
+                var admin = await _context.Admins.AnyAsync(a => a.MemberId == member!.MemberId);
 
-                    string jwt = "Bearer " + token;
 
-                    return Ok(jwt);
-                }
-                else
+
+                if (member != null && admin)
                 {
-                    return BadRequest("帳號或密碼錯誤");
+                    token = (new JwtGenerator(_configuration)).GenerateJwtToken(user.username, "admin", member!.MemberId);
                 }
+                else if (member != null)
+                {
+                    token = (new JwtGenerator(_configuration)).GenerateJwtToken(user.username, "user", member.MemberId);
+                }
+
+                string jwt = "Bearer " + token;
+
+                return Ok(jwt);
+
             }
             catch (Exception)
             {
@@ -99,7 +106,7 @@ namespace BoulevardOfBrokenDreams.Controllers
             }
         }
 
-        [HttpGet("get-current-user"), Authorize(Roles = "user")]
+        [HttpGet("get-current-user"), Authorize(Roles = "user, admin")]
         public async Task<IActionResult> getCurrentUser()
         {
             try
@@ -140,7 +147,7 @@ namespace BoulevardOfBrokenDreams.Controllers
         }
 
 
-        [HttpPost("resend-verify-email"), Authorize(Roles = "user")]
+        [HttpPost("resend-verify-email"), Authorize(Roles = "user, admin")]
         public async Task<IActionResult> ReSendEmail(string username)
         {
             try
@@ -266,7 +273,7 @@ namespace BoulevardOfBrokenDreams.Controllers
 
 
         //限定登入者為user
-        [HttpGet("get-user-id"), Authorize(Roles = "user")]
+        [HttpGet("get-user-id"), Authorize(Roles = "user, admin")]
         public IActionResult GetUserId()
         {
             //前端的token資料
@@ -389,7 +396,7 @@ namespace BoulevardOfBrokenDreams.Controllers
             return Ok(member);
         }
 
-        [HttpGet("GetStaff"), Authorize(Roles = "user")]
+        [HttpGet("GetStaff"), Authorize(Roles = "user, admin")]
         public IEnumerable<MemberDTO> GetStaff()
         {
             string? jwt = HttpContext.Request.Headers["Authorization"];
