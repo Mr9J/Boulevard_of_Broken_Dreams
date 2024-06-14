@@ -32,4 +32,12 @@
         public int InitialStock { get; set; }
         public int CurrentStock { get; set; }
     }
+
+    public class CommentDto
+    {
+        public int CommentId { get; set; }
+        public string? CommentMsg { get; set; }
+        public int ProjectId { get; set; }
+        public int MemberId { get; set; }
+    }
 }

@@ -123,5 +123,6 @@ app.UseCors("AllowAllLocalhost");
 app.MapControllers();
 
 app.MapHub<ChatHub>("/ChatHub");
+app.MapHub<CommentsHub>("/Comments");
 
 app.Run();
