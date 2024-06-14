@@ -30,7 +30,7 @@ namespace BoulevardOfBrokenDreams.Controllers
                                ProjectGoal = p.ProjectGoal,
                                StartDate = p.StartDate,
                                EndDate = p.EndDate,
-                               Thumbnail =  p.Thumbnail,
+                               Thumbnail = p.Thumbnail,
                                TotalAmount = ((from orderDetail in _db.OrderDetails
                                                where orderDetail.ProjectId == p.ProjectId
                                                select orderDetail.Price).Sum()) + ((from order in _db.Orders
