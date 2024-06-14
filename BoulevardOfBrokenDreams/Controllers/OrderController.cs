@@ -7,6 +7,7 @@ using Microsoft.EntityFrameworkCore;
 using System.Security.Cryptography;
 using System.Text;
 using System.Web;
+using BoulevardOfBrokenDreams.Interface;
 
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
@@ -18,15 +19,17 @@ namespace BoulevardOfBrokenDreams.Controllers
     public class OrderController : ControllerBase
     {
        
+        private readonly IEmailSender _emailSender;
         private MumuDbContext _db;
         private readonly IHttpContextAccessor _httpContextAccessor;
         private static bool _paymentResponseReceived = false;
         private static readonly SemaphoreSlim _paymentResponseLock = new SemaphoreSlim(1);
 
-        public OrderController(MumuDbContext db, IHttpContextAccessor httpContextAccessor)
+        public OrderController(MumuDbContext db, IHttpContextAccessor httpContextAccessor,IEmailSender _emailSender)
         {
             _db = db;
             _httpContextAccessor = httpContextAccessor;
+            this._emailSender = _emailSender;
         }
 
         // GET: api/<OrderController>
@@ -137,6 +140,8 @@ namespace BoulevardOfBrokenDreams.Controllers
                 _db.Orders.Add(newOrder);
                 _db.SaveChanges();
                 //取得剛新增的OrderID
+                string tr = "";
+                string tProjectName = "";
                 int orderId = newOrder.OrderId; 
                 var memberCartId = _db.Carts.FirstOrDefault(m => m.MemberId == orderDTO.MemberId)?.CartId;
                 orderDTO.ProductData.ForEach(product =>
@@ -176,23 +181,44 @@ namespace BoulevardOfBrokenDreams.Controllers
                     }            
                 }
 
-                    var deductInventory = _db.Products.FirstOrDefault(pt => pt.ProductId == productId);
-                    if (deductInventory != null)
+                    var productDetails = _db.Products.FirstOrDefault(pt => pt.ProductId == productId);
+                    if (productDetails != null)
                     {
-                        deductInventory.CurrentStock -= product.Count;
-                        if (deductInventory.CurrentStock <= 0)
+                        productDetails.CurrentStock -= product.Count;
+                        if (productDetails.CurrentStock <= 0)
                         {
-                            deductInventory.CurrentStock = 0;
+                            productDetails.CurrentStock = 0;
                         }
                         
                     }
 
+                    var projectName = _db.Projects.FirstOrDefault(pj => pj.ProjectId == orderDTO.ProjectId)?.ProjectName;
+
+                    string orderlist = $"<tr><td>{productDetails.ProductName}</td><td>{product.Count}</td><td>NT${total}</td></tr>";
+                    tr += orderlist;
+                    tProjectName = projectName;
 
 
                 });
+
+                var receiver = "mumufundraising@gmail.com";
+                string thead = $"<thead>{tProjectName}</thead>";
+                string subject = "Mumu 交易完成";
+                string th = "<tr><th>贊助商品</th><th>數量</th><th>金額</th></tr>";
+                string message = $"<h1>你的訂單已完成付款 交易日期:{DateTime.Now}</h1><br/>";
+                message += th += tr;
+                await _emailSender.SendEmailAsync(receiver, subject, message);
+
+
+
+
                 _db.SaveChanges();
 
+
+
+
                 //從購物車中尋找是否有符合的商品，如果有就對該購物車商品進行數量修改
+
 
                 _paymentResponseReceived = false;
 

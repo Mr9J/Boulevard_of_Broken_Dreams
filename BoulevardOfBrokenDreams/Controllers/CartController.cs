@@ -29,6 +29,8 @@ namespace BoulevardOfBrokenDreams.Controllers
                 var path = "https://" + httpContextAccessor.HttpContext.Request.Host.Value + "/resources/mumuThumbnail/Projects_Products_Thumbnail/";
                 int cartId;
                 var memberCart = await context.Carts.FirstOrDefaultAsync(m => m.MemberId == memberId);
+                if (memberId == 0)
+                { return NotFound(); }
                 if (memberCart == null)
                 {
                     var newCart = new Cart
