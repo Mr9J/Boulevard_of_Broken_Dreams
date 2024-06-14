@@ -256,7 +256,8 @@ namespace BoulevardOfBrokenDreams.Controllers
                     {
                         var prjName = detail.Project.ProjectName;
                         var prdName = detail.Product.ProductName;
-                        message += $"<li>{prjName} - {prdName}</li>"; // 將每個項目添加到郵件內容中
+                        var price = detail.Price.ToString("N0");
+                        message += $"<tr><td>{prjName}</td><td>{prdName}</td><td>NT${price}</td></tr>";  // 將每個項目添加到郵件內容中
                     }
 
                     message += "</ul><p>請耐心等待，如果超過14天未到貨請聯繫客服。</p>";
