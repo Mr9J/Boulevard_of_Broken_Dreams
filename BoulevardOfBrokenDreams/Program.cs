@@ -18,18 +18,19 @@ builder.Services.AddCors(options =>
 {
     options.AddDefaultPolicy(builder =>
     {
-        builder.AllowAnyOrigin()
+        builder.WithOrigins("https://localhost:5173", "https://mumumsit158.com")
                .AllowAnyMethod()
-               .AllowAnyHeader();
+               .AllowAnyHeader().
+               AllowCredentials();
     });
     //--------------------------------新增的 CORS 策略部分--------------------------------
-   options.AddPolicy("AllowAllLocalhost", builder =>
-    {
-        builder.SetIsOriginAllowed(origin => new Uri(origin).Host == "localhost")
-               .AllowAnyMethod()
-               .AllowAnyHeader()
-               .AllowCredentials();  // 允許攜帶身份驗證信息
-    });
+    //options.AddPolicy("AllowAllLocalhost", builder =>
+    // {
+    //     builder.SetIsOriginAllowed(origin => new Uri(origin).Host == "localhost")
+    //            .AllowAnyMethod()
+    //            .AllowAnyHeader()
+    //            .AllowCredentials();  // 允許攜帶身份驗證信息
+    // });
     // --------------------------------------------------------------------------------
 });
 
@@ -118,7 +119,7 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 // 使用新的 CORS 策略
-app.UseCors("AllowAllLocalhost");
+app.UseCors();
 
 app.MapControllers();
 

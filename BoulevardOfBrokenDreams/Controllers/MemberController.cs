@@ -84,8 +84,6 @@ namespace BoulevardOfBrokenDreams.Controllers
 
                 var admin = await _context.Admins.AnyAsync(a => a.MemberId == member!.MemberId);
 
-
-
                 if (member != null && admin)
                 {
                     token = (new JwtGenerator(_configuration)).GenerateJwtToken(user.username, "admin", member!.MemberId);
@@ -97,8 +95,11 @@ namespace BoulevardOfBrokenDreams.Controllers
 
                 string jwt = "Bearer " + token;
 
-                return Ok(jwt);
+                // Add the token to the response headers
+                Response.Headers.Append("Access-Control-Expose-Headers", "Authorization");
+                Response.Headers["Authorization"] = jwt;
 
+                return Ok(jwt);
             }
             catch (Exception)
             {
@@ -145,6 +146,8 @@ namespace BoulevardOfBrokenDreams.Controllers
                 return BadRequest("伺服器錯誤，請稍後再試");
             }
         }
+
+
 
 
         [HttpPost("resend-verify-email"), Authorize(Roles = "user, admin")]
@@ -331,6 +334,10 @@ namespace BoulevardOfBrokenDreams.Controllers
 
                     string jwtNew = "Bearer " + tokenNew;
 
+                    // Add the token to the response headers
+                    Response.Headers.Append("Access-Control-Expose-Headers", "Authorization");
+                    Response.Headers["Authorization"] = jwtNew;
+
                     return Ok(jwtNew);
                 }
 
@@ -385,6 +392,26 @@ namespace BoulevardOfBrokenDreams.Controllers
             members.Add(activeMemberCount);
             members.Add(inactiveMemberCount);
             return members;
+        }
+
+        [HttpGet("check-admin"), Authorize(Roles = "admin")]
+        public async Task<IActionResult> CheckIsAdmin()
+        {
+            try
+            {
+                string? jwt = HttpContext.Request.Headers["Authorization"];
+                if (jwt == null || jwt == "") return BadRequest();
+
+                string id = decodeJwtId(jwt);
+
+                var member = await _context.Admins.AnyAsync(a => a.MemberId == int.Parse(id));
+
+                return Ok("管理員");
+            }
+            catch (Exception)
+            {
+                return BadRequest();
+            }
         }
 
         [HttpPut("{id}")]
