@@ -142,6 +142,7 @@ namespace BoulevardOfBrokenDreams.Controllers
                 //取得剛新增的OrderID
                 string tr = "";
                 string tProjectName = "";
+                decimal totalPrice = 0;
                 int orderId = newOrder.OrderId; 
                 var memberCartId = _db.Carts.FirstOrDefault(m => m.MemberId == orderDTO.MemberId)?.CartId;
                 orderDTO.ProductData.ForEach(product =>
@@ -194,19 +195,23 @@ namespace BoulevardOfBrokenDreams.Controllers
 
                     var projectName = _db.Projects.FirstOrDefault(pj => pj.ProjectId == orderDTO.ProjectId)?.ProjectName;
 
-                    string orderlist = $"<tr><td>{productDetails.ProductName}</td><td>{product.Count}</td><td>NT${total}</td></tr>";
+                    string orderlist = $"<tr><td>{productDetails.ProductName}</td><td>{product.Count}</td><td>NT${productDetails.ProductPrice}</td><td>NT${total}</td></tr>";
                     tr += orderlist;
                     tProjectName = projectName;
+                    totalPrice += total;
 
 
                 });
 
-                var receiver = "mumufundraising@gmail.com";
-                string thead = $"<thead>{tProjectName}</thead>";
-                string subject = "Mumu 交易完成";
-                string th = "<tr><th>贊助商品</th><th>數量</th><th>金額</th></tr>";
+                var receiver = "mumufundraising@gmail.com"; 
                 string message = $"<h1>你的訂單已完成付款 交易日期:{DateTime.Now}</h1><br/>";
-                message += th += tr;
+                string thead = $"<tr><th colspan='4'>{tProjectName}</th></tr>";
+                string subject = "Mumu 交易完成通知";
+                string th = "<tr><th>贊助商品</th><th>數量</th><th>商品單價</th><th>數量總額</th></tr>";
+                string totalPriceMsg = $"<tr><td colspan='4'>總計金額:{totalPrice.ToString("C0")}</tr>";
+
+
+                message += thead += th += tr += totalPriceMsg;
                 await _emailSender.SendEmailAsync(receiver, subject, message);
 
 
