@@ -231,34 +231,41 @@ namespace BoulevardOfBrokenDreams.Controllers
             return ProjectDTO;
         }
 
-        [HttpGet("ShipOrderNoticeByEmail")]
+        [HttpGet("ShipOrderNoticeByEmail/{OrderID}")]
         public async Task<IActionResult> ShipOrderNoticeByEmail(int OrderID)
         {
             try
             {
 
-                var OrderInfo = await _db.Orders
-                                .Where(x => x.OrderId == OrderID)
-                                .Include(x=>x.Member)
-                                .ThenInclude(x=>x.Projects)
-                                .ThenInclude (x=>x.Products)
-                                .ToListAsync();
+                var orderInfo = await _db.Orders
+                .Where(x => x.OrderId == OrderID)
+                .Include(x => x.Member) // 加載 Member 資料
+                .Include(x => x.OrderDetails) // 加載 OrderDetails 資料
+                    .ThenInclude(od => od.Project) // 在 OrderDetails 中加載 Project 資料
+                 .Include(x => x.OrderDetails) // 加載 OrderDetails 資料
+                    .ThenInclude(od => od.Product) // 在 OrderDetails 中加載 Product 資料
+                .FirstOrDefaultAsync(); // 假設每個 OrderID 只對應一筆訂單
 
-                foreach (var order in OrderInfo) {
-                    var receiver = order.Member.Email;
-                    var subject = "訂單確認"+order.OrderId;
-                    var message = $"<h1>您的訂單{order.OrderId}已發貨 </h1>";
-                    message += $"您購買的商品{order.Member.Projects}已經發貨，請耐心等待，如果超過14天未到貨請聯繫客服 ";
-                    //await _emailSender.SendEmailAsync(receiver, subject, message);
+                if (orderInfo != null)
+                {
+                    var receiver = orderInfo.Member.Email;
+                    var subject = "訂單" + orderInfo.OrderId + "確認";
+                    var message = $"<h1>您的訂單{orderInfo.OrderId}已發貨</h1><p>以下是您訂單的商品明細：</p><ul>";
 
+                    foreach (var detail in orderInfo.OrderDetails)
+                    {
+                        var prjName = detail.Project.ProjectName;
+                        var prdName = detail.Product.ProductName;
+                        message += $"<li>{prjName} - {prdName}</li>"; // 將每個項目添加到郵件內容中
+                    }
+
+                    message += "</ul><p>請耐心等待，如果超過14天未到貨請聯繫客服。</p>";
+                    await _emailSender.SendEmailAsync(receiver, subject, message);
                 }
+                return Ok("郵件已成功發送");
 
-
-                    
-
-                    return Ok();
-               
             }
+            
             catch (Exception)
             {
                 return BadRequest("伺服器錯誤，請稍後再試");
