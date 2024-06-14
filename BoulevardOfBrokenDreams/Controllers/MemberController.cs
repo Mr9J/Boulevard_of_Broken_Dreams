@@ -414,6 +414,38 @@ namespace BoulevardOfBrokenDreams.Controllers
             }
         }
 
+        [HttpGet("user-info/users/{id}")]
+        public async Task<IActionResult> GetUserInfo(string id)
+        {
+            try
+            {
+                var member = await _context.Members.FirstOrDefaultAsync(m => m.MemberId == int.Parse(id));
+
+                if (member == null)
+                {
+                    return NotFound("Member not found.");
+                }
+
+                MemberInfoDTO memberDTO = new MemberInfoDTO
+                {
+                    id = member.MemberId.ToString(),
+                    nickname = member.Nickname ?? string.Empty,
+                    username = member.Username,
+                    email = member.Email ?? string.Empty,
+                    description = member.MemberIntroduction ?? string.Empty,
+                    avatar = member.Thumbnail ?? string.Empty,
+                    time = member.RegistrationTime.ToString()!
+                };
+
+                return Ok(memberDTO);
+            }
+            catch (Exception)
+            {
+                return BadRequest();
+            }
+        }
+
+
         [HttpPut("{id}")]
         public IActionResult Put(int id, [FromBody] MemberDTO member)
         {
