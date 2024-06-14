@@ -256,7 +256,7 @@ namespace BoulevardOfBrokenDreams.Controllers
                                  ProjectName = p.ProjectName,
                                  GroupId = p.GroupId,
                                  StatusId= p.StatusId,
-                                 Thumbnail = "https://" + _httpContextAccessor.HttpContext.Request.Host.Value + "/resources/mumuThumbnail/Projects_Products_Thumbnail/" + p.Thumbnail,
+                                 Thumbnail = p.Thumbnail,
                                  OrderCount = (from orderDetail in _db.OrderDetails
                                                where orderDetail.ProjectId == p.ProjectId
                                                select orderDetail.Count).Sum(),
