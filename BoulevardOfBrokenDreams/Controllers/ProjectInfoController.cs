@@ -109,6 +109,8 @@ namespace BoulevardOfBrokenDreams.Controllers
             await _db.SaveChangesAsync();
 
             // 通知所有客戶端
+            commentDto.CommentId = comment.CommentId;
+            commentDto.Date = comment.Date;
             await _hubContext.Clients.All.SendAsync("ReceiveComment", commentDto);
 
             return Ok("Comment sent.");
@@ -197,6 +199,22 @@ namespace BoulevardOfBrokenDreams.Controllers
             string? id = decodedToken.Claims.FirstOrDefault(claim => claim.Type == ClaimTypes.NameIdentifier)?.Value;
 
             return int.Parse(id!);
+        }
+
+        // GET api/<ProjectInfoController>/5
+        [HttpGet("Member")]
+        public async Task<IActionResult> GetMemberById(int memberId)
+        {
+            var member = await _db.Members.SingleOrDefaultAsync(m=>m.MemberId == memberId);
+            if(member == null) return NotFound("Member not found.");
+            var dtoMember = new DTOMember()
+            {
+                MemberId = member.MemberId,
+                Username = member.Username,
+                Thumbnail = member.Thumbnail
+            };
+
+            return Ok(dtoMember);
         }
     }
 }

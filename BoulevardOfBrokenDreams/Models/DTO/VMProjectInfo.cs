@@ -39,5 +39,13 @@
         public string? CommentMsg { get; set; }
         public int ProjectId { get; set; }
         public int MemberId { get; set; }
+        public DateTime Date { get; set; }
+    }
+    public class DTOMember
+    {
+
+       public int MemberId { get; set; }
+        public string Username { get; set; } = null!;
+        public string? Thumbnail { get; set; }
     }
 }
