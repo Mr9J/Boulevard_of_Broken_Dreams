@@ -25,7 +25,7 @@ namespace BoulevardOfBrokenDreams.Controllers
         private static bool _paymentResponseReceived = false;
         private static readonly SemaphoreSlim _paymentResponseLock = new SemaphoreSlim(1);
 
-        public OrderController(MumuDbContext db, IHttpContextAccessor httpContextAccessor,IEmailSender _emailSender)
+        public OrderController(MumuDbContext db, IHttpContextAccessor httpContextAccessor,IEmailSender emailSender)
         {
             _emailSender = emailSender;
             _db = db;
