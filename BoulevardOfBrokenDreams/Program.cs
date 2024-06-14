@@ -94,9 +94,9 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-app.UseStaticFiles(new StaticFileOptions 
+app.UseStaticFiles(new StaticFileOptions
 {
-  FileProvider = new PhysicalFileProvider(
+    FileProvider = new PhysicalFileProvider(
     Path.Combine(Directory.GetCurrentDirectory(), "images")),
     RequestPath = "/resources"
 });

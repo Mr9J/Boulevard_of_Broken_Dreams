@@ -47,7 +47,7 @@ namespace BoulevardOfBrokenDreams.Controllers
                     if (member == null) return BadRequest("註冊失敗");
                     var receiver = user.email;
                     var subject = "Mumu 用戶註冊驗證";
-                    var message = "<h1>歡迎註冊Mumu</h1>";
+                    var message = "<h1 style=\"background-color: cornflowerblue; color: aliceblue\">Mumu 用戶註冊驗證</h1>";
                     message += "<p>請點擊以下連結驗證您的帳號:</p>";
                     message += "<a href='https://mumumsit158.com/email-verify/" + member.Username + "/" + member.Eid + "'>點擊這裡</a>進行驗證";
 
@@ -148,11 +148,17 @@ namespace BoulevardOfBrokenDreams.Controllers
 
 
         [HttpPost("resend-verify-email"), Authorize(Roles = "user, admin")]
-        public async Task<IActionResult> ReSendEmail(string username)
+        public async Task<IActionResult> ReSendEmail(string email)
         {
             try
             {
-                Member? member = await _memberRepository.GetMember(username);
+                string? jwt = HttpContext.Request.Headers["Authorization"];
+
+                if (jwt == null || jwt == "") return BadRequest();
+
+                string id = decodeJwtId(jwt);
+
+                var member = await _context.Members.FirstOrDefaultAsync(m => m.MemberId == int.Parse(id));
 
                 if (member == null)
                 {
@@ -212,7 +218,7 @@ namespace BoulevardOfBrokenDreams.Controllers
             }
         }
 
-        [HttpPost("change-password"), Authorize(Roles = "guest")]
+        [HttpPost("change-password"), Authorize(Roles = "guest, user, admin")]
         public async Task<IActionResult> ChangePassword(string password)
         {
             try
