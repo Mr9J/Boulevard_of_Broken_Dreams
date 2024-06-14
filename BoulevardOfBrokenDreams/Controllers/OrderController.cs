@@ -7,6 +7,7 @@ using Microsoft.EntityFrameworkCore;
 using System.Security.Cryptography;
 using System.Text;
 using System.Web;
+using BoulevardOfBrokenDreams.Interface;
 
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
@@ -18,15 +19,17 @@ namespace BoulevardOfBrokenDreams.Controllers
     public class OrderController : ControllerBase
     {
        
+        private readonly IEmailSender _emailSender;
         private MumuDbContext _db;
         private readonly IHttpContextAccessor _httpContextAccessor;
         private static bool _paymentResponseReceived = false;
         private static readonly SemaphoreSlim _paymentResponseLock = new SemaphoreSlim(1);
 
-        public OrderController(MumuDbContext db, IHttpContextAccessor httpContextAccessor)
+        public OrderController(MumuDbContext db, IHttpContextAccessor httpContextAccessor,IEmailSender _emailSender)
         {
             _db = db;
             _httpContextAccessor = httpContextAccessor;
+            this._emailSender = _emailSender;
         }
 
         // GET: api/<OrderController>
@@ -119,7 +122,7 @@ namespace BoulevardOfBrokenDreams.Controllers
    [HttpPost("CreateOrder")]
         public async Task<string> CreateOrder([FromBody] CreateOrderDTO orderDTO)
         {
-           //await WaitForPaymentResponse();
+           await WaitForPaymentResponse();
 
             try
             {
@@ -137,7 +140,10 @@ namespace BoulevardOfBrokenDreams.Controllers
                 _db.Orders.Add(newOrder);
                 _db.SaveChanges();
                 //取得剛新增的OrderID
-                int orderId = newOrder.OrderId;
+                string tr = "";
+                string tProjectName = "";
+                int orderId = newOrder.OrderId; 
+                var memberCartId = _db.Carts.FirstOrDefault(m => m.MemberId == orderDTO.MemberId)?.CartId;
                 orderDTO.ProductData.ForEach(product =>
                 {
                     if (product.Count == 0)
@@ -157,18 +163,11 @@ namespace BoulevardOfBrokenDreams.Controllers
                         Price = total
                     };
 
-                    _db.OrderDetails.Add(newOrderDetails);
-                });
-                _db.SaveChanges();
-
-                //從購物車中尋找是否有符合的商品，如果有就對該購物車商品進行數量修改
-                var memberCartId = _db.Carts.FirstOrDefault(m => m.MemberId == orderDTO.MemberId)?.CartId;
-                if (memberCartId == 0)
-                    return "找不到使用者購物車";
-                orderDTO.ProductData.ForEach(product =>
+                    _db.OrderDetails.Add(newOrderDetails);   
+                                                            
+                if (memberCartId != null)
                 {
-
-                    int productId = int.Parse(product.ProductId);
+                    
                     var cartHasProduct = _db.CartDetails.FirstOrDefault(c => c.CartId == memberCartId && c.ProductId == productId);
                     if (cartHasProduct != null)
                     {
@@ -179,10 +178,49 @@ namespace BoulevardOfBrokenDreams.Controllers
                         {
                             _db.CartDetails.Remove(cartHasProduct);
                         }
+                    }            
+                }
+
+                    var productDetails = _db.Products.FirstOrDefault(pt => pt.ProductId == productId);
+                    if (productDetails != null)
+                    {
+                        productDetails.CurrentStock -= product.Count;
+                        if (productDetails.CurrentStock <= 0)
+                        {
+                            productDetails.CurrentStock = 0;
+                        }
+                        
                     }
 
+                    var projectName = _db.Projects.FirstOrDefault(pj => pj.ProjectId == orderDTO.ProjectId)?.ProjectName;
+
+                    string orderlist = $"<tr><td>{productDetails.ProductName}</td><td>{product.Count}</td><td>NT${total}</td></tr>";
+                    tr += orderlist;
+                    tProjectName = projectName;
+
+
                 });
+
+                var receiver = "mumufundraising@gmail.com";
+                string thead = $"<thead>{tProjectName}</thead>";
+                string subject = "Mumu 交易完成";
+                string th = "<tr><th>贊助商品</th><th>數量</th><th>金額</th></tr>";
+                string message = $"<h1>你的訂單已完成付款 交易日期:{DateTime.Now}</h1><br/>";
+                message += th += tr;
+                await _emailSender.SendEmailAsync(receiver, subject, message);
+
+
+
+
                 _db.SaveChanges();
+
+
+
+
+                //從購物車中尋找是否有符合的商品，如果有就對該購物車商品進行數量修改
+
+
+                _paymentResponseReceived = false;
 
                 return "訂單完成";
             }
