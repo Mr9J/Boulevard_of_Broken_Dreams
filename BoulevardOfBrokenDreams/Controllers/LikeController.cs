@@ -24,12 +24,15 @@ namespace BoulevardOfBrokenDreams.Controllers
         {
             var likes = _db.LikeDetails
                         .Where(x => x.MemberId == userId)
-                        .Include(x=>x.Like)
+                        .Include(x => x.Like)
                         .ThenInclude(lk => lk.Project)
                         .Select(x => new LikeDTO
                         {
+
                             LikePrjName = x.Like.Project.ProjectName,
-                            LikePrjThumb = "https://" + _httpContextAccessor.HttpContext.Request.Host.Value + "/resources/mumuThumbnail/Projects_Products_Thumbnail/" + x.Like.Project.Thumbnail
+                            LikePrjThumb = x.Like.Project.Thumbnail,
+                            LikeDetailId = x.LikeDetailId,
+                            LikePrjId=x.Like.ProjectId
                         }).ToList();
 
 
@@ -41,11 +44,25 @@ namespace BoulevardOfBrokenDreams.Controllers
             return Ok(likes);
         }
 
+        [HttpDelete("{LikeDetailId}")]
+        public async Task<IActionResult> DeleteLike(int LikeDetailId)
+        {
+            var delLikeDetail = await _db.LikeDetails.FindAsync(LikeDetailId);
+            if (delLikeDetail == null)
+            {
+                return NotFound();
+            }
+            var delLike = await _db.Likes.FirstOrDefaultAsync(x => x.LikeId == delLikeDetail.LikeId);
 
+            _db.LikeDetails.Remove(delLikeDetail);
 
+            if (delLike != null)
+            {
+                _db.Likes.Remove(delLike);
+            }
 
-
-
-
+            await _db.SaveChangesAsync();
+            return NoContent();
+        }
     }
 }
