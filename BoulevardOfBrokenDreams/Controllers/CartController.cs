@@ -38,7 +38,7 @@ namespace BoulevardOfBrokenDreams.Controllers
                         MemberId = memberId,
                     };
                     context.Carts.Add(newCart);
-                    await context.SaveChangesAsync(); ; // 如果找不到對應的會員購物車，返回404
+                    await context.SaveChangesAsync(); ;
                     cartId = newCart.CartId;
                 }
                 else {
@@ -139,10 +139,15 @@ namespace BoulevardOfBrokenDreams.Controllers
             {
                 var memberCart = context.Carts.FirstOrDefault(m => m.MemberId == memberId);
                 decimal price = context.Products.FirstOrDefault(pt => pt.ProductId == productId)?.ProductPrice ?? 0;
+                int  currentStock = context.Products.FirstOrDefault(pt => pt.ProductId == productId) ?.CurrentStock ?? 0;
                 var alreadyinCart = context.CartDetails.FirstOrDefault(pt => pt.ProductId == productId && pt.CartId == memberCart!.CartId);
                 if (alreadyinCart != null)
                 {
                     alreadyinCart.Count += productCounts;
+                    if (alreadyinCart.Count >= currentStock)
+                    {
+                        alreadyinCart.Count = currentStock;
+                    }
                 }
                 //if (price == 0)
                 //{ return BadRequest(); }
@@ -161,11 +166,11 @@ namespace BoulevardOfBrokenDreams.Controllers
                     context.CartDetails.Add(addCartDetail);
                 }
             }
-
-
-
-
             await context.SaveChangesAsync();
+
+           
+
+
 
             return Ok();
         }
