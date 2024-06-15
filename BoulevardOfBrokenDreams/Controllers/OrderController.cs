@@ -24,6 +24,7 @@ namespace BoulevardOfBrokenDreams.Controllers
         private readonly IHttpContextAccessor _httpContextAccessor;
         private static bool _paymentResponseReceived = false;
         private static readonly SemaphoreSlim _paymentResponseLock = new SemaphoreSlim(1);
+        private static bool _isWaitingForPaymentResponse = false;  
 
         public OrderController(MumuDbContext db, IHttpContextAccessor httpContextAccessor,IEmailSender _emailSender)
         {
@@ -98,31 +99,44 @@ namespace BoulevardOfBrokenDreams.Controllers
                 {
                     _paymentResponseLock.Release();
                 }
-                await Task.Delay(100); // 每次等待 500 毫秒
+                await Task.Delay(100); // 每次等待 100 毫秒
             }
         }
 
         [HttpPost("ECPayResponseMessage")]
         public async Task<IActionResult> ECPayResponseMessage([FromForm] Dictionary<string, string> requestData)
         {
-            await _paymentResponseLock.WaitAsync();
-            try
+            if (_isWaitingForPaymentResponse)
             {
-                bool isSuccess = true;
-                _paymentResponseReceived = isSuccess;
 
-                return Ok("1|OK");
-            }
-            finally
-            {
-                _paymentResponseLock.Release();
-            }
-        }
+               await _paymentResponseLock.WaitAsync();
+                try
+                {
+                    bool isSuccess = true;
+                    _paymentResponseReceived = isSuccess;
+                    return Ok("1|OK");
 
-   [HttpPost("CreateOrder")]
+                }
+                finally
+                {
+                    _paymentResponseLock.Release();
+                }
+            }
+          
+               return Ok("1|OK");
+            
+
+
+          }
+
+            [HttpPost("CreateOrder")]
         public async Task<string> CreateOrder([FromBody] CreateOrderDTO orderDTO)
         {
+
+            //標誌確認 WaitForPaymentResponse()的狀態是否仍在await
+            _isWaitingForPaymentResponse = true;    
            await WaitForPaymentResponse();
+            _isWaitingForPaymentResponse = false;
 
             try
             {
@@ -195,7 +209,7 @@ namespace BoulevardOfBrokenDreams.Controllers
 
                     var projectName = _db.Projects.FirstOrDefault(pj => pj.ProjectId == orderDTO.ProjectId)?.ProjectName;
 
-                    string orderlist = $"<tr><td>{productDetails.ProductName}</td><td>{product.Count}</td><td>NT${productDetails.ProductPrice}</td><td>NT${total}</td></tr>";
+                    string orderlist = $"<tr><td style='border: 1px solid black; text-align: center;'>{productDetails.ProductName}</td><td style='border: 1px solid black; text-align: center;'>{product.Count}</td><td style='border: 1px solid black; text-align: center;'>NT{productDetails.ProductPrice.ToString("C0")}</td><td style='border: 1px solid black; text-align: center;'>NT{total.ToString("C0")}</td></tr>";
                     tr += orderlist;
                     tProjectName = projectName;
                     totalPrice += total;
@@ -205,13 +219,17 @@ namespace BoulevardOfBrokenDreams.Controllers
 
                 var receiver = "mumufundraising@gmail.com"; 
                 string message = $"<h1>你的訂單已完成付款 交易日期:{DateTime.Now}</h1><br/>";
-                string thead = $"<tr><th colspan='4'>{tProjectName}</th></tr>";
+                string thead = $"<tr><th colspan='4' style='border: 1px solid black; text-align: center;'>{tProjectName}</th></tr>";
                 string subject = "Mumu 交易完成通知";
-                string th = "<tr><th>贊助商品</th><th>數量</th><th>商品單價</th><th>數量總額</th></tr>";
-                string totalPriceMsg = $"<tr><td colspan='4'>總計金額:{totalPrice.ToString("C0")}</tr>";
+                string th = "<tr><th style='border: 1px solid black; text-align: center;'>贊助商品</th><th style='border: 1px solid black; text-align: center;'>數量</th><th style='border: 1px solid black; text-align: center;'>商品單價</th><th style='border: 1px solid black; text-align: center;'>數量總額</th></tr>";
+                string totalPriceMsg = $"<tr><td colspan='4' style='border: 1px solid black; text-align: center;'>總計金額:{totalPrice.ToString("C0")}</td></tr>";
 
+                // 定義表格樣式
+                string tableStyle = "style='border-collapse: collapse; width: 50%;'";
+                string cellStyle = "style='border: 1px solid black; padding: 3px;'";
+                string table = $"<table {tableStyle}>{thead}{th}{tr}{totalPriceMsg}</table>";
 
-                message += thead += th += tr += totalPriceMsg;
+                message += table;
                 await _emailSender.SendEmailAsync(receiver, subject, message);
 
 
