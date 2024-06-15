@@ -8,6 +8,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Web;
 using BoulevardOfBrokenDreams.Interface;
+using Microsoft.AspNetCore.Http.HttpResults;
 
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
@@ -128,6 +129,42 @@ namespace BoulevardOfBrokenDreams.Controllers
 
 
           }
+
+
+        [HttpPost("CheckProductInventory")]
+        public async Task<IActionResult> CheckProductInventory(List<CheckProductInventoryDTO> checkProductInventoryDTO)
+        {
+
+            try
+            {
+                foreach (var product in checkProductInventoryDTO)
+                {
+                    int productId = int.Parse(product.ProductId);
+
+                    var check = await _db.Products.FirstOrDefaultAsync(pt => pt.ProductId == productId);
+
+                    if (check == null)
+                    {
+                        return BadRequest($"商品 ID {productId} 不存在");
+                    }
+
+                    if (check.CurrentStock < product.Count)
+                    {
+                        return BadRequest($"購買品項: {check.ProductName} 庫存量不足，(現餘 {check.CurrentStock} 份)，請調整購買數量");
+                    }
+                }
+
+                return Ok("ok");
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"發生了錯誤: {ex.Message}");
+            }
+        }
+             
+
+          
+       
 
             [HttpPost("CreateOrder")]
         public async Task<string> CreateOrder([FromBody] CreateOrderDTO orderDTO)
