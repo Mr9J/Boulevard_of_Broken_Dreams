@@ -181,6 +181,8 @@ public partial class MumuDbContext : DbContext
             entity.Property(e => e.ResetPassword)
                 .HasDefaultValue("N")
                 .IsFixedLength();
+            entity.Property(e => e.StatusId).HasDefaultValue(7);
+            entity.Property(e => e.Thumbnail).HasDefaultValue("https://cdn.mumumsit158.com/Members/User.jpg");
             entity.Property(e => e.Verified)
                 .HasDefaultValue("N")
                 .IsFixedLength();

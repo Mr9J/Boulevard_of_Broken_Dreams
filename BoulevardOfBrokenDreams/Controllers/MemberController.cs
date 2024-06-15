@@ -419,25 +419,97 @@ namespace BoulevardOfBrokenDreams.Controllers
         {
             try
             {
-                var member = await _context.Members.FirstOrDefaultAsync(m => m.MemberId == int.Parse(id));
+                //var member = await _context.Members
+                //    .Where(m => m.MemberId == int.Parse(id))
+                //    .Join(_context.Projects,
+                //          m => m.MemberId,
+                //          p => p.MemberId,
+                //          (m, p) => new
+                //          {
+                //              m.MemberId,
+                //              m.Nickname,
+                //              m.Username,
+                //              m.Email,
+                //              m.MemberIntroduction,
+                //              MemberThumbnail = m.Thumbnail,
+                //              MemberStatusId = m.StatusId,
+                //              m.RegistrationTime,
+                //              p.ProjectId,
+                //              p.ProjectName,
+                //              p.ProjectDescription,
+                //              p.ProjectGoal,
+                //              p.EndDate,
+                //              p.GroupId,
+                //              ProjectThumbnail = p.Thumbnail,
+                //              ProjectStatusID = p.StatusId
+                //          }).ToListAsync();
 
-                if (member == null)
+                //if (member == null)
+                //{
+                //    return NotFound("Member not found.");
+                //}
+
+                //var memberInfoDTOs = member.Select(m => new MemberInfoDTO
+                //{
+                //    id = m.MemberId,
+                //    nickname = m.Nickname ?? string.Empty,
+                //    username = m.Username,
+                //    email = m.Email ?? string.Empty,
+                //    description = m.MemberIntroduction ?? string.Empty,
+                //    avatar = m.MemberThumbnail ?? string.Empty,
+                //    time = m.RegistrationTime.ToString() ?? string.Empty,
+                //    memberStatus = m.MemberStatusId ?? 0,
+                //    projects =
+                //    [
+                //        new GetProjectDTO
+                //        {
+                //            projectId = m.ProjectId,
+                //            projectName = m.ProjectName ?? string.Empty,
+                //            projectDescription = m.ProjectDescription ?? string.Empty,
+                //            projectGoal = m.ProjectGoal,
+                //            projectEndDate = m.EndDate,
+                //            projectGroupId = m.GroupId ?? 0,
+                //            projectThumbnail = m.ProjectThumbnail ?? string.Empty,
+                //            projectStatusId = m.ProjectStatusID
+                //        }
+                //    ]
+
+
+                //}).ToList();
+
+                var foundMember = await _context.Members.FirstOrDefaultAsync(m => m.MemberId == int.Parse(id));
+
+                if (foundMember == null)
                 {
                     return NotFound("Member not found.");
                 }
 
-                MemberInfoDTO memberDTO = new MemberInfoDTO
+                var memberInfoDTOs = new MemberInfoDTO
                 {
-                    id = member.MemberId.ToString(),
-                    nickname = member.Nickname ?? string.Empty,
-                    username = member.Username,
-                    email = member.Email ?? string.Empty,
-                    description = member.MemberIntroduction ?? string.Empty,
-                    avatar = member.Thumbnail ?? string.Empty,
-                    time = member.RegistrationTime.ToString()!
+                    id = foundMember.MemberId,
+                    nickname = foundMember.Nickname ?? string.Empty,
+                    username = foundMember.Username,
+                    email = foundMember.Email ?? string.Empty,
+                    description = foundMember.MemberIntroduction ?? string.Empty,
+                    avatar = foundMember.Thumbnail ?? string.Empty,
+                    time = foundMember.RegistrationTime ?? DateTime.Now,
+                    memberStatus = foundMember.StatusId ?? 0,
+                    projects = await _context.Projects.OrderByDescending(p => p.StartDate).Where(p => p.MemberId == foundMember.MemberId)
+                        .Select(p => new GetProjectDTO
+                        {
+                            projectId = p.ProjectId,
+                            projectName = p.ProjectName ?? string.Empty,
+                            projectDescription = p.ProjectDescription ?? string.Empty,
+                            projectGoal = p.ProjectGoal,
+                            projectStartDate = p.StartDate,
+                            projectEndDate = p.EndDate,
+                            projectGroupId = p.GroupId ?? 0,
+                            projectThumbnail = p.Thumbnail ?? string.Empty,
+                            projectStatusId = p.StatusId
+                        }).ToArrayAsync()
                 };
 
-                return Ok(memberDTO);
+                return Ok(memberInfoDTOs);
             }
             catch (Exception)
             {
