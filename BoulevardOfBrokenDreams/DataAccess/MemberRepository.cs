@@ -32,7 +32,8 @@ namespace BoulevardOfBrokenDreams.DataAccess
                     Username = user.username,
                     Email = user.email,
                     RegistrationTime = DateTime.UtcNow,
-                    Password = Hash.HashPassword(user.password)
+                    Password = Hash.HashPassword(user.password),
+                    Thumbnail = "https://cdn.mumumsit158.com/Members/User.jpg"
                 };
 
                 _context.Members.Add(member);
@@ -129,7 +130,7 @@ namespace BoulevardOfBrokenDreams.DataAccess
 
         public bool IsValidPassword(string password)
         {
-            string pattern = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)[A-Za-z\\d]+$";
+            string pattern = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[^a-zA-Z0-9]).{8,24}$";
             return Regex.IsMatch(password, pattern);
         }
 

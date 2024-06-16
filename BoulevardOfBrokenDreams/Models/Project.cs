@@ -40,6 +40,8 @@ public partial class Project
     [Column("StatusID")]
     public int StatusId { get; set; }
 
+    public string? ProjectDetails { get; set; }
+
     [InverseProperty("Project")]
     public virtual ICollection<Action> Actions { get; set; } = new List<Action>();
 

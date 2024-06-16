@@ -30,7 +30,7 @@ namespace BoulevardOfBrokenDreams.Controllers
                                ProjectGoal = p.ProjectGoal,
                                StartDate = p.StartDate,
                                EndDate = p.EndDate,
-                               Thumbnail = "https://" + _httpContextAccessor.HttpContext.Request.Host.Value + "/resources/mumuThumbnail/Projects_Products_Thumbnail/" + p.Thumbnail,
+                               Thumbnail = p.Thumbnail,
                                TotalAmount = ((from orderDetail in _db.OrderDetails
                                                where orderDetail.ProjectId == p.ProjectId
                                                select orderDetail.Price).Sum()) + ((from order in _db.Orders
@@ -60,7 +60,7 @@ namespace BoulevardOfBrokenDreams.Controllers
                                StartDate = p.StartDate,
                                EndDate = p.EndDate,
                                DayLeft = (p.EndDate.DayNumber - DateOnly.FromDateTime(DateTime.Today).DayNumber),
-                               Thumbnail = "https://" + _httpContextAccessor.HttpContext.Request.Host.Value + "/resources/mumuThumbnail/Projects_Products_Thumbnail/" + p.Thumbnail,
+                               Thumbnail = p.Thumbnail,
                                TotalAmount = ((from orderDetail in _db.OrderDetails
                                                where orderDetail.ProjectId == p.ProjectId
                                                select orderDetail.Price).Sum()) + ((from order in _db.Orders
@@ -86,7 +86,7 @@ namespace BoulevardOfBrokenDreams.Controllers
                                StartDate = p.StartDate,
                                EndDate = p.EndDate,
                                DayLeft = (p.EndDate.DayNumber - DateOnly.FromDateTime(DateTime.Today).DayNumber),
-                               Thumbnail = "https://" + _httpContextAccessor.HttpContext.Request.Host.Value + "/resources/mumuThumbnail/Projects_Products_Thumbnail/" + p.Thumbnail,
+                               Thumbnail = p.Thumbnail,
                                TotalAmount = ((from orderDetail in _db.OrderDetails
                                                where orderDetail.ProjectId == p.ProjectId
                                                select orderDetail.Price).Sum()) + ((from order in _db.Orders
@@ -121,7 +121,7 @@ namespace BoulevardOfBrokenDreams.Controllers
                                StartDate = p.StartDate,
                                EndDate = p.EndDate,
                                DayLeft = (p.EndDate.DayNumber - DateOnly.FromDateTime(DateTime.Today).DayNumber),
-                               Thumbnail = "https://" + _httpContextAccessor.HttpContext.Request.Host.Value + "/resources/mumuThumbnail/Projects_Products_Thumbnail/" + p.Thumbnail,
+                               Thumbnail = p.Thumbnail,
                                TotalAmount = ((from orderDetail in _db.OrderDetails
                                                where orderDetail.ProjectId == p.ProjectId
                                                select orderDetail.Price).Sum()) + ((from order in _db.Orders

@@ -27,8 +27,9 @@ namespace BoulevardOfBrokenDreams.Controllers
         private static readonly SemaphoreSlim _paymentResponseLock = new SemaphoreSlim(1);
         private static bool _isWaitingForPaymentResponse = false;  
 
-        public OrderController(MumuDbContext db, IHttpContextAccessor httpContextAccessor,IEmailSender _emailSender)
+        public OrderController(MumuDbContext db, IHttpContextAccessor httpContextAccessor,IEmailSender emailSender)
         {
+            _emailSender = emailSender;
             _db = db;
             _httpContextAccessor = httpContextAccessor;
             this._emailSender = _emailSender;
@@ -315,7 +316,7 @@ namespace BoulevardOfBrokenDreams.Controllers
                                  ProjectName = p.ProjectName,
                                  GroupId = p.GroupId,
                                  StatusId= p.StatusId,
-                                 Thumbnail = "https://" + _httpContextAccessor.HttpContext.Request.Host.Value + "/resources/mumuThumbnail/Projects_Products_Thumbnail/" + p.Thumbnail,
+                                 Thumbnail = p.Thumbnail,
                                  OrderCount = (from orderDetail in _db.OrderDetails
                                                where orderDetail.ProjectId == p.ProjectId
                                                select orderDetail.Count).Sum(),
@@ -400,6 +401,7 @@ namespace BoulevardOfBrokenDreams.Controllers
                                  GroupId = p.GroupId,
                                  StatusId = p.StatusId,
                                  Thumbnail = p.Thumbnail,
+                                 ProjectDescription = p.ProjectDescription,
                                  OrderCount = (from orderDetail in _db.OrderDetails
                                                where orderDetail.ProjectId == p.ProjectId
                                                select orderDetail.Count).Sum(),
@@ -408,6 +410,48 @@ namespace BoulevardOfBrokenDreams.Controllers
                                                  select orderDetail.OrderId).Count(),
                              };
             return ProjectDTO;
+        }
+
+        [HttpGet("ShipOrderNoticeByEmail/{OrderID}")]
+        public async Task<IActionResult> ShipOrderNoticeByEmail(int OrderID)
+        {
+            try
+            {
+
+                var orderInfo = await _db.Orders
+                .Where(x => x.OrderId == OrderID)
+                .Include(x => x.Member) // 加載 Member 資料
+                .Include(x => x.OrderDetails) // 加載 OrderDetails 資料
+                    .ThenInclude(od => od.Project) // 在 OrderDetails 中加載 Project 資料
+                 .Include(x => x.OrderDetails) // 加載 OrderDetails 資料
+                    .ThenInclude(od => od.Product) // 在 OrderDetails 中加載 Product 資料
+                .FirstOrDefaultAsync(); // 假設每個 OrderID 只對應一筆訂單
+
+                if (orderInfo != null)
+                {
+                    var receiver = orderInfo.Member.Email;
+                    var subject = "訂單" + orderInfo.OrderId + "確認";
+                    var message = $"<h1>您的訂單{orderInfo.OrderId}已發貨</h1><p>以下是您訂單的商品明細：</p><ul>";
+
+                    foreach (var detail in orderInfo.OrderDetails)
+                    {
+                        var prjName = detail.Project.ProjectName;
+                        var prdName = detail.Product.ProductName;
+                        var price = detail.Price.ToString("N0");
+                        message += $"<tr><td>{prjName}</td><td>{prdName}</td><td>NT${price}</td></tr>";  // 將每個項目添加到郵件內容中
+                    }
+
+                    message += "</ul><p>請耐心等待，如果超過14天未到貨請聯繫客服。</p>";
+                    await _emailSender.SendEmailAsync(receiver, subject, message);
+                }
+                return Ok("郵件已成功發送");
+
+            }
+            
+            catch (Exception)
+            {
+                return BadRequest("伺服器錯誤，請稍後再試");
+            }
         }
     }
 }

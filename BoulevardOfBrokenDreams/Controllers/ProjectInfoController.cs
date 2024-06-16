@@ -1,13 +1,12 @@
-﻿using BoulevardOfBrokenDreams.Models;
+﻿using BoulevardOfBrokenDreams.Hubs;
+using BoulevardOfBrokenDreams.Models;
 using BoulevardOfBrokenDreams.Models.DTO;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
-using System.Text;
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
@@ -18,10 +17,12 @@ namespace BoulevardOfBrokenDreams.Controllers
     public class ProjectInfoController : ControllerBase
     {
         private MumuDbContext _db;
+        private readonly IHubContext<CommentsHub> _hubContext;
 
-        public ProjectInfoController(MumuDbContext db)
+        public ProjectInfoController(MumuDbContext db, IHubContext<CommentsHub> hubContext)
         {
             _db = db;
+            _hubContext = hubContext;
         }
 
         // GET api/<ProjectInfoController>/5
@@ -51,13 +52,23 @@ namespace BoulevardOfBrokenDreams.Controllers
                 ProjectId = project.ProjectId,
                 ProjectName = project.ProjectName,
                 ProjectDescription = project.ProjectDescription,
-                ProjectThumbnail = "https://" + HttpContext.Request.Host.Value + "/resources/mumuThumbnail/Projects_Products_Thumbnail/" + project.Thumbnail,
+                ProjectThumbnail =  project.Thumbnail,
                 ProjectGoal = project.ProjectGoal,
                 StartDate = project.StartDate,
                 EndDate = project.EndDate,
                 MemberName = project.Member.Username,
                 ProjectTotal = total,
-                
+
+                Products = project.Products.Select(p => new DTOProduct
+                {
+                    ProductId = p.ProductId,
+                    ProductName = p.ProductName,
+                    ProductPrice = p.ProductPrice,
+                    ProductDescription = p.ProductDescription,
+                    ProductThumbnail = "https://" + HttpContext.Request.Host.Value + "/resources/mumuThumbnail/Projects_Products_Thumbnail/" + p.Thumbnail,
+                    InitialStock = p.InitialStock,
+                    CurrentStock = p.CurrentStock
+                }).ToList()
                 //MemberThumbnail = "https://" + HttpContext.Request.Host.Value + "/resources/mumuThumbnail/members_Thumbnail/" + project.Member.Thumbnail
             };
 
@@ -97,15 +108,13 @@ namespace BoulevardOfBrokenDreams.Controllers
             await _db.Comments.AddAsync(comment);
             await _db.SaveChangesAsync();
 
+            // 通知所有客戶端
+            await _hubContext.Clients.All.SendAsync("ReceiveComment", commentDto);
+
             return Ok("Comment sent.");
         }
 
-        public class CommentDto
-        {
-            public string? CommentMsg { get; set; }
-            public int ProjectId { get; set; }
-            public int MemberId { get; set; }
-        }
+        
 
         // GET api/<ProjectInfoController>/GetComments
         [HttpGet("GetComments")]
@@ -165,7 +174,7 @@ namespace BoulevardOfBrokenDreams.Controllers
             var removeLikeDetail = await _db.LikeDetails.Include(ld => ld.Like)
                 .FirstOrDefaultAsync(ld => ld.MemberId == memberId && ld.Like.ProjectId == projectId);
 
-            if(removeLikeDetail == null) return NotFound("Like not found.");
+            if (removeLikeDetail == null) return NotFound("Like not found.");
             _db.LikeDetails.Remove(removeLikeDetail);
 
             var removeLike = await _db.Likes.FindAsync(removeLikeDetail.LikeId);
