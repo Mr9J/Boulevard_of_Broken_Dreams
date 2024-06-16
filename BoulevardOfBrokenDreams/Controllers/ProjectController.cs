@@ -40,7 +40,7 @@ namespace BoulevardOfBrokenDreams.Controllers
                                EndDate = p.EndDate,
                                MemberId = p.MemberId,
                                GroupId = p.GroupId,
-                               Thumbnail = "https://" + _httpContextAccessor.HttpContext.Request.Host.Value + "/resources/mumuThumbnail/Projects_Products_Thumbnail/" + p.Thumbnail,
+                               Thumbnail = p.Thumbnail,
 
 
                                StatusId = p.StatusId,
@@ -70,7 +70,7 @@ namespace BoulevardOfBrokenDreams.Controllers
                                                CurrentStock = product.CurrentStock,
                                                StartDate = product.StartDate,
                                                EndDate = product.EndDate,
-                                               Thumbnail = "https://" + _httpContextAccessor.HttpContext.Request.Host.Value + "/resources/mumuThumbnail/Projects_Products_Thumbnail/" + product.Thumbnail,
+                                               Thumbnail = product.Thumbnail,
                                                StatusId = product.StatusId,
                                                OrderBy = product.OrderBy,
                                            }).ToList()
@@ -109,6 +109,7 @@ namespace BoulevardOfBrokenDreams.Controllers
                 await _db.SaveChangesAsync();
 
                  cartId = newCart.CartId;
+
             }
             else {
                 cartId = cart.CartId;
@@ -147,7 +148,7 @@ namespace BoulevardOfBrokenDreams.Controllers
                     ProjectGoal = p.ProjectGoal,
                     ProjectName = p.ProjectName,
                     ProjectDescription = p.ProjectDescription,
-                    Thumbnail = path + p.Thumbnail,
+                    Thumbnail = p.Thumbnail,
                     ProductInCart = productIdList,
                     ProductInCartCount = countList,
                     Member = new MemberDTO
@@ -157,7 +158,9 @@ namespace BoulevardOfBrokenDreams.Controllers
                         //ProductCount = productDetails
 
                     },
-                    Products = p.Products.Select(pt => new ProductCardDTO
+                    Products = p.Products
+                    .Where(pt => pt.CurrentStock != 0)
+                    .Select(pt => new ProductCardDTO
                     {
                         ProductId = pt.ProductId,
                         ProductName = pt.ProductName,
@@ -167,7 +170,7 @@ namespace BoulevardOfBrokenDreams.Controllers
                         CurrentStock = pt.CurrentStock,
                         StartDate = pt.StartDate,
                         EndDate = pt.EndDate,
-                        Thumbnail = path + pt.Thumbnail,
+                        Thumbnail = pt.Thumbnail,
                         //CartDetail = cartDetaildto,
 
                     }).ToList()

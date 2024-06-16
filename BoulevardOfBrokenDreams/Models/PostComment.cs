@@ -13,16 +13,16 @@ public partial class PostComment
     [Column("id")]
     public int Id { get; set; }
 
-    [Column("PostID")]
-    public int PostId { get; set; }
-
     [Column("MemberID")]
     public int MemberId { get; set; }
+
+    [Column("PostID")]
+    public int PostId { get; set; }
 
     [StringLength(2200)]
     public string Comment { get; set; } = null!;
 
-    [Column("time", TypeName = "datetime")]
+    [Column(TypeName = "datetime")]
     public DateTime Time { get; set; }
 
     [ForeignKey("MemberId")]

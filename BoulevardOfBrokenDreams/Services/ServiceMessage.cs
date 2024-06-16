@@ -104,7 +104,7 @@ namespace BoulevardOfBrokenDreams.Services
             {
                 //根據 messageDto.ServiceId 查找對應的服務實體對象。
                 //如果找到該服務 AdminId 為null，表示訊息來自客戶，則狀態設置為4（等待客服回應中）；否則設置為5（客服已回應）。
-                service.StatusId = messageDto.AdminId == null ? 4 : 5; 
+                service.StatusId = messageDto.AdminId == null ? 4 : 5;
             }
 
             await _context.SaveChangesAsync();

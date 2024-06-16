@@ -21,5 +21,7 @@
         public int? StatusId { get; set; }
 
         public DateTime? RegistrationTime { get; set; }
+
+        public GroupDetailDTO GroupDetail { get; set; }
     }
 }

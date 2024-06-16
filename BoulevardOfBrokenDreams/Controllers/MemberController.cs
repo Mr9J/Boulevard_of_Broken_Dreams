@@ -264,6 +264,21 @@ namespace BoulevardOfBrokenDreams.Controllers
             return username!;
         }
 
+
+        //限定登入者為user
+        [HttpGet("get-user-id"), Authorize(Roles = "user")]
+        public IActionResult GetUserId()
+        {
+            //前端的token資料
+            string? jwt = HttpContext.Request.Headers["Authorization"];
+
+            if (jwt == null || jwt == "") return BadRequest();
+
+            string id = decodeJwtId(jwt);
+
+            return Ok(id);
+        }
+
         private string decodeJwtId(string jwt)
         {
             jwt = jwt.Replace("Bearer ", "");
@@ -338,7 +353,7 @@ namespace BoulevardOfBrokenDreams.Controllers
                   MemberId = m.MemberId,
                   Username = m.Username,
                   Nickname = m.Nickname,
-                  Thumbnail = "https://" + _httpContextAccessor.HttpContext!.Request.Host.Value + "/resources/mumuThumbnail/members_Thumbnail/" + m.Thumbnail,
+                  Thumbnail = m.Thumbnail,
                   Email = m.Email,
                   Address = m.Address,
                   MemberIntroduction = m.MemberIntroduction,
@@ -369,9 +384,51 @@ namespace BoulevardOfBrokenDreams.Controllers
             }
             m.MemberId = id;
             m.Username = member.Username;
-            m.StatusId = member.StatusId;  
+            m.StatusId = member.StatusId;
             _context.SaveChanges();
             return Ok(member);
+        }
+
+        [HttpGet("GetStaff"), Authorize(Roles = "user")]
+        public IEnumerable<MemberDTO> GetStaff()
+        {
+            string? jwt = HttpContext.Request.Headers["Authorization"];
+
+            if (jwt == null || jwt == "") return null;
+
+            string id = decodeJwtId(jwt);
+            int mId = int.Parse(id);
+
+            var groupDetails = _context.GroupDetails
+                            .Where(gd => gd.MemberId == mId)
+                            .Select(gd => gd.GroupId)
+                            .ToList();
+            if (groupDetails.Any())
+            {
+                // 獲取所有相關的 GroupId
+                var groupIds = groupDetails.Distinct().ToList();
+
+                // 使用這些 GroupId 查詢所有成員
+                var members = from m in _context.Members
+                              join gd in _context.GroupDetails on m.MemberId equals gd.MemberId
+                              where groupIds.Contains(gd.GroupId)
+                              select new MemberDTO
+                              {
+                                  MemberId = m.MemberId,
+                                  Username = m.Username,
+                                  Nickname = m.Nickname,
+                                  Thumbnail = m.Thumbnail,
+                                  Email = m.Email,
+                                  Phone = m.Phone,
+                                  GroupDetail = new GroupDetailDTO
+                                  {
+                                      AuthStatusId = gd.AuthStatusId
+                                  },
+                              };
+
+                return members.ToList();
+            }
+            return null;
         }
     }
 }
