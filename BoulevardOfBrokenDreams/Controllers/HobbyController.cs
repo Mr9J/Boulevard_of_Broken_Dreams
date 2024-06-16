@@ -1,4 +1,5 @@
 ﻿using BoulevardOfBrokenDreams.Models;
+using BoulevardOfBrokenDreams.Models.DTO;
 using Microsoft.AspNetCore.Mvc;
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
@@ -20,7 +21,12 @@ namespace BoulevardOfBrokenDreams.Controllers
         [HttpGet]
         public IActionResult GetHobbyList()
         {
-            var hobbyList=_db.ProjectTypes.ToList();
+            var hobbyList=_db.ProjectTypes
+                           .Select(x=> new GetHobbyListDTO 
+                           { 
+                               HobbyId=x.ProjectTypeId,
+                               HobbyName=x.ProjectTypeName
+                           }).ToList();
             return Ok(hobbyList);
         }
  
