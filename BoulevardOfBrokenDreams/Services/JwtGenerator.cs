@@ -41,5 +41,17 @@ namespace BoulevardOfBrokenDreams.Services
 
             return jwt;
         }
+
+        public string decodeJwtId(string jwt)
+        {
+            jwt = jwt.Replace("Bearer ", "");
+
+            JwtSecurityTokenHandler tokenHandler = new JwtSecurityTokenHandler();
+            JwtSecurityToken decodedToken = tokenHandler.ReadJwtToken(jwt);
+
+            string? id = decodedToken.Claims.FirstOrDefault(claim => claim.Type == ClaimTypes.NameIdentifier)?.Value;
+
+            return id!;
+        }
     }
 }

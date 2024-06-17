@@ -20,7 +20,7 @@ namespace BoulevardOfBrokenDreams.Controllers
             this._context = context;
         }
 
-        [HttpPost("create-post"), Authorize(Roles = "user")]
+        [HttpPost("create-post"), Authorize(Roles = "user, admin")]
         public async Task<IActionResult> CreatePost(NewPostDTO newPost)
         {
             string validationRes = PostValidation(newPost);
@@ -46,7 +46,7 @@ namespace BoulevardOfBrokenDreams.Controllers
             return Ok("新增成功");
         }
 
-        [HttpGet("get-post/{postId}"), Authorize(Roles = "user")]
+        [HttpGet("get-post/{postId}"), Authorize(Roles = "user, admin")]
         public async Task<IActionResult> GetPost(string postId)
         {
             try
@@ -87,7 +87,7 @@ namespace BoulevardOfBrokenDreams.Controllers
         }
 
 
-        [HttpGet("get-posts/{page}"), Authorize(Roles = "user")]
+        [HttpGet("get-posts/{page}"), Authorize(Roles = "user, admin")]
         public async Task<IActionResult> GetPosts(int page)
         {
             try
@@ -125,7 +125,7 @@ namespace BoulevardOfBrokenDreams.Controllers
             }
         }
 
-        [HttpGet("like-post-check/{postId}/{userId}"), Authorize(Roles = "user")]
+        [HttpGet("like-post-check/{postId}/{userId}"), Authorize(Roles = "user, admin")]
         public async Task<IActionResult> LikePostCheck(string postId, string userId)
         {
             try
@@ -158,7 +158,7 @@ namespace BoulevardOfBrokenDreams.Controllers
             }
         }
 
-        [HttpPost("like-post"), Authorize(Roles = "user")]
+        [HttpPost("like-post"), Authorize(Roles = "user, admin")]
         public async Task<IActionResult> LikePost(string postId, string userId)
         {
             try
@@ -198,7 +198,7 @@ namespace BoulevardOfBrokenDreams.Controllers
             }
         }
 
-        [HttpGet("save-post-check/{postId}/{userId}"), Authorize(Roles = "user")]
+        [HttpGet("save-post-check/{postId}/{userId}"), Authorize(Roles = "user, admin")]
         public async Task<IActionResult> SavePostCheck(string postId, string userId)
         {
             try
@@ -222,7 +222,7 @@ namespace BoulevardOfBrokenDreams.Controllers
             }
         }
 
-        [HttpPost("save-post"), Authorize(Roles = "user")]
+        [HttpPost("save-post"), Authorize(Roles = "user, admin")]
         public async Task<IActionResult> SavePost(string postId, string userId)
         {
             try
@@ -262,7 +262,7 @@ namespace BoulevardOfBrokenDreams.Controllers
             }
         }
 
-        [HttpDelete("delete-post/{postId}"), Authorize(Roles = "user")]
+        [HttpDelete("delete-post/{postId}"), Authorize(Roles = "user, admin")]
         public async Task<IActionResult> DeletePost(int postId)
         {
             try
@@ -291,7 +291,7 @@ namespace BoulevardOfBrokenDreams.Controllers
             }
         }
 
-        [HttpPatch("update-post/{postId}"), Authorize(Roles = "user")]
+        [HttpPatch("update-post/{postId}"), Authorize(Roles = "user, admin")]
         public async Task<IActionResult> UpdatePost(UpdatePostDTO update)
         {
             try
@@ -346,7 +346,7 @@ namespace BoulevardOfBrokenDreams.Controllers
             }
         }
 
-        [HttpPost("comment-post"), Authorize(Roles = "user")]
+        [HttpPost("comment-post"), Authorize(Roles = "user, admin")]
         public async Task<IActionResult> CommentPost(NewCommentPostDTO newComment)
         {
             try
@@ -389,7 +389,7 @@ namespace BoulevardOfBrokenDreams.Controllers
             }
         }
 
-        [HttpGet("get-comments/{postId}"), Authorize(Roles = "user")]
+        [HttpGet("get-comments/{postId}"), Authorize(Roles = "user, admin")]
         public async Task<IActionResult> GetComments(string postId)
         {
             try
@@ -422,6 +422,63 @@ namespace BoulevardOfBrokenDreams.Controllers
             catch (Exception)
             {
                 return BadRequest("伺服器錯誤，請稍後再試");
+            }
+        }
+
+        [HttpGet("get-saved-posts/{page}"), Authorize(Roles = "user, admin")]
+        public async Task<IActionResult> GetSavedPosts(int page)
+        {
+            try
+            {
+                string? jwt = HttpContext.Request.Headers["Authorization"];
+
+                if (jwt == null || jwt == "") return BadRequest();
+
+                string id = decodeJwtId(jwt);
+
+                if (id == null) return BadRequest();
+
+                var savedPosts = await _context.PostSaveds
+                    .Where(ps => ps.MemberId == int.Parse(id))
+                    .Join(_context.Posts, ps => ps.PostId, p => p.PostId, (ps, p) =>
+                        new { ps.PostId, p.MemberId, p.Caption, p.ImgUrl, p.Location, p.Tags, p.PostTime, p.IsAnonymous })
+                    .Join(_context.Members, t => t.MemberId, m => m.MemberId, (t, m) =>
+                        new
+                        {
+                            t.PostId,
+                            t.MemberId,
+                            t.Caption,
+                            t.ImgUrl,
+                            t.Location,
+                            t.Tags,
+                            t.PostTime,
+                            t.IsAnonymous,
+                            m.Nickname,
+                            m.Thumbnail
+                        })
+                    .Skip(page * 10)
+                    .Take(10)
+                    .ToListAsync();
+
+                var postDTOs = savedPosts.Select(sp => new PostDTO
+                {
+                    postId = sp.PostId.ToString(),
+                    userId = sp.MemberId.ToString(),
+                    username = sp.Nickname!,
+                    userImg = sp.Thumbnail!,
+                    caption = sp.Caption!,
+                    imgUrl = sp.ImgUrl!,
+                    location = sp.Location!,
+                    tags = sp.Tags!,
+                    postTime = sp.PostTime.ToString()!,
+                    isAnonymous = sp.IsAnonymous!.ToString()
+                }).ToList();
+
+                return Ok(postDTOs);
+            }
+            catch (Exception)
+            {
+                return BadRequest();
             }
         }
 

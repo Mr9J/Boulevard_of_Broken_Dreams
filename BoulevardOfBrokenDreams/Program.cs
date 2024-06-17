@@ -1,3 +1,4 @@
+using BoulevardOfBrokenDreams.Hubs;
 using BoulevardOfBrokenDreams.Interface;
 using BoulevardOfBrokenDreams.Models;
 using BoulevardOfBrokenDreams.Services;
@@ -17,10 +18,20 @@ builder.Services.AddCors(options =>
 {
     options.AddDefaultPolicy(builder =>
     {
-        builder.AllowAnyOrigin()
+        builder.WithOrigins("https://localhost:5173", "https://mumumsit158.com")
                .AllowAnyMethod()
-               .AllowAnyHeader();
+               .AllowAnyHeader().
+               AllowCredentials();
     });
+    //--------------------------------新增的 CORS 策略部分--------------------------------
+    //options.AddPolicy("AllowAllLocalhost", builder =>
+    // {
+    //     builder.SetIsOriginAllowed(origin => new Uri(origin).Host == "localhost")
+    //            .AllowAnyMethod()
+    //            .AllowAnyHeader()
+    //            .AllowCredentials();  // 允許攜帶身份驗證信息
+    // });
+    // --------------------------------------------------------------------------------
 });
 
 builder.Services.AddTransient<IEmailSender, EmailSender>();
@@ -78,6 +89,7 @@ builder.Services.AddControllers();
 builder.Services.AddDbContext<MumuDbContext>(options =>
    options.UseSqlServer(builder.Configuration.GetConnectionString("Mumu")));
 
+builder.Services.AddSignalR();
 builder.Services.AddScoped<BoulevardOfBrokenDreams.Services.ServiceMessage>();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
@@ -94,9 +106,9 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-app.UseStaticFiles(new StaticFileOptions 
+app.UseStaticFiles(new StaticFileOptions
 {
-  FileProvider = new PhysicalFileProvider(
+    FileProvider = new PhysicalFileProvider(
     Path.Combine(Directory.GetCurrentDirectory(), "images")),
     RequestPath = "/resources"
 });
@@ -106,8 +118,12 @@ app.UseRouting();
 app.UseAuthentication();
 app.UseAuthorization();
 
+// 使用新的 CORS 策略
 app.UseCors();
 
 app.MapControllers();
+
+app.MapHub<ChatHub>("/ChatHub");
+app.MapHub<CommentsHub>("/Comments");
 
 app.Run();
