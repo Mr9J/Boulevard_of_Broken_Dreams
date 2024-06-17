@@ -154,7 +154,7 @@ namespace BoulevardOfBrokenDreams.Controllers
                     Member = new MemberDTO
                     {
                         MemberId = p.Member.MemberId,
-                        Nickname = p.Member.Nickname,
+                        Nickname = p.Member.Nickname,                        
                         //ProductCount = productDetails
 
                     },
