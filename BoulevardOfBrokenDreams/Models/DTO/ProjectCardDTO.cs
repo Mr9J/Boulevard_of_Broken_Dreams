@@ -15,4 +15,4 @@ namespace BoulevardOfBrokenDreams.Models.DTO;
         public List<int>? ProductInCart { get; set; }
 
         public List<int>? ProductInCartCount { get; set; }
-    }
+}

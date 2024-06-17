@@ -19,7 +19,7 @@ namespace BoulevardOfBrokenDreams.Controllers
             this.context = context;
             this.httpContextAccessor = httpContextAccessor;
         }
-        //仔入購物車頁面
+        //載入購物車頁面
         [HttpGet("{memberId}")]
         public async Task<ActionResult<IEnumerable<CartDetailDTO>>> GetCartsDetailData(int memberId)
         {//還沒寫:如果購物車沒有資料 顯示為空頁面

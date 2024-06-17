@@ -261,7 +261,7 @@ namespace BoulevardOfBrokenDreams.Controllers
                 string thead = $"<tr><th colspan='4' style='border: 1px solid black; text-align: center;'>{tProjectName}</th></tr>";
                 string subject = "Mumu 交易完成通知";
                 string th = "<tr><th style='border: 1px solid black; text-align: center;'>贊助商品</th><th style='border: 1px solid black; text-align: center;'>數量</th><th style='border: 1px solid black; text-align: center;'>商品單價</th><th style='border: 1px solid black; text-align: center;'>數量總額</th></tr>";
-                string totalPriceMsg = $"<tr><td colspan='4' style='border: 1px solid black; text-align: center;'>加碼贊助:NT{donate}   總計金額:{totalPrice.ToString("C0")}</td></tr>";
+                string totalPriceMsg = $"<tr><td colspan='4' style='border: 1px solid black; text-align: center;'>加碼贊助:NT${donate}   總計金額:NT{totalPrice.ToString("C0")}</td></tr>";
                 // 定義表格樣式
                 string tableStyle = "style='border-collapse: collapse; width: 50%;'";
                 string cellStyle = "style='border: 1px solid black; padding: 3px;'";
