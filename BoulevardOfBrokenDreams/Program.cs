@@ -1,3 +1,6 @@
+using Amazon;
+using Amazon.Runtime;
+using Amazon.S3;
 using BoulevardOfBrokenDreams.Hubs;
 using BoulevardOfBrokenDreams.Interface;
 using BoulevardOfBrokenDreams.Models;
@@ -95,6 +98,24 @@ builder.Services.AddScoped<BoulevardOfBrokenDreams.Services.ServiceMessage>();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddHttpContextAccessor();
+
+//S3client
+//make sure that AWSSDK was installed or should nuget Install-Package AWSSDK.S3
+builder.Services.AddSingleton<IAmazonS3>(sp =>
+{
+    var accessKey = "2c7f57192821fa443ceef715554da6b5";
+    var secretKey = "00dea3a1b7ee7a023ed94122dbe197520ee76dae73e1ff699976cc678db3cabb";
+    var region = "auto";
+    var serviceURL = "https://60fb16943028530a147d89e97a5d599f.r2.cloudflarestorage.com";
+
+    var credentials = new BasicAWSCredentials(accessKey, secretKey);
+    var config = new AmazonS3Config
+    {
+        RegionEndpoint = RegionEndpoint.GetBySystemName(region),
+        ServiceURL = serviceURL,
+    };
+    return new AmazonS3Client(credentials, config);
+});
 
 var app = builder.Build();
 
