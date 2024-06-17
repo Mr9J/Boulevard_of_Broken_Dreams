@@ -367,7 +367,9 @@ namespace BoulevardOfBrokenDreams.Controllers
         [HttpGet]
         public IEnumerable<MemberDTO> Get()
         {
+            var adminMemberIds = _context.Admins.Select(a => a.MemberId).ToList();
             return _context.Members
+                .Where(m => !adminMemberIds.Contains(m.MemberId))
               .Select(m => new MemberDTO
               {
                   MemberId = m.MemberId,
@@ -387,8 +389,9 @@ namespace BoulevardOfBrokenDreams.Controllers
         public List<int> GetMemberCounts() //計算被正常與被停權會員數
         {
             List<int> members = new List<int>();
-            int activeMemberCount = _context.Members.Count(p => p.StatusId == 7);
-            int inactiveMemberCount = _context.Members.Count(p => p.StatusId == 8);
+            var adminMemberIds = _context.Admins.Select(a => a.MemberId).ToList();
+            int activeMemberCount = _context.Members.Where(p => p.StatusId == 7 && !adminMemberIds.Contains(p.MemberId)).Count();
+            int inactiveMemberCount = _context.Members.Where(p => p.StatusId == 8 && !adminMemberIds.Contains(p.MemberId)).Count();
             members.Add(activeMemberCount);
             members.Add(inactiveMemberCount);
             return members;
