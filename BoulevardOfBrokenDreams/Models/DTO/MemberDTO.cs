@@ -22,6 +22,6 @@
 
         public DateTime? RegistrationTime { get; set; }
 
-        public GroupDetailDTO GroupDetail { get; set; }
+        public GroupDetailDTO? GroupDetail { get; set; }
     }
 }

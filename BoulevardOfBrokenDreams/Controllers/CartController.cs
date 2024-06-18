@@ -1,7 +1,6 @@
 ﻿using BoulevardOfBrokenDreams.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using BoulevardOfBrokenDreams.Models;
 using BoulevardOfBrokenDreams.Models.DTO;
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
@@ -26,16 +25,27 @@ namespace BoulevardOfBrokenDreams.Controllers
         {//還沒寫:如果購物車沒有資料 顯示為空頁面
             try
             {
-                var path = "https://" + httpContextAccessor.HttpContext!.Request.Host.Value + "/resources/mumuThumbnail/Projects_Products_Thumbnail/";
-
+                var path = "https://" + httpContextAccessor.HttpContext.Request.Host.Value + "/resources/mumuThumbnail/Projects_Products_Thumbnail/";
+                int cartId;
                 var memberCart = await context.Carts.FirstOrDefaultAsync(m => m.MemberId == memberId);
+                if (memberId == 0)
+                { return NotFound(); }
                 if (memberCart == null)
                 {
-                    return NotFound(); // 如果找不到對應的會員購物車，返回404
+                    var newCart = new Cart
+                    {
+                        MemberId = memberId,
+                    };
+                    context.Carts.Add(newCart);
+                    await context.SaveChangesAsync(); ;
+                    cartId = newCart.CartId;
+                }
+                else {
+                    cartId = memberCart.CartId;
                 }
 
                 var cartDetailsData = await context.CartDetails
-                    .Where(cd => cd.CartId == memberCart.CartId)
+                    .Where(cd => cd.CartId == cartId)
                     .GroupBy(cd => cd.ProjectId) // 按照 ProjectId 分組
                     .Select(group => new
                     {
@@ -56,7 +66,7 @@ namespace BoulevardOfBrokenDreams.Controllers
                         {
                             ProjectId = p.ProjectId,
                             ProjectName = p.ProjectName,
-                            Thumbnail = path + p.Thumbnail,
+                            Thumbnail = p.Thumbnail,
                             Products = p.Products
                                 .Join(context.CartDetails,
                       product => product.ProductId,
@@ -69,7 +79,7 @@ namespace BoulevardOfBrokenDreams.Controllers
                     ProductName = joined.Product.ProductName,
                     ProductPrice = joined.Product.ProductPrice,
                     CurrentStock = joined.Product.CurrentStock,
-                    Thumbnail = path + joined.Product.Thumbnail,
+                    Thumbnail = joined.Product.Thumbnail,
                     Count = joined.CartDetail.Count
                 })
                 .ToList()
@@ -128,10 +138,15 @@ namespace BoulevardOfBrokenDreams.Controllers
             {
                 var memberCart = context.Carts.FirstOrDefault(m => m.MemberId == memberId);
                 decimal price = context.Products.FirstOrDefault(pt => pt.ProductId == productId)?.ProductPrice ?? 0;
+                int  currentStock = context.Products.FirstOrDefault(pt => pt.ProductId == productId) ?.CurrentStock ?? 0;
                 var alreadyinCart = context.CartDetails.FirstOrDefault(pt => pt.ProductId == productId && pt.CartId == memberCart!.CartId);
                 if (alreadyinCart != null)
                 {
                     alreadyinCart.Count += productCounts;
+                    if (alreadyinCart.Count >= currentStock)
+                    {
+                        alreadyinCart.Count = currentStock;
+                    }
                 }
                 //if (price == 0)
                 //{ return BadRequest(); }
@@ -150,11 +165,11 @@ namespace BoulevardOfBrokenDreams.Controllers
                     context.CartDetails.Add(addCartDetail);
                 }
             }
-
-
-
-
             await context.SaveChangesAsync();
+
+           
+
+
 
             return Ok();
         }
