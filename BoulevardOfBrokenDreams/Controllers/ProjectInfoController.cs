@@ -93,9 +93,14 @@ namespace BoulevardOfBrokenDreams.Controllers
         // POST api/<ProjectInfoController>/sendComment
 
         #region 留言相關
-        [HttpPost("SendComment")]
+        [HttpPost("SendComment"), Authorize(Roles = "user")]
         public async Task<IActionResult> SendComment([FromBody] CommentDto commentDto)
         {
+            // 取得發送者的 memberId
+            string? jwt = Request.Headers.Authorization;
+            int memberId = DecodeJwtToMemberId(jwt);
+
+
             if (commentDto == null || commentDto.CommentMsg == null) return BadRequest("Comment is null.");
 
             var comment = new Comment()
@@ -103,7 +108,7 @@ namespace BoulevardOfBrokenDreams.Controllers
                 CommentMsg = commentDto.CommentMsg,
                 Date = DateTime.Now,
                 ProjectId = commentDto.ProjectId,
-                MemberId = commentDto.MemberId
+                MemberId = memberId
             };
             await _db.Comments.AddAsync(comment);
             await _db.SaveChangesAsync();
@@ -111,6 +116,14 @@ namespace BoulevardOfBrokenDreams.Controllers
             // 通知所有客戶端
             commentDto.CommentId = comment.CommentId;
             commentDto.Date = comment.Date;
+
+            var sender = await _db.Members.SingleOrDefaultAsync(m => m.MemberId == comment.MemberId);
+            commentDto.Member = new DTOMember
+            {
+                MemberId = comment.MemberId,
+                Username = sender?.Nickname,
+                Thumbnail = sender?.Thumbnail
+            };
             await _hubContext.Clients.All.SendAsync("ReceiveComment", commentDto);
 
             return Ok("Comment sent.");
