@@ -21,17 +21,23 @@ public partial class Coupon
     [Column(TypeName = "money")]
     public decimal Discount { get; set; }
 
-    public int InitialStock { get; set; }
+    public int? InitialStock { get; set; }
 
-    public int CurrentStock { get; set; }
+    public int? CurrentStock { get; set; }
 
-    [Column(TypeName = "datetime")]
-    public DateTime? UpdateTime { get; set; }
+    public DateOnly? Deadline { get; set; }
+
+    [Column("StatusID")]
+    public int StatusId { get; set; }
 
     [InverseProperty("Coupon")]
-    public virtual ICollection<CouponDetail> CouponDetails { get; set; } = new List<CouponDetail>();
+    public virtual ICollection<Order> Orders { get; set; } = new List<Order>();
 
     [ForeignKey("ProjectId")]
     [InverseProperty("Coupons")]
     public virtual Project Project { get; set; } = null!;
+
+    [ForeignKey("StatusId")]
+    [InverseProperty("Coupons")]
+    public virtual Status Status { get; set; } = null!;
 }
