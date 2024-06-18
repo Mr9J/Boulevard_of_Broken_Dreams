@@ -31,9 +31,13 @@ public partial class MumuDbContext : DbContext
 
     public virtual DbSet<Comment> Comments { get; set; }
 
+    public virtual DbSet<Coupon> Coupons { get; set; }
+
     public virtual DbSet<Group> Groups { get; set; }
 
     public virtual DbSet<GroupDetail> GroupDetails { get; set; }
+
+    public virtual DbSet<Hobby> Hobbies { get; set; }
 
     public virtual DbSet<Like> Likes { get; set; }
 
@@ -142,6 +146,19 @@ public partial class MumuDbContext : DbContext
                 .HasConstraintName("FK_Comments_Projects");
         });
 
+        modelBuilder.Entity<Coupon>(entity =>
+        {
+            entity.Property(e => e.Deadline).HasDefaultValueSql("(getdate())");
+
+            entity.HasOne(d => d.Project).WithMany(p => p.Coupons)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_Coupons_Projects");
+
+            entity.HasOne(d => d.Status).WithMany(p => p.Coupons)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_Coupons_Status");
+        });
+
         modelBuilder.Entity<GroupDetail>(entity =>
         {
             entity.HasOne(d => d.AuthStatus).WithMany(p => p.GroupDetails)
@@ -155,6 +172,17 @@ public partial class MumuDbContext : DbContext
             entity.HasOne(d => d.Member).WithMany(p => p.GroupDetails)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_GroupDetails_Members");
+        });
+
+        modelBuilder.Entity<Hobby>(entity =>
+        {
+            entity.HasOne(d => d.Member).WithMany(p => p.Hobbies)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_Hobbies_Members");
+
+            entity.HasOne(d => d.ProjectType).WithMany(p => p.Hobbies)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_Hobbies_ProjectTypes");
         });
 
         modelBuilder.Entity<Like>(entity =>
@@ -181,6 +209,8 @@ public partial class MumuDbContext : DbContext
             entity.Property(e => e.ResetPassword)
                 .HasDefaultValue("N")
                 .IsFixedLength();
+            entity.Property(e => e.StatusId).HasDefaultValue(7);
+            entity.Property(e => e.Thumbnail).HasDefaultValue("https://cdn.mumumsit158.com/Members/User.jpg");
             entity.Property(e => e.Verified)
                 .HasDefaultValue("N")
                 .IsFixedLength();
@@ -199,6 +229,8 @@ public partial class MumuDbContext : DbContext
 
         modelBuilder.Entity<Order>(entity =>
         {
+            entity.HasOne(d => d.Coupon).WithMany(p => p.Orders).HasConstraintName("FK_Orders_Coupons");
+
             entity.HasOne(d => d.Member).WithMany(p => p.Orders)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_Orders_Members");

@@ -48,6 +48,9 @@ public partial class Project
     [InverseProperty("Project")]
     public virtual ICollection<Comment> Comments { get; set; } = new List<Comment>();
 
+    [InverseProperty("Project")]
+    public virtual ICollection<Coupon> Coupons { get; set; } = new List<Coupon>();
+
     [ForeignKey("GroupId")]
     [InverseProperty("Projects")]
     public virtual Group? Group { get; set; }

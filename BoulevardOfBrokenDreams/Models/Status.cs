@@ -20,6 +20,9 @@ public partial class Status
     public virtual ICollection<CartDetail> CartDetails { get; set; } = new List<CartDetail>();
 
     [InverseProperty("Status")]
+    public virtual ICollection<Coupon> Coupons { get; set; } = new List<Coupon>();
+
+    [InverseProperty("Status")]
     public virtual ICollection<Product> Products { get; set; } = new List<Product>();
 
     [InverseProperty("Status")]
