@@ -31,6 +31,8 @@ public partial class MumuDbContext : DbContext
 
     public virtual DbSet<Comment> Comments { get; set; }
 
+    public virtual DbSet<Coupon> Coupons { get; set; }
+
     public virtual DbSet<Group> Groups { get; set; }
 
     public virtual DbSet<GroupDetail> GroupDetails { get; set; }
@@ -80,8 +82,7 @@ public partial class MumuDbContext : DbContext
     public virtual DbSet<Status> Statuses { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-#warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see https://go.microsoft.com/fwlink/?LinkId=723263.
-        => optionsBuilder.UseSqlServer("Data Source=.;Initial Catalog=Mumu;Integrated Security=True;Trust Server Certificate=True");
+        => optionsBuilder.UseSqlServer("Name=ConnectionStrings:Mumu");
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -143,6 +144,19 @@ public partial class MumuDbContext : DbContext
             entity.HasOne(d => d.Project).WithMany(p => p.Comments)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_Comments_Projects");
+        });
+
+        modelBuilder.Entity<Coupon>(entity =>
+        {
+            entity.Property(e => e.Deadline).HasDefaultValueSql("(getdate())");
+
+            entity.HasOne(d => d.Project).WithMany(p => p.Coupons)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_Coupons_Projects");
+
+            entity.HasOne(d => d.Status).WithMany(p => p.Coupons)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_Coupons_Status");
         });
 
         modelBuilder.Entity<GroupDetail>(entity =>
@@ -215,6 +229,8 @@ public partial class MumuDbContext : DbContext
 
         modelBuilder.Entity<Order>(entity =>
         {
+            entity.HasOne(d => d.Coupon).WithMany(p => p.Orders).HasConstraintName("FK_Orders_Coupons");
+
             entity.HasOne(d => d.Member).WithMany(p => p.Orders)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_Orders_Members");
@@ -306,6 +322,8 @@ public partial class MumuDbContext : DbContext
 
         modelBuilder.Entity<Project>(entity =>
         {
+            entity.Property(e => e.Clicked).HasDefaultValue(0);
+
             entity.HasOne(d => d.Group).WithMany(p => p.Projects).HasConstraintName("FK_Projects_Groups");
 
             entity.HasOne(d => d.Member).WithMany(p => p.Projects)

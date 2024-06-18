@@ -37,6 +37,9 @@ namespace BoulevardOfBrokenDreams.Controllers
 
             if (project == null) return NotFound("Project not found.");
 
+            project.Clicked++;
+            await _db.SaveChangesAsync();
+
             var totalDonate = await _db.Orders
                            .Where(o => _db.OrderDetails
                            .Any(od => od.ProjectId == id && od.OrderId == o.OrderId))
@@ -59,6 +62,7 @@ namespace BoulevardOfBrokenDreams.Controllers
                 EndDate = project.EndDate,
                 MemberName = project.Member.Username,
                 ProjectTotal = total,
+                Clicked = project.Clicked,
 
                 Products = project.Products.Select(p => new DTOProduct
                 {

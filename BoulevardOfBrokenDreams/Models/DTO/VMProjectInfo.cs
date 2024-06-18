@@ -10,6 +10,7 @@
         public decimal ProjectTotal { get; set; }
         public DateOnly StartDate { get; set; }
         public DateOnly EndDate { get; set; }
+        public int? Clicked { get; set; }
 
         //public int MemberId { get; set; }
 
