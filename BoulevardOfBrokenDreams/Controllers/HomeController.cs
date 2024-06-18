@@ -1,6 +1,11 @@
-﻿using BoulevardOfBrokenDreams.Models;
+﻿using Amazon.S3;
+using Amazon.S3.Model;
+using BoulevardOfBrokenDreams.Models;
 using BoulevardOfBrokenDreams.Models.DTO;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
+using System.IO;
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
@@ -12,11 +17,12 @@ namespace BoulevardOfBrokenDreams.Controllers
     {
         private MumuDbContext _db;
         private readonly IHttpContextAccessor _httpContextAccessor;
-
-        public HomeController(MumuDbContext db, IHttpContextAccessor httpContextAccessor)
+        private readonly IAmazonS3 _s3Client;
+        public HomeController(MumuDbContext db, IHttpContextAccessor httpContextAccessor, IAmazonS3 s3Client)
         {
             _db = db;
             _httpContextAccessor = httpContextAccessor;
+            _s3Client = s3Client;
         }
         // GET: api/<HomeController>
         [HttpGet]
@@ -30,7 +36,7 @@ namespace BoulevardOfBrokenDreams.Controllers
                                ProjectGoal = p.ProjectGoal,
                                StartDate = p.StartDate,
                                EndDate = p.EndDate,
-                               Thumbnail =  p.Thumbnail,
+                               Thumbnail = p.Thumbnail,
                                TotalAmount = ((from orderDetail in _db.OrderDetails
                                                where orderDetail.ProjectId == p.ProjectId
                                                select orderDetail.Price).Sum()) + ((from order in _db.Orders
@@ -164,21 +170,73 @@ namespace BoulevardOfBrokenDreams.Controllers
         }
 
         // POST api/<HomeController>
-        [HttpPost]
-        public void Post([FromBody] string value)
+        [HttpPost("CreateProject"), Authorize(Roles = "user")]
+        public IActionResult CreateProject(CreateProjectDTO value)
         {
+            string? jwt = Request.Headers.Authorization;
+            int memberId = DecodeJwtToMemberId(jwt);
+
+            var project = new Project
+            {
+                ProjectName = value.ProjectName,
+                ProjectDescription = value.ProjectDescription,
+                ProjectGoal = Convert.ToInt32( value.ProjectGoal),
+                //StartDate = value.StartDate,
+                //EndDate = value.EndDate,
+                MemberId = memberId,
+                GroupId = 1,
+                //Thumbnail = value.Thumbnail,
+                StatusId = 3,
+                ProjectDetails = value.ProjectDetail,
+            };
+            var pj = _db.Projects.Add(project);
+            _db.SaveChanges();
+            int newPjId = pj.Entity.ProjectId;
+            var type = new ProjectIdtype { ProjectId = newPjId,ProjectTypeId= Convert.ToInt32(value.ProjectTypeId)};
+            _db.ProjectIdtypes.Add(type);
+            //if (newPjId > 0 && thumbnail != null)
+            //{
+                
+            //    using (var stream = thumbnail.OpenReadStream())
+            //    {
+            //        string key = $"Test/project-{newPjId}/Thumbnail.png";
+            //        var request = new PutObjectRequest
+            //        {
+            //            BucketName = "mumu",
+            //            Key = key,
+            //            InputStream = stream,
+            //            ContentType = thumbnail.ContentType,
+            //            DisablePayloadSigning = true
+            //        };
+
+            //        var response = _s3Client.PutObjectAsync(request);
+
+
+
+            //        project.Thumbnail = "https://cdn.mumumsit158.com/{key}"; // 設置圖片路徑
+            //        _db.SaveChanges(); // 再次保存更改
+            //    }
+
+
+            //}
+                return Ok(value);
         }
 
-        // PUT api/<HomeController>/5
-        [HttpPut("{id}")]
-        public void Put(int id, [FromBody] string value)
-        {
-        }
+            private int DecodeJwtToMemberId(string? jwt)
+            {
+                throw new NotImplementedException();
+            }
 
-        // DELETE api/<HomeController>/5
-        [HttpDelete("{id}")]
-        public void Delete(int id)
-        {
+            // PUT api/<HomeController>/5
+            [HttpPut("{id}")]
+            public void Put(int id, [FromBody] string value)
+            {
+            }
+
+            // DELETE api/<HomeController>/5
+            [HttpDelete("{id}")]
+            public void Delete(int id)
+            {
+            }
         }
     }
-}
