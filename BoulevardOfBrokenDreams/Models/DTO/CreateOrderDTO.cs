@@ -15,6 +15,9 @@ namespace BoulevardOfBrokenDreams.Models.DTO
 
         public List<OrderProductDTO>? ProductData { get; set; }
 
+        public int Discount { get; set; }
+
+
 
     }
 

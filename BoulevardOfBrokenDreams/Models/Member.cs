@@ -54,6 +54,10 @@ public partial class Member
     [Column("StatusID")]
     public int? StatusId { get; set; }
 
+    [StringLength(200)]
+    [Unicode(false)]
+    public string? Banner { get; set; }
+
     [InverseProperty("Member")]
     public virtual ICollection<Action> Actions { get; set; } = new List<Action>();
 
@@ -68,6 +72,9 @@ public partial class Member
 
     [InverseProperty("Member")]
     public virtual ICollection<GroupDetail> GroupDetails { get; set; } = new List<GroupDetail>();
+
+    [InverseProperty("Member")]
+    public virtual ICollection<Hobby> Hobbies { get; set; } = new List<Hobby>();
 
     [InverseProperty("Member")]
     public virtual ICollection<LikeDetail> LikeDetails { get; set; } = new List<LikeDetail>();

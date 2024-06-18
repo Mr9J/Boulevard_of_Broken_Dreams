@@ -175,6 +175,7 @@ namespace BoulevardOfBrokenDreams.Controllers
             _isWaitingForPaymentResponse = true;    
            await WaitForPaymentResponse();
             _isWaitingForPaymentResponse = false;
+            
 
             try
             {
