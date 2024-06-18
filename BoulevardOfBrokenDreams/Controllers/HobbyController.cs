@@ -1,6 +1,7 @@
 ﻿using BoulevardOfBrokenDreams.Models;
 using BoulevardOfBrokenDreams.Models.DTO;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
@@ -16,17 +17,17 @@ namespace BoulevardOfBrokenDreams.Controllers
 
         public HobbyController(MumuDbContext db)
         {
-            _db = db;  
+            _db = db;
         }
         [HttpGet]
-        public IActionResult GetHobbyList()
+        public async Task<IActionResult> GetHobbyList()
         {
-            var hobbyList=_db.ProjectTypes
-                           .Select(x=> new GetHobbyListDTO 
-                           { 
-                               HobbyId=x.ProjectTypeId,
-                               HobbyName=x.ProjectTypeName
-                           }).ToList();
+            var hobbyList = await _db.ProjectTypes
+                           .Select(x => new GetHobbyListDTO
+                           {
+                               HobbyId = x.ProjectTypeId,
+                               HobbyName = x.ProjectTypeName
+                           }).ToListAsync();
             return Ok(hobbyList);
         }
 
@@ -37,12 +38,12 @@ namespace BoulevardOfBrokenDreams.Controllers
             if (user == null) {
                 return NotFound("查無此使用者");
             }
-            foreach(var hobbyID in request.HobbyIds)
+            foreach (var hobbyID in request.HobbyIds)
             {
-                var hobby=await _db.ProjectTypes.FindAsync(hobbyID);
+                var hobby = await _db.ProjectTypes.FindAsync(hobbyID);
                 if (hobby == null)
                 {
-                    continue; 
+                    continue;
                 }
                 var userHobby = new Hobby
                 {
@@ -55,8 +56,17 @@ namespace BoulevardOfBrokenDreams.Controllers
 
             return Ok("資料儲存成功");
         }
+        [HttpGet("{userId}")]
 
-       
+        public async Task<IActionResult> CheckHobbies(int userId)
+        {
+            
+            var check = await _db.Hobbies.AnyAsync(x => x.MemberId ==userId);
+            return Ok(check);
+        }
+
+
+
 
     }
 }
