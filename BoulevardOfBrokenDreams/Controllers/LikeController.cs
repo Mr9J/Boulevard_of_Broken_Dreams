@@ -28,7 +28,6 @@ namespace BoulevardOfBrokenDreams.Controllers
                         .ThenInclude(lk => lk.Project)
                         .Select(x => new LikeDTO
                         {
-
                             LikePrjName = x.Like.Project.ProjectName,
                             LikePrjThumb = x.Like.Project.Thumbnail,
                             LikeDetailId = x.LikeDetailId,
