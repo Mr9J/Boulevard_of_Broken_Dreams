@@ -175,8 +175,11 @@ namespace BoulevardOfBrokenDreams.Controllers
             _isWaitingForPaymentResponse = true;    
            await WaitForPaymentResponse();
             _isWaitingForPaymentResponse = false;
-            var couponId = _db.Coupons.FirstOrDefault(cc => cc.Code == orderDTO.CouponCode).CouponId;
-            try
+
+   
+            var coupon = _db.Coupons.FirstOrDefault(cc => cc.Code == orderDTO.CouponCode)?.CouponId;
+
+                  try
             {
                 var newOrder = new Order
                 {
@@ -187,7 +190,7 @@ namespace BoulevardOfBrokenDreams.Controllers
                     PaymentMethodId = orderDTO.PaymentMethodId,
                     PaymentStatusId = 2,
                     Donate = orderDTO.Donate,
-                    CouponId = couponId,           
+                    CouponId = coupon,           
                 };
 
                 _db.Orders.Add(newOrder);

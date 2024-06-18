@@ -19,11 +19,12 @@ namespace BoulevardOfBrokenDreams.Controllers
 
 
         // GET api/<CouponsController>/5
-        [HttpGet("{couponsId}")]
-        public IActionResult getCoupons(string couponsId)
+        [HttpGet("{couponsId}/{projectId}")]
+        public IActionResult getCoupons(string couponsId ,int projectId)
         {
-            var getcoupons = _context.Coupons.FirstOrDefault(cc => cc.Code == couponsId);
-            if (getcoupons == null||getcoupons.CurrentStock==0)
+
+            var getcoupons = _context.Coupons.FirstOrDefault(cc => cc.Code == couponsId&&cc.ProjectId==projectId);
+            if (getcoupons == null||getcoupons.CurrentStock==0||getcoupons.StatusId==10)
             { 
                 return NotFound();
             }       
