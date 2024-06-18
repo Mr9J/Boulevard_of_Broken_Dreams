@@ -419,14 +419,14 @@ namespace BoulevardOfBrokenDreams.Controllers
         {
             try
             {
-                var foundMember=await _context.Members.FirstOrDefaultAsync(m => m.MemberId == id);
+                var foundMember = await _context.Members.FirstOrDefaultAsync(m => m.MemberId == id);
 
                 if (foundMember == null)
                 {
                     return NotFound("Member not found.");
                 }
 
-                
+
 
                 MemberDTO memberDTO = new MemberDTO
                 {
@@ -454,64 +454,6 @@ namespace BoulevardOfBrokenDreams.Controllers
         {
             try
             {
-                //var member = await _context.Members
-                //    .Where(m => m.MemberId == int.Parse(id))
-                //    .Join(_context.Projects,
-                //          m => m.MemberId,
-                //          p => p.MemberId,
-                //          (m, p) => new
-                //          {
-                //              m.MemberId,
-                //              m.Nickname,
-                //              m.Username,
-                //              m.Email,
-                //              m.MemberIntroduction,
-                //              MemberThumbnail = m.Thumbnail,
-                //              MemberStatusId = m.StatusId,
-                //              m.RegistrationTime,
-                //              p.ProjectId,
-                //              p.ProjectName,
-                //              p.ProjectDescription,
-                //              p.ProjectGoal,
-                //              p.EndDate,
-                //              p.GroupId,
-                //              ProjectThumbnail = p.Thumbnail,
-                //              ProjectStatusID = p.StatusId
-                //          }).ToListAsync();
-
-                //if (member == null)
-                //{
-                //    return NotFound("Member not found.");
-                //}
-
-                //var memberInfoDTOs = member.Select(m => new MemberInfoDTO
-                //{
-                //    id = m.MemberId,
-                //    nickname = m.Nickname ?? string.Empty,
-                //    username = m.Username,
-                //    email = m.Email ?? string.Empty,
-                //    description = m.MemberIntroduction ?? string.Empty,
-                //    avatar = m.MemberThumbnail ?? string.Empty,
-                //    time = m.RegistrationTime.ToString() ?? string.Empty,
-                //    memberStatus = m.MemberStatusId ?? 0,
-                //    projects =
-                //    [
-                //        new GetProjectDTO
-                //        {
-                //            projectId = m.ProjectId,
-                //            projectName = m.ProjectName ?? string.Empty,
-                //            projectDescription = m.ProjectDescription ?? string.Empty,
-                //            projectGoal = m.ProjectGoal,
-                //            projectEndDate = m.EndDate,
-                //            projectGroupId = m.GroupId ?? 0,
-                //            projectThumbnail = m.ProjectThumbnail ?? string.Empty,
-                //            projectStatusId = m.ProjectStatusID
-                //        }
-                //    ]
-
-
-                //}).ToList();
-
                 var foundMember = await _context.Members.FirstOrDefaultAsync(m => m.MemberId == int.Parse(id));
 
                 if (foundMember == null)
@@ -550,6 +492,60 @@ namespace BoulevardOfBrokenDreams.Controllers
             {
                 return BadRequest();
             }
+        }
+
+        [HttpGet("get-member-sponsored/{id}"),Authorize(Roles ="user, admin")]
+        public async Task<IActionResult> GetMemberSponsored(int id)
+        {
+            try
+            {
+                var projects = await _context.Orders.Where(o => o.MemberId == id).OrderByDescending(o => o.OrderDate)
+                    .Join(_context.OrderDetails, o => o.OrderId, od => od.OrderDetailId, (o, od) => new
+                    {
+                        o.MemberId,
+                        od.ProjectId
+                    }).Join(_context.Projects, t => t.ProjectId, p => p.ProjectId, (t, p) => new
+                    {
+                        t.ProjectId,
+                        p.ProjectName,
+                        p.ProjectDescription,
+                        p.ProjectGoal,
+                        p.StartDate,
+                        p.EndDate,
+                        p.GroupId,
+                        p.Thumbnail,
+                        p.StatusId,
+                    }).Distinct().ToListAsync();
+
+                if (projects == null)
+                {
+                    return NotFound("No projects found.");
+                }
+
+                List<GetProjectDTO> projectDTOs = new List<GetProjectDTO>();
+                foreach (var project in projects)
+                {
+                    projectDTOs.Add(new GetProjectDTO
+                    {
+                        projectId = project.ProjectId,
+                        projectName = project.ProjectName ?? string.Empty,
+                        projectDescription = project.ProjectDescription ?? string.Empty,
+                        projectGoal = project.ProjectGoal,
+                        projectStartDate = project.StartDate,
+                        projectEndDate = project.EndDate,
+                        projectGroupId = project.GroupId ?? 0,
+                        projectThumbnail = project.Thumbnail ?? string.Empty,
+                        projectStatusId = project.StatusId
+                    });
+                }
+
+                return Ok(projectDTOs);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex);
+            }
+
         }
 
 

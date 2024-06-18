@@ -35,6 +35,8 @@ public partial class MumuDbContext : DbContext
 
     public virtual DbSet<GroupDetail> GroupDetails { get; set; }
 
+    public virtual DbSet<Hobby> Hobbies { get; set; }
+
     public virtual DbSet<Like> Likes { get; set; }
 
     public virtual DbSet<LikeDetail> LikeDetails { get; set; }
@@ -155,6 +157,17 @@ public partial class MumuDbContext : DbContext
             entity.HasOne(d => d.Member).WithMany(p => p.GroupDetails)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_GroupDetails_Members");
+        });
+
+        modelBuilder.Entity<Hobby>(entity =>
+        {
+            entity.HasOne(d => d.Member).WithMany(p => p.Hobbies)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_Hobbies_Members");
+
+            entity.HasOne(d => d.ProjectType).WithMany(p => p.Hobbies)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_Hobbies_ProjectTypes");
         });
 
         modelBuilder.Entity<Like>(entity =>

@@ -496,6 +496,44 @@ namespace BoulevardOfBrokenDreams.Controllers
             }
         }
 
+        [HttpGet("get-posts-by-id/{id}"), Authorize(Roles = "user, admin")]
+        public async Task<IActionResult> GetPostsById(int id)
+        {
+            try
+            {
+                var posts = await _context.Posts.Where(p => p.MemberId == id).OrderByDescending(p => p.PostTime).ToListAsync();
+
+                var postDTOs = new List<PostDTO>();
+                foreach (var post in posts)
+                {
+                    var member = await _context.Members.FindAsync(post.MemberId);
+                    if (member != null)
+                    {
+                        var postDTO = new PostDTO
+                        {
+                            postId = post.PostId.ToString(),
+                            userId = post.MemberId.ToString(),
+                            username = member.Nickname!,
+                            userImg = member.Thumbnail!,
+                            caption = post.Caption!,
+                            imgUrl = post.ImgUrl!,
+                            location = post.Location!,
+                            tags = post.Tags!,
+                            postTime = post.PostTime.ToString()!,
+                            isAnonymous = post.IsAnonymous!.ToString()
+                        };
+                        postDTOs.Add(postDTO);
+                    }
+                }
+
+                return Ok(postDTOs);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
         [HttpGet("get-recent-posts/{id}")]
         public async Task<IActionResult> GetRecentPosts(int id)
         {
