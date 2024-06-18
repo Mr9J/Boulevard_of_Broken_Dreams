@@ -70,6 +70,9 @@ public partial class Member
     public virtual ICollection<GroupDetail> GroupDetails { get; set; } = new List<GroupDetail>();
 
     [InverseProperty("Member")]
+    public virtual ICollection<Hobby> Hobbies { get; set; } = new List<Hobby>();
+
+    [InverseProperty("Member")]
     public virtual ICollection<LikeDetail> LikeDetails { get; set; } = new List<LikeDetail>();
 
     [InverseProperty("Member")]

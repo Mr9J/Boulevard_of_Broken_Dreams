@@ -16,6 +16,9 @@ public partial class ProjectType
     public string ProjectTypeName { get; set; } = null!;
 
     [InverseProperty("ProjectType")]
+    public virtual ICollection<Hobby> Hobbies { get; set; } = new List<Hobby>();
+
+    [InverseProperty("ProjectType")]
     public virtual ICollection<MemberInterestProjectType> MemberInterestProjectTypes { get; set; } = new List<MemberInterestProjectType>();
 
     [InverseProperty("ProjectType")]

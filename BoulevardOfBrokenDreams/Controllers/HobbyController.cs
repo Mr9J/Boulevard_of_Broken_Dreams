@@ -29,6 +29,34 @@ namespace BoulevardOfBrokenDreams.Controllers
                            }).ToList();
             return Ok(hobbyList);
         }
- 
+
+        [HttpPost]
+        public async Task<IActionResult> AddHobbies([FromBody] AddHobbyDTO request)
+        {
+            var user = await _db.Members.FindAsync(request.UserId);
+            if (user == null) {
+                return NotFound("查無此使用者");
+            }
+            foreach(var hobbyID in request.HobbyIds)
+            {
+                var hobby=await _db.ProjectTypes.FindAsync(hobbyID);
+                if (hobby == null)
+                {
+                    continue; 
+                }
+                var userHobby = new Hobby
+                {
+                    MemberId = user.MemberId,
+                    ProjectTypeId = hobby.ProjectTypeId
+                };
+                await _db.Hobbies.AddAsync(userHobby);
+            }
+            await _db.SaveChangesAsync();
+
+            return Ok("資料儲存成功");
+        }
+
+       
+
     }
 }
