@@ -17,6 +17,8 @@ namespace BoulevardOfBrokenDreams.Models.DTO
 
         public int Discount { get; set; }
 
+        public string CouponCode { get; set; }
+
 
 
     }
