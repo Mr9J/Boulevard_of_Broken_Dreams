@@ -101,9 +101,9 @@ namespace BoulevardOfBrokenDreams.Controllers
 
                 return Ok(jwt);
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                return BadRequest("伺服器錯誤，請稍後再試");
+                return BadRequest(ex);
             }
         }
 
@@ -474,6 +474,7 @@ namespace BoulevardOfBrokenDreams.Controllers
                     avatar = foundMember.Thumbnail ?? string.Empty,
                     time = foundMember.RegistrationTime ?? DateTime.Now,
                     memberStatus = foundMember.StatusId ?? 0,
+                    banner = foundMember.Banner ?? string.Empty,
                     projects = await _context.Projects.OrderByDescending(p => p.StartDate).Where(p => p.MemberId == foundMember.MemberId)
                         .Select(p => new GetProjectDTO
                         {
@@ -497,7 +498,7 @@ namespace BoulevardOfBrokenDreams.Controllers
             }
         }
 
-        [HttpGet("get-member-sponsored/{id}"),Authorize(Roles ="user, admin")]
+        [HttpGet("get-member-sponsored/{id}"), Authorize(Roles = "user, admin")]
         public async Task<IActionResult> GetMemberSponsored(int id)
         {
             try
@@ -549,6 +550,111 @@ namespace BoulevardOfBrokenDreams.Controllers
                 return BadRequest(ex);
             }
 
+        }
+
+        [HttpPatch("update-member-profile"), Authorize(Roles = "user, admin")]
+        public async Task<IActionResult> UpdateMemberProfile(MemberProfileDTO x)
+        {
+            try
+            {
+                string? jwt = HttpContext.Request.Headers["Authorization"];
+
+                if (jwt == null || jwt == "") return BadRequest();
+
+                string jwtId = decodeJwtId(jwt);
+
+
+                if (jwtId != x.id.ToString())
+                {
+                    return BadRequest("權限異常，請聯絡客服");
+                }
+
+                var member = await _context.Members.FirstOrDefaultAsync(m => m.MemberId == x.id);
+
+                if (member == null)
+                {
+                    return NotFound("Member not found.");
+                }
+
+                if (!string.IsNullOrEmpty(x.nickname))
+                {
+                    member.Nickname = x.nickname;
+                }
+
+                if (!string.IsNullOrEmpty(x.address))
+                {
+                    member.Address = x.address;
+                }
+
+                if (!string.IsNullOrEmpty(x.thumbnail))
+                {
+                    member.Thumbnail = x.thumbnail;
+                }
+
+                if (!string.IsNullOrEmpty(x.memberIntroduction))
+                {
+                    member.MemberIntroduction = x.memberIntroduction;
+                }
+
+                if (!string.IsNullOrEmpty(x.phone))
+                {
+                    member.Phone = x.phone;
+                }
+
+                await _context.SaveChangesAsync();
+
+                return Ok("更新成功");
+            }
+            catch (Exception)
+            {
+                return BadRequest();
+            }
+        }
+
+        [HttpGet("get-member-profile/{id}"), Authorize(Roles = "user, admin")]
+        public async Task<IActionResult> GetMemberProfile(int id)
+        {
+            try
+            {
+                string? jwt = HttpContext.Request.Headers["Authorization"];
+
+                if (jwt == null || jwt == "") return BadRequest();
+
+                string jwtId = decodeJwtId(jwt);
+
+                if (jwtId != id.ToString())
+                {
+                    return BadRequest("權限異常，請聯絡客服");
+                }
+
+                var member = await _context.Members.FirstOrDefaultAsync(m => m.MemberId == id);
+
+                if (member == null)
+                {
+                    return NotFound("Member not found.");
+                }
+
+                MemberProfileDTO memberProfileDTO = new MemberProfileDTO
+                {
+                    id = member.MemberId,
+                    username = member.Username,
+                    nickname = member.Nickname ?? string.Empty,
+                    thumbnail = member.Thumbnail ?? string.Empty,
+                    email = member.Email ?? string.Empty,
+                    address = member.Address ?? string.Empty,
+                    memberIntroduction = member.MemberIntroduction ?? string.Empty,
+                    phone = member.Phone ?? string.Empty,
+                    verified = member.Verified ?? "N",
+                    status = member.StatusId ?? 7,
+                    banner = member.Banner ?? string.Empty
+                };
+
+                return Ok(memberProfileDTO);
+            }
+            catch (Exception)
+            {
+                return BadRequest();
+            }
         }
 
 
