@@ -52,7 +52,7 @@ namespace BoulevardOfBrokenDreams.Controllers
                 ProjectId = project.ProjectId,
                 ProjectName = project.ProjectName,
                 ProjectDescription = project.ProjectDescription,
-                ProjectThumbnail =  project.Thumbnail,
+                ProjectThumbnail = project.Thumbnail,
                 ProjectGoal = project.ProjectGoal,
                 StartDate = project.StartDate,
                 EndDate = project.EndDate,
@@ -116,7 +116,7 @@ namespace BoulevardOfBrokenDreams.Controllers
             return Ok("Comment sent.");
         }
 
-        
+
 
         // GET api/<ProjectInfoController>/GetComments
         [HttpGet("GetComments")]
@@ -127,7 +127,26 @@ namespace BoulevardOfBrokenDreams.Controllers
                 .ToListAsync();
 
             if (comments == null) return NotFound("No comments found.");
-            return Ok(comments);
+
+            var commentDtos = comments.Select(c =>
+            {
+
+                var member = _db.Members.SingleOrDefault(m => m.MemberId == c.MemberId);
+
+                if (member == null) return null;
+
+                return new CommentDto
+                {
+                    CommentId = c.CommentId,
+                    CommentMsg = c.CommentMsg,
+                    Date = c.Date,
+                    Member = new DTOMember { MemberId = member.MemberId, Username = member.Nickname, Thumbnail = member.Thumbnail },
+                    ProjectId = c.ProjectId
+                };
+
+            });
+
+            return Ok(commentDtos.ToList());
         }
 
         #endregion
@@ -191,6 +210,24 @@ namespace BoulevardOfBrokenDreams.Controllers
 
         #endregion
 
+
+        // GET api/<ProjectInfoController>/5
+        [HttpGet("Member")]
+        public async Task<IActionResult> GetMemberById(int memberId)
+        {
+            var member = await _db.Members.SingleOrDefaultAsync(m => m.MemberId == memberId);
+            if (member == null) return NotFound("Member not found.");
+            var dtoMember = new DTOMember()
+            {
+                MemberId = member.MemberId,
+                Username = member.Username,
+                Thumbnail = member.Thumbnail
+            };
+
+            return Ok(dtoMember);
+        }
+
+        #region 靜態方法
         private static int DecodeJwtToMemberId(string? jwt)
         {
             jwt = jwt.Replace("Bearer ", "");
@@ -201,20 +238,7 @@ namespace BoulevardOfBrokenDreams.Controllers
             return int.Parse(id!);
         }
 
-        // GET api/<ProjectInfoController>/5
-        [HttpGet("Member")]
-        public async Task<IActionResult> GetMemberById(int memberId)
-        {
-            var member = await _db.Members.SingleOrDefaultAsync(m=>m.MemberId == memberId);
-            if(member == null) return NotFound("Member not found.");
-            var dtoMember = new DTOMember()
-            {
-                MemberId = member.MemberId,
-                Username = member.Username,
-                Thumbnail = member.Thumbnail
-            };
-
-            return Ok(dtoMember);
-        }
+        
+        #endregion
     }
 }
