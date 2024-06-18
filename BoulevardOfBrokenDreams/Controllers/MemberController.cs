@@ -417,6 +417,141 @@ namespace BoulevardOfBrokenDreams.Controllers
             }
         }
 
+        [HttpGet("get-member-by-id/{id}")]
+        public async Task<IActionResult> GetUserByID(int id)
+        {
+            try
+            {
+                var foundMember = await _context.Members.FirstOrDefaultAsync(m => m.MemberId == id);
+
+                if (foundMember == null)
+                {
+                    return NotFound("Member not found.");
+                }
+
+
+
+                MemberDTO memberDTO = new MemberDTO
+                {
+                    MemberId = foundMember.MemberId,
+                    Username = foundMember.Username,
+                    Nickname = foundMember.Nickname,
+                    Thumbnail = foundMember.Thumbnail,
+                    Email = foundMember.Email,
+                    Address = foundMember.Address,
+                    MemberIntroduction = foundMember.MemberIntroduction,
+                    Phone = foundMember.Phone,
+                    RegistrationTime = foundMember.RegistrationTime,
+                };
+
+                return Ok(memberDTO);
+            }
+            catch (Exception)
+            {
+                return BadRequest();
+            }
+        }
+
+        [HttpGet("user-info/users/{id}")]
+        public async Task<IActionResult> GetUserInfo(string id)
+        {
+            try
+            {
+                var foundMember = await _context.Members.FirstOrDefaultAsync(m => m.MemberId == int.Parse(id));
+
+                if (foundMember == null)
+                {
+                    return NotFound("Member not found.");
+                }
+
+                var memberInfoDTOs = new MemberInfoDTO
+                {
+                    id = foundMember.MemberId,
+                    nickname = foundMember.Nickname ?? string.Empty,
+                    username = foundMember.Username,
+                    email = foundMember.Email ?? string.Empty,
+                    description = foundMember.MemberIntroduction ?? string.Empty,
+                    avatar = foundMember.Thumbnail ?? string.Empty,
+                    time = foundMember.RegistrationTime ?? DateTime.Now,
+                    memberStatus = foundMember.StatusId ?? 0,
+                    projects = await _context.Projects.OrderByDescending(p => p.StartDate).Where(p => p.MemberId == foundMember.MemberId)
+                        .Select(p => new GetProjectDTO
+                        {
+                            projectId = p.ProjectId,
+                            projectName = p.ProjectName ?? string.Empty,
+                            projectDescription = p.ProjectDescription ?? string.Empty,
+                            projectGoal = p.ProjectGoal,
+                            projectStartDate = p.StartDate,
+                            projectEndDate = p.EndDate,
+                            projectGroupId = p.GroupId ?? 0,
+                            projectThumbnail = p.Thumbnail ?? string.Empty,
+                            projectStatusId = p.StatusId
+                        }).ToArrayAsync()
+                };
+
+                return Ok(memberInfoDTOs);
+            }
+            catch (Exception)
+            {
+                return BadRequest();
+            }
+        }
+
+        [HttpGet("get-member-sponsored/{id}"),Authorize(Roles ="user, admin")]
+        public async Task<IActionResult> GetMemberSponsored(int id)
+        {
+            try
+            {
+                var projects = await _context.Orders.Where(o => o.MemberId == id).OrderByDescending(o => o.OrderDate)
+                    .Join(_context.OrderDetails, o => o.OrderId, od => od.OrderDetailId, (o, od) => new
+                    {
+                        o.MemberId,
+                        od.ProjectId
+                    }).Join(_context.Projects, t => t.ProjectId, p => p.ProjectId, (t, p) => new
+                    {
+                        t.ProjectId,
+                        p.ProjectName,
+                        p.ProjectDescription,
+                        p.ProjectGoal,
+                        p.StartDate,
+                        p.EndDate,
+                        p.GroupId,
+                        p.Thumbnail,
+                        p.StatusId,
+                    }).Distinct().ToListAsync();
+
+                if (projects == null)
+                {
+                    return NotFound("No projects found.");
+                }
+
+                List<GetProjectDTO> projectDTOs = new List<GetProjectDTO>();
+                foreach (var project in projects)
+                {
+                    projectDTOs.Add(new GetProjectDTO
+                    {
+                        projectId = project.ProjectId,
+                        projectName = project.ProjectName ?? string.Empty,
+                        projectDescription = project.ProjectDescription ?? string.Empty,
+                        projectGoal = project.ProjectGoal,
+                        projectStartDate = project.StartDate,
+                        projectEndDate = project.EndDate,
+                        projectGroupId = project.GroupId ?? 0,
+                        projectThumbnail = project.Thumbnail ?? string.Empty,
+                        projectStatusId = project.StatusId
+                    });
+                }
+
+                return Ok(projectDTOs);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex);
+            }
+
+        }
+
+
         [HttpPut("{id}")]
         public IActionResult Put(int id, [FromBody] MemberDTO member)
         {

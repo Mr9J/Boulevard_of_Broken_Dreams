@@ -35,6 +35,8 @@ public partial class MumuDbContext : DbContext
 
     public virtual DbSet<GroupDetail> GroupDetails { get; set; }
 
+    public virtual DbSet<Hobby> Hobbies { get; set; }
+
     public virtual DbSet<Like> Likes { get; set; }
 
     public virtual DbSet<LikeDetail> LikeDetails { get; set; }
@@ -157,6 +159,17 @@ public partial class MumuDbContext : DbContext
                 .HasConstraintName("FK_GroupDetails_Members");
         });
 
+        modelBuilder.Entity<Hobby>(entity =>
+        {
+            entity.HasOne(d => d.Member).WithMany(p => p.Hobbies)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_Hobbies_Members");
+
+            entity.HasOne(d => d.ProjectType).WithMany(p => p.Hobbies)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_Hobbies_ProjectTypes");
+        });
+
         modelBuilder.Entity<Like>(entity =>
         {
             entity.HasOne(d => d.Project).WithMany(p => p.Likes)
@@ -181,6 +194,8 @@ public partial class MumuDbContext : DbContext
             entity.Property(e => e.ResetPassword)
                 .HasDefaultValue("N")
                 .IsFixedLength();
+            entity.Property(e => e.StatusId).HasDefaultValue(7);
+            entity.Property(e => e.Thumbnail).HasDefaultValue("https://cdn.mumumsit158.com/Members/User.jpg");
             entity.Property(e => e.Verified)
                 .HasDefaultValue("N")
                 .IsFixedLength();

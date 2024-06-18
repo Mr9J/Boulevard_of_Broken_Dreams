@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Hosting;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 
@@ -134,7 +135,7 @@ namespace BoulevardOfBrokenDreams.Controllers
 
                 if (!checkPost)
                 {
-                    return BadRequest("找不到該貼文");
+                    return NotFound("找不到該貼文");
                 }
 
                 var likeCount = await _context.PostLikeds.CountAsync(
@@ -167,7 +168,7 @@ namespace BoulevardOfBrokenDreams.Controllers
 
                 if (post == null)
                 {
-                    return BadRequest("找不到該貼文");
+                    return NotFound("找不到該貼文");
                 }
 
                 var foundPostLiked = await _context.PostLikeds.FirstOrDefaultAsync(
@@ -207,7 +208,7 @@ namespace BoulevardOfBrokenDreams.Controllers
 
                 if (!checkPost)
                 {
-                    return BadRequest("找不到該貼文");
+                    return NotFound("找不到該貼文");
                 }
 
                 var isSaved = await _context.PostSaveds.AnyAsync(
@@ -231,7 +232,7 @@ namespace BoulevardOfBrokenDreams.Controllers
 
                 if (post == null)
                 {
-                    return BadRequest("找不到該貼文");
+                    return NotFound("找不到該貼文");
                 }
 
                 var foundPostSaved = await _context.PostSaveds.FirstOrDefaultAsync(
@@ -279,7 +280,13 @@ namespace BoulevardOfBrokenDreams.Controllers
                 {
                     return BadRequest("找不到該貼文或權限不足");
                 }
+                var comments = await _context.PostComments.Where(p => p.PostId == postId).ToListAsync();
+                var likes = await _context.PostLikeds.Where(p => p.PostId == postId).ToListAsync();
+                var saveds = await _context.PostSaveds.Where(p => p.PostId == postId).ToListAsync();
 
+                _context.PostComments.RemoveRange(comments);
+                _context.PostLikeds.RemoveRange(likes);
+                _context.PostSaveds.RemoveRange(saveds);
                 _context.Posts.Remove(post);
                 await _context.SaveChangesAsync();
 
@@ -424,6 +431,137 @@ namespace BoulevardOfBrokenDreams.Controllers
                 return BadRequest("伺服器錯誤，請稍後再試");
             }
         }
+
+        [HttpPost("search-posts"), Authorize(Roles = "user, admin")]
+        public async Task<IActionResult> SearchPosts(SearchPostDTO searchPost)
+        {
+            try
+            {
+                var query = _context.Posts.OrderByDescending(p => p.PostTime)
+                    .Join(_context.Members, p => p.MemberId, m => m.MemberId, (p, m) => new
+                    {
+                        p.PostId,
+                        p.MemberId,
+                        p.Caption,
+                        p.ImgUrl,
+                        p.Location,
+                        p.Tags,
+                        p.PostTime,
+                        m.Nickname,
+                        m.Thumbnail,
+                    });
+
+                if (searchPost.type == "All")
+                {
+                    if (!string.IsNullOrEmpty(searchPost.keyword))
+                    {
+                        query = query.Where(p => p.Caption!.Contains(searchPost.keyword) ||
+                            p.Tags!.Contains(searchPost.keyword) || p.Nickname!.Contains(searchPost.keyword) ||
+                            p.Location!.Contains(searchPost.keyword));
+                    }
+                }
+                else if (searchPost.type == "Caption")
+                {
+                    query = query.Where(p => p.Caption!.Contains(searchPost.keyword));
+                }
+                else if (searchPost.type == "Tags")
+                {
+                    query = query.Where(p => p.Tags!.Contains(searchPost.keyword));
+                }
+                else if (searchPost.type == "Username")
+                {
+                    query = query.Where(p => p.Nickname!.Contains(searchPost.keyword));
+                }
+
+                var posts = await query.ToListAsync();
+
+                var postDTOs = posts.Select(post => new PostDTO
+                {
+                    postId = post.PostId.ToString(),
+                    userId = post.MemberId.ToString(),
+                    username = post.Nickname!,
+                    userImg = post.Thumbnail!,
+                    caption = post.Caption!,
+                    imgUrl = post.ImgUrl!,
+                    location = post.Location!,
+                    tags = post.Tags!,
+                    postTime = post.PostTime.ToString()!,
+                }).ToList();
+
+                return Ok(postDTOs);
+            }
+            catch (Exception)
+            {
+                return BadRequest("伺服器錯誤，請稍後再試");
+            }
+        }
+
+        [HttpGet("get-posts-by-id/{id}"), Authorize(Roles = "user, admin")]
+        public async Task<IActionResult> GetPostsById(int id)
+        {
+            try
+            {
+                var posts = await _context.Posts.Where(p => p.MemberId == id).OrderByDescending(p => p.PostTime).ToListAsync();
+
+                var postDTOs = new List<PostDTO>();
+                foreach (var post in posts)
+                {
+                    var member = await _context.Members.FindAsync(post.MemberId);
+                    if (member != null)
+                    {
+                        var postDTO = new PostDTO
+                        {
+                            postId = post.PostId.ToString(),
+                            userId = post.MemberId.ToString(),
+                            username = member.Nickname!,
+                            userImg = member.Thumbnail!,
+                            caption = post.Caption!,
+                            imgUrl = post.ImgUrl!,
+                            location = post.Location!,
+                            tags = post.Tags!,
+                            postTime = post.PostTime.ToString()!,
+                            isAnonymous = post.IsAnonymous!.ToString()
+                        };
+                        postDTOs.Add(postDTO);
+                    }
+                }
+
+                return Ok(postDTOs);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
+        [HttpGet("get-recent-posts/{id}")]
+        public async Task<IActionResult> GetRecentPosts(int id)
+        {
+            try
+            {
+                var posts = await _context.Posts.OrderByDescending(p => p.PostTime).Where(p => p.MemberId == id).Take(3).ToListAsync();
+
+                if (posts.Count == 0) return Ok("沒有貼文");
+
+                var postDTOs = posts.Select(post => new PostDTO
+                {
+                    postId = post.PostId.ToString(),
+                    userId = post.MemberId.ToString(),
+                    caption = post.Caption!,
+                    imgUrl = post.ImgUrl!,
+                    location = post.Location!,
+                    tags = post.Tags!,
+                    postTime = post.PostTime.ToString()!,
+                }).ToList();
+
+                return Ok(postDTOs);
+            }
+            catch (Exception)
+            {
+                return BadRequest();
+            }
+        }
+
 
         [HttpGet("get-saved-posts/{page}"), Authorize(Roles = "user, admin")]
         public async Task<IActionResult> GetSavedPosts(int page)

@@ -22,7 +22,11 @@ namespace BoulevardOfBrokenDreams.DataAccess
 
             bool isUserExist = _context.Members.Any(m => m.Username == user.username);
 
+            if(isUserExist) return "使用者已存在";
+
             bool isEmailExist = _context.Members.Any(m => m.Email == user.email);
+
+            if(isEmailExist) return "Email已被使用";
 
             if (!isUserExist && !isEmailExist)
             {
