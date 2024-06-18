@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using System.Linq.Dynamic.Core;
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
@@ -133,7 +134,7 @@ namespace BoulevardOfBrokenDreams.Controllers
 
         // GET api/<ProjectInfoController>/GetComments
         [HttpGet("GetComments")]
-        public async Task<IActionResult> GetComments(int projectId)
+        public async Task<IActionResult> GetComments(int projectId,string orderby="Date descending")
         {
             var comments = await _db.Comments
                 .Where(c => c.ProjectId == projectId)
@@ -141,7 +142,7 @@ namespace BoulevardOfBrokenDreams.Controllers
 
             if (comments == null) return NotFound("No comments found.");
 
-            var commentDtos = comments.Select(c =>
+            var commentsDto = comments.Select(c =>
             {
 
                 var member = _db.Members.SingleOrDefault(m => m.MemberId == c.MemberId);
@@ -157,9 +158,11 @@ namespace BoulevardOfBrokenDreams.Controllers
                     ProjectId = c.ProjectId
                 };
 
-            });
+            }).AsQueryable().OrderBy(orderby);
 
-            return Ok(commentDtos.ToList());
+
+
+            return Ok(commentsDto.ToList());
         }
 
         #endregion
