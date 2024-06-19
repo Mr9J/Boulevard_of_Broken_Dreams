@@ -562,6 +562,66 @@ namespace BoulevardOfBrokenDreams.Controllers
             }
         }
 
+        [HttpGet("follow-check/{followerId}/{followingId}")]
+        public async Task<IActionResult> FollowCheck(int followerId, int followingId)
+        {
+            try
+            {
+                var follow = await _context.Followers.AnyAsync(f => f.FollowerId == followerId && f.FollowingId == followingId);
+
+                return Ok(follow);
+            }
+            catch (Exception)
+            {
+                return BadRequest();
+            }
+        }   
+
+        [HttpGet("follow/{id}"), Authorize(Roles = "user, admin")]
+        public async Task<IActionResult> Follow(int id)
+        {
+            try
+            {
+                string? jwt = HttpContext.Request.Headers["Authorization"];
+
+                if (jwt == null || jwt == "") return BadRequest();
+
+                string followerId = decodeJwtId(jwt);
+
+                var follower = await _context.Members.AnyAsync(m => m.MemberId == int.Parse(followerId));
+                var following = await _context.Members.AnyAsync(m => m.MemberId == id);
+
+                if (!follower || !following)
+                {
+                    return BadRequest("找不到該會員");
+                }
+
+                var follow = await _context.Followers.FirstOrDefaultAsync(f => f.FollowerId == int.Parse(followerId) && f.FollowingId == id);
+
+                if (follow != null)
+                {
+                    _context.Remove(follow);
+                }
+                else
+                {
+                    _context.Followers.Add(new Follower
+                    {
+                        FollowerId = int.Parse(followerId),
+                        FollowingId = id
+                    });
+                }
+
+                await _context.SaveChangesAsync();
+
+                return Ok(follow != null ? "取消追蹤成功" : "追蹤成功");
+
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex);
+            }
+        }
+
 
         [HttpGet("get-saved-posts/{page}"), Authorize(Roles = "user, admin")]
         public async Task<IActionResult> GetSavedPosts(int page)

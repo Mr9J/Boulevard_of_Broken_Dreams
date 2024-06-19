@@ -581,6 +581,11 @@ namespace BoulevardOfBrokenDreams.Controllers
                     member.Nickname = x.nickname;
                 }
 
+                if (!string.IsNullOrEmpty(x.password))
+                {
+                    member.Password = Hash.HashPassword(x.password);
+                }
+
                 if (!string.IsNullOrEmpty(x.address))
                 {
                     member.Address = x.address;

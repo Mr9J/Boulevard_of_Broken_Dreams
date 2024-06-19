@@ -37,6 +37,11 @@ namespace BoulevardOfBrokenDreams.Controllers
                 return BadRequest("驗證碼錯誤");
             }
 
+            if (member.Verified == "Y")
+            {
+                return BadRequest("此信箱已驗證過");
+            }
+
             member.Verified = "Y";
 
             var cart = await _context.Carts.AnyAsync(c => c.MemberId == member.MemberId);
