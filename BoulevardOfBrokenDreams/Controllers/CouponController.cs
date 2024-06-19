@@ -102,7 +102,7 @@ namespace BoulevardOfBrokenDreams.Controllers
                               StatusId = coupon.StatusId,
                               ProjectName = project.ProjectName,
                               ProjectThumbnail = project.Thumbnail,
-                          }).ToList();
+                          }).OrderByDescending(c => c.CouponId).ToList();
             return Ok(coupons);
         }
 
