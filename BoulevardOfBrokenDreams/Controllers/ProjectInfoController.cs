@@ -103,7 +103,6 @@ namespace BoulevardOfBrokenDreams.Controllers
             return Ok("Clicked.");
         }
 
-        // 審核中的專案不能買
 
         // POST api/<ProjectInfoController>/sendComment
 
@@ -169,7 +168,8 @@ namespace BoulevardOfBrokenDreams.Controllers
                     CommentMsg = c.CommentMsg,
                     Date = c.Date,
                     Member = new DTOMember { MemberId = member.MemberId, Username = member.Nickname, Thumbnail = member.Thumbnail },
-                    ProjectId = c.ProjectId
+                    ProjectId = c.ProjectId,
+                    Liked = c.Liked
                 };
 
             }).AsQueryable().OrderBy(orderby);
@@ -178,6 +178,7 @@ namespace BoulevardOfBrokenDreams.Controllers
 
             return Ok(commentsDto.ToList());
         }
+            
 
         #endregion
 

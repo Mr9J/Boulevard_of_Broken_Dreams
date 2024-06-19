@@ -40,6 +40,7 @@
         public string? CommentMsg { get; set; }
         public int ProjectId { get; set; }
         public int MemberId { get; set; }
+        public int? Liked { get; set; }
         public DateTime Date { get; set; }
         public DTOMember? Member { get; set; }
     }
