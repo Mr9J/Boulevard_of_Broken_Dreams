@@ -43,6 +43,7 @@
         public int? Liked { get; set; }
         public DateTime Date { get; set; }
         public DTOMember? Member { get; set; }
+        public int? ParentId { get; set; }
     }
     public class DTOMember
     {
