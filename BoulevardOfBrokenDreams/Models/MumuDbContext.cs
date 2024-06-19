@@ -82,8 +82,7 @@ public partial class MumuDbContext : DbContext
     public virtual DbSet<Status> Statuses { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-#warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see https://go.microsoft.com/fwlink/?LinkId=723263.
-        => optionsBuilder.UseSqlServer("Data Source=.;Initial Catalog=Mumu;Integrated Security=True;Trust Server Certificate=True");
+        => optionsBuilder.UseSqlServer("Name=ConnectionStrings:Mumu");
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -138,6 +137,8 @@ public partial class MumuDbContext : DbContext
 
         modelBuilder.Entity<Comment>(entity =>
         {
+            entity.Property(e => e.Liked).HasDefaultValue(0);
+
             entity.HasOne(d => d.Member).WithMany(p => p.Comments)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_Comments_Members");
@@ -323,6 +324,8 @@ public partial class MumuDbContext : DbContext
 
         modelBuilder.Entity<Project>(entity =>
         {
+            entity.Property(e => e.Clicked).HasDefaultValue(0);
+
             entity.HasOne(d => d.Group).WithMany(p => p.Projects).HasConstraintName("FK_Projects_Groups");
 
             entity.HasOne(d => d.Member).WithMany(p => p.Projects)

@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using System.Linq.Dynamic.Core;
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
@@ -36,6 +37,7 @@ namespace BoulevardOfBrokenDreams.Controllers
 
             if (project == null) return NotFound("Project not found.");
 
+
             var totalDonate = await _db.Orders
                            .Where(o => _db.OrderDetails
                            .Any(od => od.ProjectId == id && od.OrderId == o.OrderId))
@@ -58,6 +60,7 @@ namespace BoulevardOfBrokenDreams.Controllers
                 EndDate = project.EndDate,
                 MemberName = project.Member.Username,
                 ProjectTotal = total,
+                Clicked = project.Clicked,
 
                 Products = project.Products.Select(p => new DTOProduct
                 {
@@ -88,7 +91,18 @@ namespace BoulevardOfBrokenDreams.Controllers
             return Ok(p);
         }
 
-        // 審核中的專案不能買
+        [HttpPatch("Click/{id}")]
+        public async Task<IActionResult> Click(int id)
+        {
+            var project = await _db.Projects.FindAsync(id);
+            if (project == null) return NotFound("Project not found.");
+
+            project.Clicked++;
+            await _db.SaveChangesAsync();
+
+            return Ok("Clicked.");
+        }
+
 
         // POST api/<ProjectInfoController>/sendComment
 
@@ -133,7 +147,7 @@ namespace BoulevardOfBrokenDreams.Controllers
 
         // GET api/<ProjectInfoController>/GetComments
         [HttpGet("GetComments")]
-        public async Task<IActionResult> GetComments(int projectId)
+        public async Task<IActionResult> GetComments(int projectId,string orderby="Date descending")
         {
             var comments = await _db.Comments
                 .Where(c => c.ProjectId == projectId)
@@ -141,7 +155,7 @@ namespace BoulevardOfBrokenDreams.Controllers
 
             if (comments == null) return NotFound("No comments found.");
 
-            var commentDtos = comments.Select(c =>
+            var commentsDto = comments.Select(c =>
             {
 
                 var member = _db.Members.SingleOrDefault(m => m.MemberId == c.MemberId);
@@ -154,13 +168,17 @@ namespace BoulevardOfBrokenDreams.Controllers
                     CommentMsg = c.CommentMsg,
                     Date = c.Date,
                     Member = new DTOMember { MemberId = member.MemberId, Username = member.Nickname, Thumbnail = member.Thumbnail },
-                    ProjectId = c.ProjectId
+                    ProjectId = c.ProjectId,
+                    Liked = c.Liked
                 };
 
-            });
+            }).AsQueryable().OrderBy(orderby);
 
-            return Ok(commentDtos.ToList());
+
+
+            return Ok(commentsDto.ToList());
         }
+            
 
         #endregion
 

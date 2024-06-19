@@ -42,6 +42,8 @@ public partial class Project
 
     public string? ProjectDetails { get; set; }
 
+    public int? Clicked { get; set; }
+
     [InverseProperty("Project")]
     public virtual ICollection<Action> Actions { get; set; } = new List<Action>();
 
