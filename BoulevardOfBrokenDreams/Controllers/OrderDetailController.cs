@@ -1,6 +1,8 @@
 ﻿using BoulevardOfBrokenDreams.Models;
 using BoulevardOfBrokenDreams.Models.DTO;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using System.Globalization;
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
@@ -41,11 +43,46 @@ namespace BoulevardOfBrokenDreams.Controllers
             return orderDetails.ToList();
         }
 
-        // GET api/<DashboardController>/5
-        [HttpGet("{id}")]
-        public string Get(int id)
+        [HttpGet("{memberId}")]
+        public async Task<ActionResult<PurchasehistoryDTO>> GetPurchasHistory(int memberId)
         {
-            return "value";
+            var orders = await _db.Orders
+                .Where(m => m.MemberId == memberId)
+                .OrderByDescending(d => d.OrderDate)
+                .Include(od => od.OrderDetails)
+                .ThenInclude(od => od.Product) // Assuming there is a Product navigation property
+                .Include(od => od.OrderDetails)
+                .ThenInclude(od => od.Project) // Assuming there is a Project navigation property
+                .Include(o=>o.Coupon)
+                .ToListAsync();
+
+
+            var projectCards = orders.Select(order => new
+            {
+                Donate = order.Donate,
+                OrderDate = order.OrderDate.ToString("yyyy年M月d日 HH:mm", CultureInfo.GetCultureInfo("zh-TW")),
+                Discount =order.Coupon !=null ? order.Coupon.Discount : 0,
+                Projects = order.OrderDetails   
+                    .GroupBy(od => od.Project)
+                    .Select(g => new ProjectCardDTO
+                    {
+                        ProjectId = g.Key.ProjectId,
+                        ProjectName = g.Key.ProjectName,
+                        Thumbnail = g.Key.Thumbnail,
+                        Products = g.Select(od => new ProductCardDTO
+                        {
+                            ProductName = od.Product.ProductName,
+                            ProductPrice = od.Product.ProductPrice,
+                            ProductId = od.Product.ProductId,
+                            Thumbnail = od.Product.Thumbnail,
+                            Count = od.Count
+                        }).ToList()
+                    }).ToList()
+            }).ToList();
+
+
+
+            return Ok(projectCards);
         }
 
         // POST api/<DashboardController>

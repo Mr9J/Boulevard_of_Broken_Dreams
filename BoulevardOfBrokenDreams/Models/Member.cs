@@ -70,6 +70,12 @@ public partial class Member
     [InverseProperty("Member")]
     public virtual ICollection<Comment> Comments { get; set; } = new List<Comment>();
 
+    [InverseProperty("FollowerNavigation")]
+    public virtual ICollection<Follower> FollowerFollowerNavigations { get; set; } = new List<Follower>();
+
+    [InverseProperty("Following")]
+    public virtual ICollection<Follower> FollowerFollowings { get; set; } = new List<Follower>();
+
     [InverseProperty("Member")]
     public virtual ICollection<GroupDetail> GroupDetails { get; set; } = new List<GroupDetail>();
 

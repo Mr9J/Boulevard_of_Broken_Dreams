@@ -4,12 +4,13 @@
     {
         public string ProjectName { get; set; }
         public string? ProjectDescription { get; set; }
-        public string ProjectGoal { get; set; }
-        public string StartDate { get; set; }
-        public string EndDate { get; set; }
+        public decimal ProjectGoal { get; set; }
+        public DateOnly StartDate { get; set; }
+        public DateOnly EndDate { get; set; }
         //public string? Thumbnail { get; set; }
         public string ProjectDetail { get; set; }
-        public string ProjectTypeId {  get; set; }
+        public int ProjectTypeId {  get; set; }
+        public IFormFile thumbnail { get; set; }
 
     }
 }

@@ -42,11 +42,16 @@ public partial class Project
 
     public string? ProjectDetails { get; set; }
 
+    public int? Clicked { get; set; }
+
     [InverseProperty("Project")]
     public virtual ICollection<Action> Actions { get; set; } = new List<Action>();
 
     [InverseProperty("Project")]
     public virtual ICollection<Comment> Comments { get; set; } = new List<Comment>();
+
+    [InverseProperty("Project")]
+    public virtual ICollection<Coupon> Coupons { get; set; } = new List<Coupon>();
 
     [ForeignKey("GroupId")]
     [InverseProperty("Projects")]
