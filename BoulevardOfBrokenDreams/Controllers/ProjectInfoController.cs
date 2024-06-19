@@ -37,8 +37,6 @@ namespace BoulevardOfBrokenDreams.Controllers
 
             if (project == null) return NotFound("Project not found.");
 
-            project.Clicked++;
-            await _db.SaveChangesAsync();
 
             var totalDonate = await _db.Orders
                            .Where(o => _db.OrderDetails
@@ -91,6 +89,18 @@ namespace BoulevardOfBrokenDreams.Controllers
             }
 
             return Ok(p);
+        }
+
+        [HttpPatch("Click/{id}")]
+        public async Task<IActionResult> Click(int id)
+        {
+            var project = await _db.Projects.FindAsync(id);
+            if (project == null) return NotFound("Project not found.");
+
+            project.Clicked++;
+            await _db.SaveChangesAsync();
+
+            return Ok("Clicked.");
         }
 
         // 審核中的專案不能買
