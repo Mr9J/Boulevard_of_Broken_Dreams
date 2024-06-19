@@ -99,6 +99,8 @@ namespace BoulevardOfBrokenDreams.Controllers
                               CurrentStock = coupon.CurrentStock,
                               Deadline = coupon.Deadline,
                               StatusId = coupon.StatusId,
+                              ProjectName = project.ProjectName,
+                              ProjectThumbnail = project.Thumbnail,
                           }).ToList();
             return Ok(coupons);
         }

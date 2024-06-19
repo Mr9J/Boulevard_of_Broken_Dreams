@@ -21,5 +21,9 @@ namespace BoulevardOfBrokenDreams.Models.DTO
 
         public int StatusId { get; set; }
 
+        public string? ProjectName { get; set; }
+
+        public string? ProjectThumbnail { get; set;}
+
     }
 }
