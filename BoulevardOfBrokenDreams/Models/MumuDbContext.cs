@@ -33,6 +33,8 @@ public partial class MumuDbContext : DbContext
 
     public virtual DbSet<Coupon> Coupons { get; set; }
 
+    public virtual DbSet<Follower> Followers { get; set; }
+
     public virtual DbSet<Group> Groups { get; set; }
 
     public virtual DbSet<GroupDetail> GroupDetails { get; set; }
@@ -159,6 +161,19 @@ public partial class MumuDbContext : DbContext
             entity.HasOne(d => d.Status).WithMany(p => p.Coupons)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_Coupons_Status");
+        });
+
+        modelBuilder.Entity<Follower>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PK_Followers_1");
+
+            entity.HasOne(d => d.FollowerNavigation).WithMany(p => p.FollowerFollowerNavigations)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_Followers_Members");
+
+            entity.HasOne(d => d.Following).WithMany(p => p.FollowerFollowings)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_Followers_Members1");
         });
 
         modelBuilder.Entity<GroupDetail>(entity =>

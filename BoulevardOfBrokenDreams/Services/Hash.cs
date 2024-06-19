@@ -41,6 +41,12 @@ namespace BoulevardOfBrokenDreams.Services
         public static bool VerifyHashedPassword(string password, string storePassword)
         {
             var parts = storePassword.Split('.');
+
+            if (parts.Length != 2)
+            {
+                return false;
+            }
+
             var salt = parts[0];
             var hash = parts[1];
 
