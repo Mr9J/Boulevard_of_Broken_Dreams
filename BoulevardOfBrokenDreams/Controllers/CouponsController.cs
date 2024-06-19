@@ -25,11 +25,12 @@ namespace BoulevardOfBrokenDreams.Controllers
 
             var getcoupons = _context.Coupons.FirstOrDefault(cc => cc.Code == couponsId&&cc.ProjectId==projectId);
             if (getcoupons == null||getcoupons.CurrentStock==0||getcoupons.StatusId==10)
-            { 
-                return NotFound();
+            {
+                return Ok(0);
             }       
             return Ok(getcoupons.Discount);
         }
 
     }
 }
+    

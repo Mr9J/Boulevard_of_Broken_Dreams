@@ -199,6 +199,7 @@ namespace BoulevardOfBrokenDreams.Controllers
                 string tr = "";
                 string tProjectName = "";
                 string donate = orderDTO.Donate.ToString();
+                int d = int.Parse(donate);
                 decimal totalPrice = 0;
                 int orderId = newOrder.OrderId; 
                 var memberCartId = _db.Carts.FirstOrDefault(m => m.MemberId == orderDTO.MemberId)?.CartId;
@@ -261,11 +262,11 @@ namespace BoulevardOfBrokenDreams.Controllers
                 });
 
                 var receiver = "mumufundraising@gmail.com"; 
-                string message = $"<h1>你的訂單已完成付款 交易日期:{DateTime.Now}</h1><br/>";
+                string message = $"<h1>您的訂單已完成付款 交易日期:{DateTime.Now}</h1><br/>";
                 string thead = $"<tr><th colspan='4' style='border: 1px solid black; text-align: center;'>{tProjectName}</th></tr>";
                 string subject = "Mumu 交易完成通知";
                 string th = "<tr><th style='border: 1px solid black; text-align: center;'>贊助商品</th><th style='border: 1px solid black; text-align: center;'>數量</th><th style='border: 1px solid black; text-align: center;'>商品單價</th><th style='border: 1px solid black; text-align: center;'>數量總額</th></tr>";
-                string totalPriceMsg = $"<tr><td colspan='4' style='border: 1px solid black; text-align: center;'>加碼贊助:NT${donate}  折價卷優惠:{orderDTO.Discount.ToString("C0")}    總計金額:{(totalPrice-orderDTO.Discount).ToString("C0")}</td></tr>";
+                string totalPriceMsg = $"<tr><td colspan='4' style='border: 1px solid black; text-align: center;'>加碼贊助:NT${donate}&nbsp;&nbsp;&nbsp;&nbsp;折價卷優惠:{orderDTO.Discount.ToString("C0")}&nbsp;&nbsp;&nbsp;&nbsp;總計金額:{(totalPrice-orderDTO.Discount+d).ToString("C0")}</td></tr>";
                 // 定義表格樣式
                 string tableStyle = "style='border-collapse: collapse; width: 50%;'";
                 string cellStyle = "style='border: 1px solid black; padding: 3px;'";
