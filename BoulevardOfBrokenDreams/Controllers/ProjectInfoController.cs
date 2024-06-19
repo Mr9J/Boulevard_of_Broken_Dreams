@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using System.Linq.Dynamic.Core;
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
@@ -36,6 +37,7 @@ namespace BoulevardOfBrokenDreams.Controllers
 
             if (project == null) return NotFound("Project not found.");
 
+
             var totalDonate = await _db.Orders
                            .Where(o => _db.OrderDetails
                            .Any(od => od.ProjectId == id && od.OrderId == o.OrderId))
@@ -52,12 +54,13 @@ namespace BoulevardOfBrokenDreams.Controllers
                 ProjectId = project.ProjectId,
                 ProjectName = project.ProjectName,
                 ProjectDescription = project.ProjectDescription,
-                ProjectThumbnail =  project.Thumbnail,
+                ProjectThumbnail = project.Thumbnail,
                 ProjectGoal = project.ProjectGoal,
                 StartDate = project.StartDate,
                 EndDate = project.EndDate,
                 MemberName = project.Member.Username,
                 ProjectTotal = total,
+                Clicked = project.Clicked,
 
                 Products = project.Products.Select(p => new DTOProduct
                 {
@@ -65,7 +68,7 @@ namespace BoulevardOfBrokenDreams.Controllers
                     ProductName = p.ProductName,
                     ProductPrice = p.ProductPrice,
                     ProductDescription = p.ProductDescription,
-                    ProductThumbnail = "https://" + HttpContext.Request.Host.Value + "/resources/mumuThumbnail/Projects_Products_Thumbnail/" + p.Thumbnail,
+                    ProductThumbnail = p.Thumbnail,
                     InitialStock = p.InitialStock,
                     CurrentStock = p.CurrentStock
                 }).ToList()
@@ -88,14 +91,30 @@ namespace BoulevardOfBrokenDreams.Controllers
             return Ok(p);
         }
 
-        // 審核中的專案不能買
+        [HttpPatch("Click/{id}")]
+        public async Task<IActionResult> Click(int id)
+        {
+            var project = await _db.Projects.FindAsync(id);
+            if (project == null) return NotFound("Project not found.");
+
+            project.Clicked++;
+            await _db.SaveChangesAsync();
+
+            return Ok("Clicked.");
+        }
+
 
         // POST api/<ProjectInfoController>/sendComment
 
         #region 留言相關
-        [HttpPost("SendComment")]
+        [HttpPost("SendComment"), Authorize(Roles = "user")]
         public async Task<IActionResult> SendComment([FromBody] CommentDto commentDto)
         {
+            // 取得發送者的 memberId
+            string? jwt = Request.Headers.Authorization;
+            int memberId = DecodeJwtToMemberId(jwt);
+
+
             if (commentDto == null || commentDto.CommentMsg == null) return BadRequest("Comment is null.");
 
             var comment = new Comment()
@@ -103,30 +122,63 @@ namespace BoulevardOfBrokenDreams.Controllers
                 CommentMsg = commentDto.CommentMsg,
                 Date = DateTime.Now,
                 ProjectId = commentDto.ProjectId,
-                MemberId = commentDto.MemberId
+                MemberId = memberId
             };
             await _db.Comments.AddAsync(comment);
             await _db.SaveChangesAsync();
 
             // 通知所有客戶端
+            commentDto.CommentId = comment.CommentId;
+            commentDto.Date = comment.Date;
+
+            var sender = await _db.Members.SingleOrDefaultAsync(m => m.MemberId == comment.MemberId);
+            commentDto.Member = new DTOMember
+            {
+                MemberId = comment.MemberId,
+                Username = sender?.Nickname,
+                Thumbnail = sender?.Thumbnail
+            };
             await _hubContext.Clients.All.SendAsync("ReceiveComment", commentDto);
 
             return Ok("Comment sent.");
         }
 
-        
+
 
         // GET api/<ProjectInfoController>/GetComments
         [HttpGet("GetComments")]
-        public async Task<IActionResult> GetComments(int projectId)
+        public async Task<IActionResult> GetComments(int projectId,string orderby="Date descending")
         {
             var comments = await _db.Comments
                 .Where(c => c.ProjectId == projectId)
                 .ToListAsync();
 
             if (comments == null) return NotFound("No comments found.");
-            return Ok(comments);
+
+            var commentsDto = comments.Select(c =>
+            {
+
+                var member = _db.Members.SingleOrDefault(m => m.MemberId == c.MemberId);
+
+                if (member == null) return null;
+
+                return new CommentDto
+                {
+                    CommentId = c.CommentId,
+                    CommentMsg = c.CommentMsg,
+                    Date = c.Date,
+                    Member = new DTOMember { MemberId = member.MemberId, Username = member.Nickname, Thumbnail = member.Thumbnail },
+                    ProjectId = c.ProjectId,
+                    Liked = c.Liked
+                };
+
+            }).AsQueryable().OrderBy(orderby);
+
+
+
+            return Ok(commentsDto.ToList());
         }
+            
 
         #endregion
 
@@ -189,6 +241,24 @@ namespace BoulevardOfBrokenDreams.Controllers
 
         #endregion
 
+
+        // GET api/<ProjectInfoController>/5
+        [HttpGet("Member")]
+        public async Task<IActionResult> GetMemberById(int memberId)
+        {
+            var member = await _db.Members.SingleOrDefaultAsync(m => m.MemberId == memberId);
+            if (member == null) return NotFound("Member not found.");
+            var dtoMember = new DTOMember()
+            {
+                MemberId = member.MemberId,
+                Username = member.Username,
+                Thumbnail = member.Thumbnail
+            };
+
+            return Ok(dtoMember);
+        }
+
+        #region 靜態方法
         private static int DecodeJwtToMemberId(string? jwt)
         {
             jwt = jwt.Replace("Bearer ", "");
@@ -198,5 +268,8 @@ namespace BoulevardOfBrokenDreams.Controllers
 
             return int.Parse(id!);
         }
+
+        
+        #endregion
     }
 }

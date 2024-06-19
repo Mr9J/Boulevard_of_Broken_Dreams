@@ -10,6 +10,7 @@
         public decimal ProjectTotal { get; set; }
         public DateOnly StartDate { get; set; }
         public DateOnly EndDate { get; set; }
+        public int? Clicked { get; set; }
 
         //public int MemberId { get; set; }
 
@@ -39,5 +40,14 @@
         public string? CommentMsg { get; set; }
         public int ProjectId { get; set; }
         public int MemberId { get; set; }
+        public int? Liked { get; set; }
+        public DateTime Date { get; set; }
+        public DTOMember? Member { get; set; }
+    }
+    public class DTOMember
+    {
+       public int MemberId { get; set; }
+        public string? Username { get; set; } = null!;
+        public string? Thumbnail { get; set; }
     }
 }

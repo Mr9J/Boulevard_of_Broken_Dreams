@@ -5,7 +5,9 @@ using BoulevardOfBrokenDreams.Models.DTO;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
+using System.IdentityModel.Tokens.Jwt;
 using System.IO;
+using System.Security.Claims;
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
@@ -171,7 +173,7 @@ namespace BoulevardOfBrokenDreams.Controllers
 
         // POST api/<HomeController>
         [HttpPost("CreateProject"), Authorize(Roles = "user")]
-        public IActionResult CreateProject(CreateProjectDTO value)
+        public async Task< IActionResult> CreateProject(CreateProjectDTO value)
         {
             string? jwt = Request.Headers.Authorization;
             int memberId = DecodeJwtToMemberId(jwt);
@@ -180,63 +182,67 @@ namespace BoulevardOfBrokenDreams.Controllers
             {
                 ProjectName = value.ProjectName,
                 ProjectDescription = value.ProjectDescription,
-                ProjectGoal = Convert.ToInt32( value.ProjectGoal),
-                //StartDate = value.StartDate,
-                //EndDate = value.EndDate,
+                ProjectGoal = value.ProjectGoal,
+                StartDate = value.StartDate,
+                EndDate = value.EndDate,
                 MemberId = memberId,
                 GroupId = 1,
-                //Thumbnail = value.Thumbnail,
                 StatusId = 3,
                 ProjectDetails = value.ProjectDetail,
             };
             var pj = _db.Projects.Add(project);
             _db.SaveChanges();
             int newPjId = pj.Entity.ProjectId;
-            var type = new ProjectIdtype { ProjectId = newPjId,ProjectTypeId= Convert.ToInt32(value.ProjectTypeId)};
+            var type = new ProjectIdtype { ProjectId = newPjId, ProjectTypeId = Convert.ToInt32(value.ProjectTypeId) };
             _db.ProjectIdtypes.Add(type);
-            //if (newPjId > 0 && thumbnail != null)
-            //{
-                
-            //    using (var stream = thumbnail.OpenReadStream())
-            //    {
-            //        string key = $"Test/project-{newPjId}/Thumbnail.png";
-            //        var request = new PutObjectRequest
-            //        {
-            //            BucketName = "mumu",
-            //            Key = key,
-            //            InputStream = stream,
-            //            ContentType = thumbnail.ContentType,
-            //            DisablePayloadSigning = true
-            //        };
+            if (newPjId > 0 && value.thumbnail.OpenReadStream() != null)
+            {
+                Guid g = Guid.NewGuid();
+                using (var stream = value.thumbnail.OpenReadStream())
+                {
+                    string key = $"Test/project-{newPjId}/{g}.png";
+                    var request = new PutObjectRequest
+                    {
+                        BucketName = "mumu",
+                        Key = key,
+                        InputStream = stream,
+                        ContentType = value.thumbnail.ContentType,
+                        DisablePayloadSigning = true
+                    };
 
-            //        var response = _s3Client.PutObjectAsync(request);
-
-
-
-            //        project.Thumbnail = "https://cdn.mumumsit158.com/{key}"; // 設置圖片路徑
-            //        _db.SaveChanges(); // 再次保存更改
-            //    }
+                    var response = await _s3Client.PutObjectAsync(request);
 
 
-            //}
-                return Ok(value);
+
+                    project.Thumbnail = $"https://cdn.mumumsit158.com/{key}"; // 設置圖片路徑
+                    _db.SaveChanges(); // 再次保存更改
+                }
+
+
+            }
+            return Ok(value);
         }
 
-            private int DecodeJwtToMemberId(string? jwt)
-            {
-                throw new NotImplementedException();
-            }
+        private int DecodeJwtToMemberId(string? jwt)
+        {
+            jwt = jwt.Replace("Bearer ", "");
+            JwtSecurityTokenHandler tokenHandler = new JwtSecurityTokenHandler();
+            JwtSecurityToken decodedToken = tokenHandler.ReadJwtToken(jwt);
+            string? id = decodedToken.Claims.FirstOrDefault(claim => claim.Type == ClaimTypes.NameIdentifier)?.Value;
 
-            // PUT api/<HomeController>/5
-            [HttpPut("{id}")]
-            public void Put(int id, [FromBody] string value)
-            {
-            }
+            return int.Parse(id!);
+        }
 
-            // DELETE api/<HomeController>/5
-            [HttpDelete("{id}")]
-            public void Delete(int id)
-            {
-            }
+        // PUT api/<HomeController>/5
+        [HttpPut("{id}")]
+        public void Put(int id, [FromBody] string value)
+        {
+        }
+
+        // DELETE api/<HomeController>/5
+        [HttpDelete("{id}")]
+        public void Delete(int id)
+        {
         }
     }
+}

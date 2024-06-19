@@ -11,9 +11,13 @@ namespace BoulevardOfBrokenDreams.Models.DTO
 
         public List<int>? ProductId { get; set; }
 
-        public decimal? Donate { get; set; }
-
+        public decimal Donate { get; set; } = 0;
         public List<OrderProductDTO>? ProductData { get; set; }
+
+        public int Discount { get; set; }
+
+        public string CouponCode { get; set; }
+
 
 
     }

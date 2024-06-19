@@ -139,6 +139,8 @@ public partial class MumuDbContext : DbContext
 
         modelBuilder.Entity<Comment>(entity =>
         {
+            entity.Property(e => e.Liked).HasDefaultValue(0);
+
             entity.HasOne(d => d.Member).WithMany(p => p.Comments)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_Comments_Members");
