@@ -5,6 +5,7 @@ using BoulevardOfBrokenDreams.Models.DTO;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
+using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.IO;
 using System.Security.Claims;
@@ -191,6 +192,17 @@ namespace BoulevardOfBrokenDreams.Controllers
                 ProjectDetails = value.ProjectDetail,
             };
             var pj = _db.Projects.Add(project);
+            var isNull = _db.GroupDetails.Where(x=>x.GroupId == 1&&x.MemberId==memberId).IsNullOrEmpty();
+            if (isNull)
+            {
+                var groupdetails = new GroupDetail()
+                {
+                    AuthStatusId = 1,
+                    MemberId = memberId,
+                    GroupId = 1
+                };
+                _db.GroupDetails.Add(groupdetails);
+            }
             _db.SaveChanges();
             int newPjId = pj.Entity.ProjectId;
             var type = new ProjectIdtype { ProjectId = newPjId, ProjectTypeId = Convert.ToInt32(value.ProjectTypeId) };
