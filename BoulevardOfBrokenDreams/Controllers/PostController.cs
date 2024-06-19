@@ -562,6 +562,59 @@ namespace BoulevardOfBrokenDreams.Controllers
             }
         }
 
+        [HttpGet("get-follow-posts/{page}"), Authorize(Roles = "user, admin")]
+        public async Task<IActionResult> GetFollowPosts(int page)
+        {
+            try
+            {
+                string? jwt = HttpContext.Request.Headers["Authorization"];
+
+                if (jwt == null || jwt == "") return BadRequest();
+
+                int id = int.Parse(decodeJwtId(jwt));
+
+                var posts = await _context.Followers.Where(f => f.FollowerId == id)
+                    .Join(_context.Posts, f => f.FollowingId, p => p.MemberId, (f, p) => p)
+                    .OrderByDescending(p => p.PostTime)
+                    .Skip(page * 10)
+                    .Take(10)
+                    .ToListAsync();
+
+
+                //var posts = await _context.Posts.OrderByDescending(p => p.PostTime).Skip(page * 10).Take(10).ToListAsync();
+
+                var postDTOs = new List<PostDTO>();
+                foreach (var post in posts)
+                {
+                    var member = await _context.Members.FindAsync(post.MemberId);
+                    if (member != null)
+                    {
+                        var postDTO = new PostDTO
+                        {
+                            postId = post.PostId.ToString(),
+                            userId = post.MemberId.ToString(),
+                            username = member.Nickname!,
+                            userImg = member.Thumbnail!,
+                            caption = post.Caption!,
+                            imgUrl = post.ImgUrl!,
+                            location = post.Location!,
+                            tags = post.Tags!,
+                            postTime = post.PostTime.ToString()!,
+                            isAnonymous = post.IsAnonymous!.ToString()
+                        };
+                        postDTOs.Add(postDTO);
+                    }
+                }
+
+                return Ok(postDTOs);
+            }
+            catch (Exception)
+            {
+                return BadRequest();
+            }
+        }
+
+
         [HttpGet("follow-check/{followerId}/{followingId}")]
         public async Task<IActionResult> FollowCheck(int followerId, int followingId)
         {
@@ -575,7 +628,7 @@ namespace BoulevardOfBrokenDreams.Controllers
             {
                 return BadRequest();
             }
-        }   
+        }
 
         [HttpGet("follow/{id}"), Authorize(Roles = "user, admin")]
         public async Task<IActionResult> Follow(int id)
