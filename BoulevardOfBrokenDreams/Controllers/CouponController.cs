@@ -14,17 +14,17 @@ namespace BoulevardOfBrokenDreams.Controllers
     [ApiController]
     public class CouponController : ControllerBase
     {
-        private MumuDbContext _db;
-        public CouponController(MumuDbContext db)
+        private MumuDbContext _context;
+        public CouponController(MumuDbContext context)
         {
-            _db = db;
+            _context = context;
         }
 
         // GET: api/<CouponController>
         [HttpGet]
         public IActionResult Get()
         {
-            var coupons = _db.Coupons.ToList();
+            var coupons = _context.Coupons.ToList();
             return Ok(coupons);
         }
 
@@ -50,8 +50,8 @@ namespace BoulevardOfBrokenDreams.Controllers
                 StatusId = 9,
                 //StatusId = value.StatusId,
             };
-            _db.Coupons.Add(Coupon);
-            _db.SaveChanges();
+            _context.Coupons.Add(Coupon);
+            _context.SaveChanges();
             return Ok(Coupon);
         }
 
@@ -87,9 +87,9 @@ namespace BoulevardOfBrokenDreams.Controllers
 
             string id = decodeJwtId(jwt);
             int mId = int.Parse(id);
-            var coupons = (from project in _db.Projects
+            var coupons = (from project in _context.Projects
                           where project.MemberId == mId
-                          join coupon in _db.Coupons on project.ProjectId equals coupon.ProjectId
+                          join coupon in _context.Coupons on project.ProjectId equals coupon.ProjectId
                           select new CouponDTO
                           {
                               CouponId = coupon.CouponId,
@@ -104,6 +104,18 @@ namespace BoulevardOfBrokenDreams.Controllers
                               ProjectThumbnail = project.Thumbnail,
                           }).ToList();
             return Ok(coupons);
+        }
+
+        [HttpGet("{couponsId}/{projectId}")]
+        public IActionResult getCoupons(string couponsId, int projectId)
+        {
+
+            var getcoupons = _context.Coupons.FirstOrDefault(cc => cc.Code == couponsId && cc.ProjectId == projectId);
+            if (getcoupons == null || getcoupons.CurrentStock == 0 || getcoupons.StatusId == 10)
+            {
+                return Ok(0);
+            }
+            return Ok(getcoupons.Discount);
         }
     }
 }
