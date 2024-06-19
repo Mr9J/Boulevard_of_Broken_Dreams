@@ -31,6 +31,8 @@ public partial class MumuDbContext : DbContext
 
     public virtual DbSet<Comment> Comments { get; set; }
 
+    public virtual DbSet<Coupon> Coupons { get; set; }
+
     public virtual DbSet<Group> Groups { get; set; }
 
     public virtual DbSet<GroupDetail> GroupDetails { get; set; }
@@ -145,6 +147,19 @@ public partial class MumuDbContext : DbContext
                 .HasConstraintName("FK_Comments_Projects");
         });
 
+        modelBuilder.Entity<Coupon>(entity =>
+        {
+            entity.Property(e => e.Deadline).HasDefaultValueSql("(getdate())");
+
+            entity.HasOne(d => d.Project).WithMany(p => p.Coupons)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_Coupons_Projects");
+
+            entity.HasOne(d => d.Status).WithMany(p => p.Coupons)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_Coupons_Status");
+        });
+
         modelBuilder.Entity<GroupDetail>(entity =>
         {
             entity.HasOne(d => d.AuthStatus).WithMany(p => p.GroupDetails)
@@ -215,6 +230,8 @@ public partial class MumuDbContext : DbContext
 
         modelBuilder.Entity<Order>(entity =>
         {
+            entity.HasOne(d => d.Coupon).WithMany(p => p.Orders).HasConstraintName("FK_Orders_Coupons");
+
             entity.HasOne(d => d.Member).WithMany(p => p.Orders)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_Orders_Members");

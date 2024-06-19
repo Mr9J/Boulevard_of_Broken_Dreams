@@ -33,6 +33,13 @@ public partial class Order
     [Column(TypeName = "money")]
     public decimal? Donate { get; set; }
 
+    [Column("CouponID")]
+    public int? CouponId { get; set; }
+
+    [ForeignKey("CouponId")]
+    [InverseProperty("Orders")]
+    public virtual Coupon? Coupon { get; set; }
+
     [ForeignKey("MemberId")]
     [InverseProperty("Orders")]
     public virtual Member Member { get; set; } = null!;
