@@ -88,6 +88,34 @@ namespace BoulevardOfBrokenDreams.Controllers
             return Ok(project);
         }
 
+        [HttpGet("history/{id}")]
+        public async Task<IActionResult> GetHistory(int id)
+        {
+            var project=await _db.Projects
+                        .Select(x=> new HomeProjectCardDTO {
+                            ProjectId=x.ProjectId,
+                            ProjectName=x.ProjectName,
+                            ProjectGoal=x.ProjectGoal,
+                            StartDate = x.StartDate,
+                            EndDate= x.EndDate,
+                            DayLeft= (x.EndDate.DayNumber - DateOnly.FromDateTime(DateTime.Today).DayNumber),
+                            Thumbnail = x.Thumbnail,
+                            TotalAmount = ((from orderDetail in _db.OrderDetails
+                                            where orderDetail.ProjectId == x.ProjectId
+                                            select orderDetail.Price).Sum()) + ((from order in _db.Orders
+                                                                                 join orderDetail in _db.OrderDetails on order.OrderId equals orderDetail.OrderId
+                                                                                 where orderDetail.ProjectId == x.ProjectId
+                                                                                 select order.Donate ?? 0).FirstOrDefault()),
+                            SponsorCount = (from orderDetail in _db.OrderDetails
+                                            where orderDetail.ProjectId == x.ProjectId
+                                            select orderDetail.OrderId).Count(),
+
+                        })
+                        .FirstOrDefaultAsync(proj => proj.ProjectId == id);
+            return Ok(project);
+        }
+
+
         [HttpGet("{id}/{memberId}")]
 
         //要討論cart建立時間點 ProductInCart應該可以改到member
