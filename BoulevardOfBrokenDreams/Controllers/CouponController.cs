@@ -22,9 +22,10 @@ namespace BoulevardOfBrokenDreams.Controllers
 
         // GET: api/<CouponController>
         [HttpGet]
-        public IEnumerable<string> Get()
+        public IActionResult Get()
         {
-            return new string[] { "value1", "value2" };
+            var coupons = _db.Coupons.ToList();
+            return Ok(coupons);
         }
 
         // GET api/<CouponController>/5
