@@ -197,10 +197,10 @@ namespace BoulevardOfBrokenDreams.Controllers
             _db.ProjectIdtypes.Add(type);
             if (newPjId > 0 && value.thumbnail.OpenReadStream() != null)
             {
-
+                Guid g = Guid.NewGuid();
                 using (var stream = value.thumbnail.OpenReadStream())
                 {
-                    string key = $"Test/project-{newPjId}/Thumbnail.png";
+                    string key = $"Test/project-{newPjId}/{g}.png";
                     var request = new PutObjectRequest
                     {
                         BucketName = "mumu",
