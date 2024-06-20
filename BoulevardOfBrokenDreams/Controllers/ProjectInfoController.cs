@@ -37,7 +37,6 @@ namespace BoulevardOfBrokenDreams.Controllers
 
             if (project == null) return NotFound("Project not found.");
 
-
             var totalDonate = await _db.Orders
                            .Where(o => _db.OrderDetails
                            .Any(od => od.ProjectId == id && od.OrderId == o.OrderId))
@@ -58,7 +57,12 @@ namespace BoulevardOfBrokenDreams.Controllers
                 ProjectGoal = project.ProjectGoal,
                 StartDate = project.StartDate,
                 EndDate = project.EndDate,
-                MemberName = project.Member.Username,
+                Member = new DTOMember 
+                {
+                    MemberId = project.Member.MemberId,
+                    Username = project.Member.Username,
+                    Thumbnail = project.Member.Thumbnail
+                },
                 ProjectTotal = total,
                 Clicked = project.Clicked,
                 ProjectDetail = project.ProjectDetails,
@@ -255,7 +259,7 @@ namespace BoulevardOfBrokenDreams.Controllers
             return Ok(dtoMember);
         }
 
-        
+
 
         #region 靜態方法
         private static int DecodeJwtToMemberId(string? jwt)
