@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
+using System.Linq.Dynamic.Core;
 using System.Security.Claims;
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
@@ -78,7 +79,7 @@ namespace BoulevardOfBrokenDreams.Controllers
             return id!;
         }
 
-        [HttpGet("couponList"), Authorize(Roles = "user")]
+        [HttpGet("CouponList"), Authorize(Roles = "user")]
         public IActionResult GetCouponList()
         {
             string? jwt = HttpContext.Request.Headers["Authorization"];
@@ -88,21 +89,21 @@ namespace BoulevardOfBrokenDreams.Controllers
             string id = decodeJwtId(jwt);
             int mId = int.Parse(id);
             var coupons = (from project in _context.Projects
-                          where project.MemberId == mId
-                          join coupon in _context.Coupons on project.ProjectId equals coupon.ProjectId
-                          select new CouponDTO
-                          {
-                              CouponId = coupon.CouponId,
-                              ProjectId = coupon.ProjectId,
-                              Code = coupon.Code,
-                              Discount = coupon.Discount,
-                              InitialStock = coupon.InitialStock,
-                              CurrentStock = coupon.CurrentStock,
-                              Deadline = coupon.Deadline,
-                              StatusId = coupon.StatusId,
-                              ProjectName = project.ProjectName,
-                              ProjectThumbnail = project.Thumbnail,
-                          }).OrderByDescending(c => c.CouponId).ToList();
+                           where project.MemberId == mId
+                           join coupon in _context.Coupons on project.ProjectId equals coupon.ProjectId
+                           select new CouponDTO
+                           {
+                               CouponId = coupon.CouponId,
+                               ProjectId = coupon.ProjectId,
+                               Code = coupon.Code,
+                               Discount = coupon.Discount,
+                               InitialStock = coupon.InitialStock,
+                               CurrentStock = coupon.CurrentStock,
+                               Deadline = coupon.Deadline,
+                               StatusId = coupon.StatusId,
+                               ProjectName = project.ProjectName,
+                               ProjectThumbnail = project.Thumbnail,
+                           }).OrderByDescending(c => c.CouponId).ToList();
             return Ok(coupons);
         }
 
@@ -116,6 +117,25 @@ namespace BoulevardOfBrokenDreams.Controllers
                 return Ok(0);
             }
             return Ok(getcoupons.Discount);
+        }
+
+        [HttpGet("UsedList/{couponId}"), Authorize(Roles = "user")]
+        public IActionResult getCouponsUsedList(int couponId)
+        {
+            var usedlist = from o in _context.Orders
+                           join m in _context.Members on o.MemberId equals m.MemberId
+                           where o.CouponId == couponId
+                           select new MemberDTO
+                           {
+                               Username = m.Username,
+                               Thumbnail = m.Thumbnail,
+                           };
+
+            if (!usedlist.Any())
+            {
+                return NotFound($"No orders found for coupon ID {couponId}.");
+            }
+            return Ok(usedlist.ToList());
         }
     }
 }
