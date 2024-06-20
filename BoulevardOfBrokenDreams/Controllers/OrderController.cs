@@ -176,8 +176,18 @@ namespace BoulevardOfBrokenDreams.Controllers
            await WaitForPaymentResponse();
             _isWaitingForPaymentResponse = false;
 
-   
-            var coupon = _db.Coupons.FirstOrDefault(cc => cc.Code == orderDTO.CouponCode)?.CouponId;
+
+            var coupon = _db.Coupons.FirstOrDefault(cc => cc.Code == orderDTO.CouponCode && cc.ProjectId == orderDTO.ProjectId);
+            int? couponId =null;
+            if (coupon != null)
+            {
+                coupon.CurrentStock -= 1;
+                couponId = coupon.CouponId;
+                if (coupon.CurrentStock < 0)
+                {
+                    coupon.CurrentStock = 0;    
+                }
+            }
 
                   try
             {
@@ -190,7 +200,7 @@ namespace BoulevardOfBrokenDreams.Controllers
                     PaymentMethodId = orderDTO.PaymentMethodId,
                     PaymentStatusId = 2,
                     Donate = orderDTO.Donate,
-                    CouponId = coupon,           
+                    CouponId = couponId,           
                 };
 
                 _db.Orders.Add(newOrder);
@@ -261,7 +271,7 @@ namespace BoulevardOfBrokenDreams.Controllers
 
                 });
 
-                var receiver = "mumufundraising@gmail.com"; 
+                var receiver = "msit158mumuguest@gmail.com"; 
                 string message = $"<h1>您的訂單已完成付款 交易日期:{DateTime.Now}</h1><br/>";
                 string thead = $"<tr><th colspan='4' style='border: 1px solid black; text-align: center;'>{tProjectName}</th></tr>";
                 string subject = "Mumu 交易完成通知";
@@ -371,6 +381,12 @@ namespace BoulevardOfBrokenDreams.Controllers
                                  Count = od.Count,
                                  Price = od.Price
                              },
+                             Coupon = _db.Coupons.Where(c => c.CouponId == o.CouponId)
+                                     .Select(c => new CouponDTO
+                                     {
+                                         Discount = c.Discount
+                                     })
+                                     .FirstOrDefault() ?? new CouponDTO { Discount = 0 },
                              //ProjectId = projectId
                          };
 

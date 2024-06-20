@@ -13,5 +13,7 @@
         public MemberDTO Member { get; set; }
         public OrderDetailDTO OrderDetails { get; set; }
         public int ProjectId { get; set; }
+
+        public CouponDTO Coupon { get; set; }
     }
 }

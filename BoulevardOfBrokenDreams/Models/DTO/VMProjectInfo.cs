@@ -12,12 +12,15 @@
         public DateOnly EndDate { get; set; }
         public int? Clicked { get; set; }
 
+        public string? ProjectDetail { get; set; }
+
+        public int? SponsorCount { get; set; }
         //public int MemberId { get; set; }
 
         //public int StatusId { get; set; }
         //public string? GroupName { get; set; }
-        public string? MemberName { get; set; }
-        public string? MemberThumbnail { get; set; }
+        public DTOMember? Member { get; set; }
+        //public string? MemberThumbnail { get; set; }
         //public string? StatusName { get; set; }
         public bool IsLiked { get; set; }
         public List<DTOProduct> Products { get; set; } = new List<DTOProduct>();
@@ -32,6 +35,7 @@
 
         public int InitialStock { get; set; }
         public int CurrentStock { get; set; }
+        public int Status { get; set; }
     }
 
     public class CommentDto
@@ -43,6 +47,7 @@
         public int? Liked { get; set; }
         public DateTime Date { get; set; }
         public DTOMember? Member { get; set; }
+        public int? ParentId { get; set; }
     }
     public class DTOMember
     {
