@@ -136,7 +136,8 @@ namespace BoulevardOfBrokenDreams.Controllers
                     username = member.Username,
                     email = member.Email ?? string.Empty,
                     nickname = member.Nickname ?? string.Empty,
-                    thumbnail = member.Thumbnail ?? string.Empty
+                    thumbnail = member.Thumbnail ?? string.Empty,
+                    authenticationProvider = member.AuthenticationProvider ?? "N",
                 };
 
                 return Ok(currentUser);
@@ -324,6 +325,7 @@ namespace BoulevardOfBrokenDreams.Controllers
                         Password = Hash.HashPassword(user.uid),
                         ResetPassword = "N",
                         Verified = "Y",
+                        AuthenticationProvider = "Y",
                         RegistrationTime = DateTime.UtcNow,
                     };
 
@@ -475,6 +477,8 @@ namespace BoulevardOfBrokenDreams.Controllers
                     time = foundMember.RegistrationTime ?? DateTime.Now,
                     memberStatus = foundMember.StatusId ?? 0,
                     banner = foundMember.Banner ?? string.Empty,
+                    authenticationProvider = foundMember.AuthenticationProvider ?? string.Empty,
+                    showContactInfo = foundMember.ShowContactInfo ?? string.Empty,
                     projects = await _context.Projects.OrderByDescending(p => p.StartDate).Where(p => p.MemberId == foundMember.MemberId)
                         .Select(p => new GetProjectDTO
                         {
@@ -581,7 +585,7 @@ namespace BoulevardOfBrokenDreams.Controllers
                     member.Nickname = x.nickname;
                 }
 
-                if (!string.IsNullOrEmpty(x.password))
+                if (!string.IsNullOrEmpty(x.password) && member.AuthenticationProvider != "Y")
                 {
                     member.Password = Hash.HashPassword(x.password);
                 }
@@ -651,7 +655,9 @@ namespace BoulevardOfBrokenDreams.Controllers
                     phone = member.Phone ?? string.Empty,
                     verified = member.Verified ?? "N",
                     status = member.StatusId ?? 7,
-                    banner = member.Banner ?? string.Empty
+                    banner = member.Banner ?? string.Empty,
+                    authenticationProvider = member.AuthenticationProvider ?? string.Empty,
+                    showContactInfo = member.ShowContactInfo ?? string.Empty
                 };
 
                 return Ok(memberProfileDTO);
@@ -676,6 +682,41 @@ namespace BoulevardOfBrokenDreams.Controllers
             m.StatusId = member.StatusId;
             _context.SaveChanges();
             return Ok(member);
+        }
+
+        [HttpPatch("update-member-banner"), Authorize(Roles = "user, admin")]
+        public async Task<IActionResult> UpdateMemberBanner(string banner, string id)
+        {
+            try
+            {
+                string? jwt = HttpContext.Request.Headers["Authorization"];
+
+                if (jwt == null || jwt == "") return BadRequest();
+
+                int jwtId = int.Parse(decodeJwtId(jwt));
+
+                if (jwtId != int.Parse(id))
+                {
+                    return BadRequest("權限異常，請聯絡客服");
+                }
+
+                var member = await _context.Members.FirstOrDefaultAsync(m => m.MemberId == jwtId);
+
+                if (member == null)
+                {
+                    return NotFound("Member not found.");
+                }
+
+                member.Banner = banner;
+
+                _context.SaveChanges();
+
+                return Ok("修改完成");
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex);
+            }
         }
 
         [HttpGet("GetStaff"), Authorize(Roles = "user, admin")]

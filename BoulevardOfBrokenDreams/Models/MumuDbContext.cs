@@ -222,8 +222,14 @@ public partial class MumuDbContext : DbContext
 
         modelBuilder.Entity<Member>(entity =>
         {
+            entity.Property(e => e.AuthenticationProvider)
+                .HasDefaultValue("N")
+                .IsFixedLength();
             entity.Property(e => e.Eid).HasDefaultValueSql("(newid())");
             entity.Property(e => e.ResetPassword)
+                .HasDefaultValue("N")
+                .IsFixedLength();
+            entity.Property(e => e.ShowContactInfo)
                 .HasDefaultValue("N")
                 .IsFixedLength();
             entity.Property(e => e.StatusId).HasDefaultValue(7);

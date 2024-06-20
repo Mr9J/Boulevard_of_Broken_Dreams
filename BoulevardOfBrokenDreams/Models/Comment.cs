@@ -25,6 +25,9 @@ public partial class Comment
 
     public int? Liked { get; set; }
 
+    [Column("ParentID")]
+    public int? ParentId { get; set; }
+
     [ForeignKey("MemberId")]
     [InverseProperty("Comments")]
     public virtual Member Member { get; set; } = null!;

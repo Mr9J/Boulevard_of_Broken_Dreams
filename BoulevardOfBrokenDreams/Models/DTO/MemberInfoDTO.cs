@@ -12,6 +12,8 @@
         public DateTime time { get; set; }
         public int memberStatus { get; set; }
         public string banner { get; set; } = string.Empty;
+        public string authenticationProvider { get; set; } = string.Empty;
+        public string showContactInfo { get; set; } = string.Empty;
         public GetProjectDTO[] projects { get; set; } = new GetProjectDTO[0];
     }
 }
