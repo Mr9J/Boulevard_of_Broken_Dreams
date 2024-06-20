@@ -381,6 +381,12 @@ namespace BoulevardOfBrokenDreams.Controllers
                                  Count = od.Count,
                                  Price = od.Price
                              },
+                             Coupon = _db.Coupons.Where(c => c.CouponId == o.CouponId)
+                                     .Select(c => new CouponDTO
+                                     {
+                                         Discount = c.Discount
+                                     })
+                                     .FirstOrDefault() ?? new CouponDTO { Discount = 0 },
                              //ProjectId = projectId
                          };
 
