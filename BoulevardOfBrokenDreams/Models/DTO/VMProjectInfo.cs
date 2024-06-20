@@ -12,6 +12,8 @@
         public DateOnly EndDate { get; set; }
         public int? Clicked { get; set; }
 
+        public string? ProjectDetail { get; set; }
+
         //public int MemberId { get; set; }
 
         //public int StatusId { get; set; }

@@ -61,6 +61,7 @@ namespace BoulevardOfBrokenDreams.Controllers
                 MemberName = project.Member.Username,
                 ProjectTotal = total,
                 Clicked = project.Clicked,
+                ProjectDetail = project.ProjectDetails,
 
                 Products = project.Products.Select(p => new DTOProduct
                 {
