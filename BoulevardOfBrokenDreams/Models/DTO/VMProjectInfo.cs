@@ -34,6 +34,7 @@
 
         public int InitialStock { get; set; }
         public int CurrentStock { get; set; }
+        public int Status { get; set; }
     }
 
     public class CommentDto

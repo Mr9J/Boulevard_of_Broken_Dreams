@@ -71,7 +71,8 @@ namespace BoulevardOfBrokenDreams.Controllers
                     ProductDescription = p.ProductDescription,
                     ProductThumbnail = p.Thumbnail,
                     InitialStock = p.InitialStock,
-                    CurrentStock = p.CurrentStock
+                    CurrentStock = p.CurrentStock,
+                    Status = p.StatusId
                 }).ToList()
                 //MemberThumbnail = "https://" + HttpContext.Request.Host.Value + "/resources/mumuThumbnail/members_Thumbnail/" + project.Member.Thumbnail
             };
