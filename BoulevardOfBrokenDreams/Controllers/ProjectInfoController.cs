@@ -63,7 +63,7 @@ namespace BoulevardOfBrokenDreams.Controllers
                 Member = new DTOMember
                 {
                     MemberId = project.Member.MemberId,
-                    Username = project.Member.Username,
+                    Username = project.Member.Nickname,
                     Thumbnail = project.Member.Thumbnail
                 },
                 ProjectTotal = total,
