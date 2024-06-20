@@ -45,6 +45,9 @@ namespace BoulevardOfBrokenDreams.Controllers
             var totalPrice = await _db.OrderDetails
                                     .Where(od => od.ProjectId == id)
                                     .SumAsync(od => od.Price);
+            var SponsorCount = await (from orderDetail in _db.OrderDetails
+                                where orderDetail.ProjectId == project.ProjectId
+                                select orderDetail.OrderId).CountAsync();
 
             var total = (totalDonate + totalPrice).Value;
 
@@ -57,7 +60,7 @@ namespace BoulevardOfBrokenDreams.Controllers
                 ProjectGoal = project.ProjectGoal,
                 StartDate = project.StartDate,
                 EndDate = project.EndDate,
-                Member = new DTOMember 
+                Member = new DTOMember
                 {
                     MemberId = project.Member.MemberId,
                     Username = project.Member.Username,
@@ -77,7 +80,8 @@ namespace BoulevardOfBrokenDreams.Controllers
                     InitialStock = p.InitialStock,
                     CurrentStock = p.CurrentStock,
                     Status = p.StatusId
-                }).ToList()
+                }).ToList(),
+                SponsorCount = SponsorCount
                 //MemberThumbnail = "https://" + HttpContext.Request.Host.Value + "/resources/mumuThumbnail/members_Thumbnail/" + project.Member.Thumbnail
             };
 

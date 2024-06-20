@@ -14,6 +14,7 @@
 
         public string? ProjectDetail { get; set; }
 
+        public int? SponsorCount { get; set; }
         //public int MemberId { get; set; }
 
         //public int StatusId { get; set; }
