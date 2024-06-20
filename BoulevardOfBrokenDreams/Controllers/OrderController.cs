@@ -177,7 +177,7 @@ namespace BoulevardOfBrokenDreams.Controllers
             _isWaitingForPaymentResponse = false;
 
 
-            var coupon = _db.Coupons.FirstOrDefault(cc => cc.Code == orderDTO.CouponCode);
+            var coupon = _db.Coupons.FirstOrDefault(cc => cc.Code == orderDTO.CouponCode && cc.ProjectId == orderDTO.ProjectId);
             int? couponId =null;
             if (coupon != null)
             {
