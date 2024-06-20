@@ -169,7 +169,7 @@ namespace BoulevardOfBrokenDreams.Controllers
                     Date = c.Date,
                     Member = new DTOMember { MemberId = member.MemberId, Username = member.Nickname, Thumbnail = member.Thumbnail },
                     ProjectId = c.ProjectId,
-                    //Liked = c.Liked
+                    Liked = c.Liked
                 };
 
             }).AsQueryable().OrderBy(orderby);

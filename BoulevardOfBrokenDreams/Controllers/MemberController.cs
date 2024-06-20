@@ -136,7 +136,8 @@ namespace BoulevardOfBrokenDreams.Controllers
                     username = member.Username,
                     email = member.Email ?? string.Empty,
                     nickname = member.Nickname ?? string.Empty,
-                    thumbnail = member.Thumbnail ?? string.Empty
+                    thumbnail = member.Thumbnail ?? string.Empty,
+                    authenticationProvider = member.AuthenticationProvider ?? "N",
                 };
 
                 return Ok(currentUser);
