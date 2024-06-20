@@ -74,6 +74,7 @@ namespace BoulevardOfBrokenDreams.Controllers
                 Member? member = await _memberRepository.AuthMember(user);
 
                 var token = "";
+                bool isAdmin = false;
 
                 if (member == null) return BadRequest("帳號或密碼錯誤");
 
@@ -86,6 +87,7 @@ namespace BoulevardOfBrokenDreams.Controllers
 
                 if (member != null && admin)
                 {
+                    isAdmin = true;
                     token = (new JwtGenerator(_configuration)).GenerateJwtToken(user.username, "admin", member!.MemberId);
                 }
                 else if (member != null)
@@ -99,7 +101,14 @@ namespace BoulevardOfBrokenDreams.Controllers
                 Response.Headers.Append("Access-Control-Expose-Headers", "Authorization");
                 Response.Headers["Authorization"] = jwt;
 
-                return Ok(jwt);
+                SignInSuccessDTO signInSuccessDTO = new SignInSuccessDTO
+                {
+                    jwt = jwt,
+                    isAdmin = isAdmin
+                };
+   
+
+                return Ok(signInSuccessDTO);
             }
             catch (Exception ex)
             {
