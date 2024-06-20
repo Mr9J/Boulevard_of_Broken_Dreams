@@ -15,5 +15,7 @@
         public int status { get; set; } = 7;
 
         public string banner { get; set; } = string.Empty;
+        public string authenticationProvider { get; set; } = string.Empty;
+        public string showContactInfo { get; set; } = string.Empty;
     }
 }

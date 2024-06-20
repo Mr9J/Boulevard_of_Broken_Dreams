@@ -58,6 +58,14 @@ public partial class Member
     [Unicode(false)]
     public string? Banner { get; set; }
 
+    [StringLength(1)]
+    [Unicode(false)]
+    public string? AuthenticationProvider { get; set; }
+
+    [StringLength(1)]
+    [Unicode(false)]
+    public string? ShowContactInfo { get; set; }
+
     [InverseProperty("Member")]
     public virtual ICollection<Action> Actions { get; set; } = new List<Action>();
 

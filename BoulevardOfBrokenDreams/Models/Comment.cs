@@ -23,8 +23,6 @@ public partial class Comment
     [Column(TypeName = "datetime")]
     public DateTime Date { get; set; }
 
-    public int? Liked { get; set; }
-
     [ForeignKey("MemberId")]
     [InverseProperty("Comments")]
     public virtual Member Member { get; set; } = null!;

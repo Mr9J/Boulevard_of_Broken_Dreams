@@ -139,8 +139,6 @@ public partial class MumuDbContext : DbContext
 
         modelBuilder.Entity<Comment>(entity =>
         {
-            entity.Property(e => e.Liked).HasDefaultValue(0);
-
             entity.HasOne(d => d.Member).WithMany(p => p.Comments)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_Comments_Members");
@@ -222,8 +220,14 @@ public partial class MumuDbContext : DbContext
 
         modelBuilder.Entity<Member>(entity =>
         {
+            entity.Property(e => e.AuthenticationProvider)
+                .HasDefaultValue("N")
+                .IsFixedLength();
             entity.Property(e => e.Eid).HasDefaultValueSql("(newid())");
             entity.Property(e => e.ResetPassword)
+                .HasDefaultValue("N")
+                .IsFixedLength();
+            entity.Property(e => e.ShowContactInfo)
                 .HasDefaultValue("N")
                 .IsFixedLength();
             entity.Property(e => e.StatusId).HasDefaultValue(7);
