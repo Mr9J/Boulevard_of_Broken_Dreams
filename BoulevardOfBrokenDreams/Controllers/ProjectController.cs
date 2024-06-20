@@ -50,13 +50,13 @@ namespace BoulevardOfBrokenDreams.Controllers
                                DonationAmount = (from order in _db.Orders
                                                  join orderDetail in _db.OrderDetails on order.OrderId equals orderDetail.OrderId
                                                  where orderDetail.ProjectId == p.ProjectId
-                                                 select order.Donate ?? 0).FirstOrDefault(),
+                                                 select order.Donate ?? 0).Sum(),
                                TotalAmount = ((from orderDetail in _db.OrderDetails
                                                where orderDetail.ProjectId == p.ProjectId
                                                select orderDetail.Price).Sum()) + ((from order in _db.Orders
                                                                                    join orderDetail in _db.OrderDetails on order.OrderId equals orderDetail.OrderId
                                                                                    where orderDetail.ProjectId == p.ProjectId
-                                                                                   select order.Donate ?? 0).FirstOrDefault()),
+                                                                                   select order.Donate ?? 0).Sum()),
             Products = (from product in _db.Products
                                            where product.ProjectId == p.ProjectId
                                            select new ProductDTO
@@ -105,7 +105,7 @@ namespace BoulevardOfBrokenDreams.Controllers
                                             select orderDetail.Price).Sum()) + ((from order in _db.Orders
                                                                                  join orderDetail in _db.OrderDetails on order.OrderId equals orderDetail.OrderId
                                                                                  where orderDetail.ProjectId == x.ProjectId
-                                                                                 select order.Donate ?? 0).FirstOrDefault()),
+                                                                                 select order.Donate ?? 0).Sum()),
                             SponsorCount = (from orderDetail in _db.OrderDetails
                                             where orderDetail.ProjectId == x.ProjectId
                                             select orderDetail.OrderId).Count(),
@@ -410,13 +410,13 @@ namespace BoulevardOfBrokenDreams.Controllers
                                DonationAmount = (from order in _db.Orders
                                                  join orderDetail in _db.OrderDetails on order.OrderId equals orderDetail.OrderId
                                                  where orderDetail.ProjectId == p.ProjectId
-                                                 select order.Donate ?? 0).FirstOrDefault(),
+                                                 select order.Donate ?? 0).Sum(),
                                TotalAmount = ((from orderDetail in _db.OrderDetails
                                                where orderDetail.ProjectId == p.ProjectId
                                                select orderDetail.Price).Sum()) + ((from order in _db.Orders
                                                                                     join orderDetail in _db.OrderDetails on order.OrderId equals orderDetail.OrderId
                                                                                     where orderDetail.ProjectId == p.ProjectId
-                                                                                    select order.Donate ?? 0).FirstOrDefault()),
+                                                                                    select order.Donate ?? 0).Sum()),
                                Products = (from product in _db.Products
                                            where product.ProjectId == p.ProjectId
                                            select new ProductDTO
