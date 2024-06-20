@@ -189,7 +189,8 @@ namespace BoulevardOfBrokenDreams.Controllers
                         ProjectDetails = x.ProjectDetails,
                         ProjectGoal = x.ProjectGoal,
                         ProjectName = x.ProjectName,
-                        thumbnail = x.Thumbnail
+                        thumbnail = x.Thumbnail,
+                        StatusID = x.StatusId,
                     };
             return p;
         }
@@ -257,6 +258,60 @@ namespace BoulevardOfBrokenDreams.Controllers
             return Ok(value);
         }
 
+        [HttpPut("EditProject"), Authorize(Roles = "user")]
+        public async Task<IActionResult> EditProject(EditProjectDTO value)
+        {
+            string? jwt = Request.Headers.Authorization;
+            int memberId = DecodeJwtToMemberId(jwt);
+
+            Project? p = _db.Projects.FirstOrDefault(x => x.ProjectId == value.projectId);
+
+            if (p == null)
+            {
+                return NotFound("Project not found.");
+            }
+
+            if (p.ProjectId > 0 && value.thumbnail != null)
+            {
+                Guid g = Guid.NewGuid();
+                using (var stream = value.thumbnail.OpenReadStream())
+                {
+                    string key = $"Test/project-{p.ProjectId}/{g}.png";
+                    var request = new PutObjectRequest
+                    {
+                        BucketName = "mumu",
+                        Key = key,
+                        InputStream = stream,
+                        ContentType = value.thumbnail.ContentType,
+                        DisablePayloadSigning = true
+                    };
+
+                    var response = await _s3Client.PutObjectAsync(request);
+
+
+
+                    p.Thumbnail = $"https://cdn.mumumsit158.com/{key}"; // 設置圖片路徑
+                    await _db.SaveChangesAsync(); // 再次保存更改
+                }
+
+
+
+            }
+
+            ProjectIdtype? type = _db.ProjectIdtypes.FirstOrDefault(x => x.ProjectId == value.projectId);
+            if (type != null) 
+            type.ProjectTypeId = value.ProjectTypeId;
+            
+            p.ProjectName = value.ProjectName;
+            p.ProjectDescription = value.ProjectDescription;
+            p.EndDate = value.EndDate;
+            p.StartDate = value.StartDate;
+            p.ProjectGoal = value.ProjectGoal;
+            p.ProjectDetails = value.ProjectDetail;
+            p.StatusId = value.statusID;
+            await _db.SaveChangesAsync();
+            return Ok(value);
+        }
         private int DecodeJwtToMemberId(string? jwt)
         {
             jwt = jwt.Replace("Bearer ", "");

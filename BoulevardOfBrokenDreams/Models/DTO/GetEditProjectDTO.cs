@@ -10,5 +10,6 @@
         public string ProjectDetails { get; set; }
         public string thumbnail { get; set; }
         public int ProjectTypeId { get; set; }
+        public int StatusID { get; set; }
     }
 }
