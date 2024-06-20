@@ -14,12 +14,13 @@
 
         public string? ProjectDetail { get; set; }
 
+        public int? SponsorCount { get; set; }
         //public int MemberId { get; set; }
 
         //public int StatusId { get; set; }
         //public string? GroupName { get; set; }
-        public string? MemberName { get; set; }
-        public string? MemberThumbnail { get; set; }
+        public DTOMember? Member { get; set; }
+        //public string? MemberThumbnail { get; set; }
         //public string? StatusName { get; set; }
         public bool IsLiked { get; set; }
         public List<DTOProduct> Products { get; set; } = new List<DTOProduct>();
