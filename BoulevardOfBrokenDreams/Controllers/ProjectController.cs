@@ -187,7 +187,7 @@ namespace BoulevardOfBrokenDreams.Controllers
 
                     },
                     Products = p.Products
-                    .Where(pt => pt.CurrentStock != 0)
+                    .Where(pt => pt.CurrentStock != 0&&pt.StatusId!=2)
                     .Select(pt => new ProductCardDTO
                     {
                         ProductId = pt.ProductId,
