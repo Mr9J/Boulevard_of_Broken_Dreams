@@ -230,7 +230,7 @@ namespace BoulevardOfBrokenDreams.Controllers
             int newPjId = pj.Entity.ProjectId;//取得新增的id
             var type = new ProjectIdtype { ProjectId = newPjId, ProjectTypeId = Convert.ToInt32(value.ProjectTypeId) };
             _db.ProjectIdtypes.Add(type);
-            if (newPjId > 0 && value.thumbnail.OpenReadStream() != null)
+            if (newPjId > 0 && value.thumbnail != null)
             {
                 Guid g = Guid.NewGuid();
                 using (var stream = value.thumbnail.OpenReadStream())
