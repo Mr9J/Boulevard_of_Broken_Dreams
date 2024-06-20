@@ -4,10 +4,12 @@ using BoulevardOfBrokenDreams.Models;
 using BoulevardOfBrokenDreams.Models.DTO;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.IO;
+using System.Linq.Dynamic.Core;
 using System.Security.Claims;
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
@@ -172,9 +174,30 @@ namespace BoulevardOfBrokenDreams.Controllers
             return searchProjectDTO;
         }
 
+        [HttpGet("GetEditProject/{id}")]
+        public IEnumerable<GetEditProjectDTO> GetEditProject(int id)
+        {
+            var p = from x in _db.Projects.Where(x => x.ProjectId == id)
+                    join y in _db.ProjectIdtypes.Where(x => x.ProjectId == id)
+                    on x.ProjectId equals y.ProjectId
+                    select new GetEditProjectDTO()
+                    {
+                        Description = x.ProjectDescription,
+                        ProjectTypeId = y.ProjectTypeId,
+                        EndDate = x.EndDate,
+                        StartDate = x.StartDate,
+                        ProjectDetails = x.ProjectDetails,
+                        ProjectGoal = x.ProjectGoal,
+                        ProjectName = x.ProjectName,
+                        thumbnail = x.Thumbnail,
+                        StatusID = x.StatusId,
+                    };
+            return p;
+        }
+
         // POST api/<HomeController>
         [HttpPost("CreateProject"), Authorize(Roles = "user")]
-        public async Task< IActionResult> CreateProject(CreateProjectDTO value)
+        public async Task<IActionResult> CreateProject(CreateProjectDTO value)
         {
             string? jwt = Request.Headers.Authorization;
             int memberId = DecodeJwtToMemberId(jwt);
@@ -192,7 +215,7 @@ namespace BoulevardOfBrokenDreams.Controllers
                 ProjectDetails = value.ProjectDetail,
             };
             var pj = _db.Projects.Add(project);
-            var isNull = _db.GroupDetails.Where(x=>x.GroupId == 1&&x.MemberId==memberId).IsNullOrEmpty();
+            var isNull = _db.GroupDetails.Where(x => x.GroupId == 1 && x.MemberId == memberId).IsNullOrEmpty();
             if (isNull)
             {
                 var groupdetails = new GroupDetail()
@@ -203,11 +226,11 @@ namespace BoulevardOfBrokenDreams.Controllers
                 };
                 _db.GroupDetails.Add(groupdetails);
             }
-            _db.SaveChanges();
-            int newPjId = pj.Entity.ProjectId;
+            await _db.SaveChangesAsync();
+            int newPjId = pj.Entity.ProjectId;//取得新增的id
             var type = new ProjectIdtype { ProjectId = newPjId, ProjectTypeId = Convert.ToInt32(value.ProjectTypeId) };
             _db.ProjectIdtypes.Add(type);
-            if (newPjId > 0 && value.thumbnail.OpenReadStream() != null)
+            if (newPjId > 0 && value.thumbnail != null)
             {
                 Guid g = Guid.NewGuid();
                 using (var stream = value.thumbnail.OpenReadStream())
@@ -227,7 +250,7 @@ namespace BoulevardOfBrokenDreams.Controllers
 
 
                     project.Thumbnail = $"https://cdn.mumumsit158.com/{key}"; // 設置圖片路徑
-                    _db.SaveChanges(); // 再次保存更改
+                    await _db.SaveChangesAsync(); // 再次保存更改
                 }
 
 
@@ -235,6 +258,60 @@ namespace BoulevardOfBrokenDreams.Controllers
             return Ok(value);
         }
 
+        [HttpPut("EditProject"), Authorize(Roles = "user")]
+        public async Task<IActionResult> EditProject(EditProjectDTO value)
+        {
+            string? jwt = Request.Headers.Authorization;
+            int memberId = DecodeJwtToMemberId(jwt);
+
+            Project? p = _db.Projects.FirstOrDefault(x => x.ProjectId == value.projectId);
+
+            if (p == null)
+            {
+                return NotFound("Project not found.");
+            }
+
+            if (p.ProjectId > 0 && value.thumbnail != null)
+            {
+                Guid g = Guid.NewGuid();
+                using (var stream = value.thumbnail.OpenReadStream())
+                {
+                    string key = $"Test/project-{p.ProjectId}/{g}.png";
+                    var request = new PutObjectRequest
+                    {
+                        BucketName = "mumu",
+                        Key = key,
+                        InputStream = stream,
+                        ContentType = value.thumbnail.ContentType,
+                        DisablePayloadSigning = true
+                    };
+
+                    var response = await _s3Client.PutObjectAsync(request);
+
+
+
+                    p.Thumbnail = $"https://cdn.mumumsit158.com/{key}"; // 設置圖片路徑
+                    await _db.SaveChangesAsync(); // 再次保存更改
+                }
+
+
+
+            }
+
+            ProjectIdtype? type = _db.ProjectIdtypes.FirstOrDefault(x => x.ProjectId == value.projectId);
+            if (type != null) 
+            type.ProjectTypeId = value.ProjectTypeId;
+            
+            p.ProjectName = value.ProjectName;
+            p.ProjectDescription = value.ProjectDescription;
+            p.EndDate = value.EndDate;
+            p.StartDate = value.StartDate;
+            p.ProjectGoal = value.ProjectGoal;
+            p.ProjectDetails = value.ProjectDetail;
+            p.StatusId = value.statusID;
+            await _db.SaveChangesAsync();
+            return Ok(value);
+        }
         private int DecodeJwtToMemberId(string? jwt)
         {
             jwt = jwt.Replace("Bearer ", "");

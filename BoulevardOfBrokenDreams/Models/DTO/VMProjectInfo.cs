@@ -12,6 +12,8 @@
         public DateOnly EndDate { get; set; }
         public int? Clicked { get; set; }
 
+        public string? ProjectDetail { get; set; }
+
         //public int MemberId { get; set; }
 
         //public int StatusId { get; set; }
@@ -32,6 +34,7 @@
 
         public int InitialStock { get; set; }
         public int CurrentStock { get; set; }
+        public int Status { get; set; }
     }
 
     public class CommentDto
@@ -43,6 +46,7 @@
         public int? Liked { get; set; }
         public DateTime Date { get; set; }
         public DTOMember? Member { get; set; }
+        public int? ParentId { get; set; }
     }
     public class DTOMember
     {
