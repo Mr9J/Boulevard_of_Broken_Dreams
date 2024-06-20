@@ -61,6 +61,7 @@ namespace BoulevardOfBrokenDreams.Controllers
                 MemberName = project.Member.Username,
                 ProjectTotal = total,
                 Clicked = project.Clicked,
+                ProjectDetail = project.ProjectDetails,
 
                 Products = project.Products.Select(p => new DTOProduct
                 {
@@ -70,7 +71,8 @@ namespace BoulevardOfBrokenDreams.Controllers
                     ProductDescription = p.ProductDescription,
                     ProductThumbnail = p.Thumbnail,
                     InitialStock = p.InitialStock,
-                    CurrentStock = p.CurrentStock
+                    CurrentStock = p.CurrentStock,
+                    Status = p.StatusId
                 }).ToList()
                 //MemberThumbnail = "https://" + HttpContext.Request.Host.Value + "/resources/mumuThumbnail/members_Thumbnail/" + project.Member.Thumbnail
             };
@@ -147,38 +149,33 @@ namespace BoulevardOfBrokenDreams.Controllers
 
         // GET api/<ProjectInfoController>/GetComments
         [HttpGet("GetComments")]
-        public async Task<IActionResult> GetComments(int projectId,string orderby="Date descending")
+        public async Task<IActionResult> GetComments(int projectId, string orderby = "Date descending")
         {
+            // 這個專案的所有留言
             var comments = await _db.Comments
-                .Where(c => c.ProjectId == projectId)
-                .ToListAsync();
+            .Where(c => c.ProjectId == projectId)
+            .Include(c => c.Member)
+            .ToListAsync();
 
             if (comments == null) return NotFound("No comments found.");
 
             var commentsDto = comments.Select(c =>
-            {
-
-                var member = _db.Members.SingleOrDefault(m => m.MemberId == c.MemberId);
-
-                if (member == null) return null;
-
-                return new CommentDto
-                {
-                    CommentId = c.CommentId,
-                    CommentMsg = c.CommentMsg,
-                    Date = c.Date,
-                    Member = new DTOMember { MemberId = member.MemberId, Username = member.Nickname, Thumbnail = member.Thumbnail },
-                    ProjectId = c.ProjectId,
-                    Liked = c.Liked
-                };
-
-            }).AsQueryable().OrderBy(orderby);
-
+                 new CommentDto
+                 {
+                     CommentId = c.CommentId,
+                     CommentMsg = c.CommentMsg,
+                     Date = c.Date,
+                     Member = new DTOMember { MemberId = c.Member.MemberId, Username = c.Member.Nickname, Thumbnail = c.Member.Thumbnail },
+                     ProjectId = c.ProjectId,
+                     Liked = c.Liked,
+                     ParentId = c.ParentId
+                 }
+            ).AsQueryable().OrderBy(orderby);
 
 
             return Ok(commentsDto.ToList());
         }
-            
+
 
         #endregion
 
@@ -258,6 +255,8 @@ namespace BoulevardOfBrokenDreams.Controllers
             return Ok(dtoMember);
         }
 
+        
+
         #region 靜態方法
         private static int DecodeJwtToMemberId(string? jwt)
         {
@@ -269,7 +268,7 @@ namespace BoulevardOfBrokenDreams.Controllers
             return int.Parse(id!);
         }
 
-        
+
         #endregion
     }
 }
