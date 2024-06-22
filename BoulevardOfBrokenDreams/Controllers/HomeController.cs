@@ -142,6 +142,7 @@ namespace BoulevardOfBrokenDreams.Controllers
                                SponsorCount = (from orderDetail in _db.OrderDetails
                                                where orderDetail.ProjectId == p.ProjectId
                                                select orderDetail.OrderId).Count(),
+                               clicked = (int) p.Clicked
                            };
             var filteredProjects = projects.AsEnumerable().Where(x => x.DayLeft >= 0);
             switch (orderby)
@@ -159,6 +160,9 @@ namespace BoulevardOfBrokenDreams.Controllers
                     break;
                 case "startdate":
                     filteredProjects = filteredProjects.OrderByDescending(x => x.StartDate);
+                    break;
+                case "clicked":
+                    filteredProjects = filteredProjects.OrderByDescending(x => x.clicked);
                     break;
                 default:
                     break;
