@@ -63,7 +63,7 @@ namespace BoulevardOfBrokenDreams.Controllers
                 Member = new DTOMember
                 {
                     MemberId = project.Member.MemberId,
-                    Username = project.Member.Username,
+                    Username = project.Member.Nickname,
                     Thumbnail = project.Member.Thumbnail
                 },
                 ProjectTotal = total,
@@ -166,6 +166,22 @@ namespace BoulevardOfBrokenDreams.Controllers
             .ToListAsync();
 
             if (comments == null) return NotFound("No comments found.");
+
+            // 處理排序的 Alias
+            switch(orderby)
+            {
+                
+                case "otn":
+                    orderby = "Date ascending";
+                    break;
+                case "hot":
+                    orderby = "CommentId";
+                    break;
+                default:
+                    orderby = "Date descending";
+                    break;
+            }
+
 
             var commentsDto = comments.Select(c =>
                  new CommentDto
