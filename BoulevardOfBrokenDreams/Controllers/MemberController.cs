@@ -106,7 +106,7 @@ namespace BoulevardOfBrokenDreams.Controllers
                     jwt = jwt,
                     isAdmin = isAdmin
                 };
-   
+
 
                 return Ok(signInSuccessDTO);
             }
@@ -468,7 +468,7 @@ namespace BoulevardOfBrokenDreams.Controllers
         {
             try
             {
-                var foundMember = await _context.Members.FirstOrDefaultAsync(m => m.MemberId == int.Parse(id));
+                var foundMember = await _context.Members.Include(m => m.Projects).FirstOrDefaultAsync(m => m.MemberId == int.Parse(id));
 
                 if (foundMember == null)
                 {
@@ -488,19 +488,31 @@ namespace BoulevardOfBrokenDreams.Controllers
                     banner = foundMember.Banner ?? string.Empty,
                     authenticationProvider = foundMember.AuthenticationProvider ?? string.Empty,
                     showContactInfo = foundMember.ShowContactInfo ?? string.Empty,
-                    projects = await _context.Projects.OrderByDescending(p => p.StartDate).Where(p => p.MemberId == foundMember.MemberId)
-                        .Select(p => new GetProjectDTO
-                        {
-                            projectId = p.ProjectId,
-                            projectName = p.ProjectName ?? string.Empty,
-                            projectDescription = p.ProjectDescription ?? string.Empty,
-                            projectGoal = p.ProjectGoal,
-                            projectStartDate = p.StartDate,
-                            projectEndDate = p.EndDate,
-                            projectGroupId = p.GroupId ?? 0,
-                            projectThumbnail = p.Thumbnail ?? string.Empty,
-                            projectStatusId = p.StatusId
-                        }).ToArrayAsync()
+                    //projects = await _context.Projects.OrderByDescending(p => p.StartDate).Where(p => p.MemberId == foundMember.MemberId)
+                    //    .Select(p => new GetProjectDTO
+                    //    {
+                    //        projectId = p.ProjectId,
+                    //        projectName = p.ProjectName ?? string.Empty,
+                    //        projectDescription = p.ProjectDescription ?? string.Empty,
+                    //        projectGoal = p.ProjectGoal,
+                    //        projectStartDate = p.StartDate,
+                    //        projectEndDate = p.EndDate,
+                    //        projectGroupId = p.GroupId ?? 0,
+                    //        projectThumbnail = p.Thumbnail ?? string.Empty,
+                    //        projectStatusId = p.StatusId
+                    //    }).ToArrayAsync()
+                    projects=foundMember.Projects.Select(p=>new GetProjectDTO
+                    {
+                        projectId = p.ProjectId,
+                        projectName = p.ProjectName ?? string.Empty,
+                        projectDescription = p.ProjectDescription ?? string.Empty,
+                        projectGoal = p.ProjectGoal,
+                        projectStartDate = p.StartDate,
+                        projectEndDate = p.EndDate,
+                        projectGroupId = p.GroupId ?? 0,
+                        projectThumbnail = p.Thumbnail ?? string.Empty,
+                        projectStatusId = p.StatusId
+                    }).ToArray()
                 };
 
                 return Ok(memberInfoDTOs);

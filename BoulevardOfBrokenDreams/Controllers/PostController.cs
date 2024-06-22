@@ -381,7 +381,8 @@ namespace BoulevardOfBrokenDreams.Controllers
                     PostId = int.Parse(newComment.postId),
                     MemberId = int.Parse(newComment.userId),
                     Comment = newComment.comment,
-                    Time = DateTime.UtcNow
+                    Time = DateTime.UtcNow,
+                    ParentCommentId = int.Parse(newComment.parentId),
                 };
 
                 _context.PostComments.Add(comment);
@@ -396,35 +397,137 @@ namespace BoulevardOfBrokenDreams.Controllers
             }
         }
 
+        [HttpPost("like-comment"), Authorize(Roles = "user, admin")]
+        public async Task<IActionResult> LikeComment(GetLikeCommetDTO x)
+        {
+            try
+            {
+                string? jwt = HttpContext.Request.Headers["Authorization"];
+
+                if (string.IsNullOrEmpty(jwt))
+                {
+                    return BadRequest();
+                }
+
+                string jwtId = decodeJwtId(jwt);
+
+                if (!int.TryParse(jwtId, out int id))
+                {
+                    return BadRequest("請重新登入");
+                }
+
+                var comment = await _context.PostCommentDetails.FirstOrDefaultAsync(
+                    pcd => pcd.PostCommentId == x.commentID && pcd.MemberId == id);
+
+                if (comment == null)
+                {
+                    comment = new PostCommentDetail
+                    {
+                        PostCommentId = x.commentID,
+                        MemberId = id,
+                        LikesStatus = x.status
+                    };
+
+                    _context.PostCommentDetails.Add(comment);
+                }
+                else
+                {
+                    if (comment.LikesStatus == x.status)
+                    {
+                        comment.LikesStatus = null;
+                    }
+                    else if (x.status == "T")
+                    {
+                        comment.LikesStatus = "T";
+                    }
+                    else if (x.status == "F")
+                    {
+                        comment.LikesStatus = "F";
+                    }
+                    else
+                    {
+                        comment.LikesStatus = null;
+                    }
+
+                    _context.PostCommentDetails.Update(comment);
+                }
+
+                await _context.SaveChangesAsync();
+
+                return Ok("更新成功");
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex);
+            }
+        }
+
         [HttpGet("get-comments/{postId}"), Authorize(Roles = "user, admin")]
         public async Task<IActionResult> GetComments(string postId)
         {
             try
             {
-                var comments = await _context.PostComments.OrderBy(p => p.Time).Where(p => p.PostId == int.Parse(postId)).Join(
-                    _context.Members, p => p.MemberId, m => m.MemberId, (p, m) => new { p.MemberId, p.PostId, p.Id, p.Comment, p.Time, m.Nickname, m.Thumbnail }).ToListAsync();
+                string? jwt = HttpContext.Request.Headers["Authorization"];
 
+                if (jwt == null || jwt == "") return BadRequest();
 
-                if (comments.Count == 0) return Ok("沒有留言");
+                string jwtId = decodeJwtId(jwt);
 
-                var commentDTOs = new List<CommentPostDTO>();
-
-                foreach (var comment in comments)
+                if (!int.TryParse(jwtId, out int userId))
                 {
-                    var commentDTO = new CommentPostDTO
-                    {
-                        id = comment.Id,
-                        postId = comment.PostId,
-                        userId = comment.MemberId,
-                        comment = comment.Comment,
-                        time = comment.Time.ToString(),
-                        username = comment.Nickname!,
-                        thumbnail = comment.Thumbnail!
-                    };
-                    commentDTOs.Add(commentDTO);
+                    return BadRequest("請重新登入");
                 }
 
-                return Ok(commentDTOs);
+                if (!int.TryParse(postId, out int id))
+                {
+                    return BadRequest("請輸入正確的貼文編號");
+                }
+
+                var comments = await _context.PostComments.OrderBy(p => p.Time).Include(p => p.Member).Include(p => p.PostCommentDetails).Where(p =>
+                p.PostId == id && p.ParentCommentId == null).ToListAsync();
+
+                var commentPostDTOs = comments.Select(comment => new CommentPostDTO
+                {
+                    postCommentID = comment.PostCommentId,
+                    memberID = comment.MemberId,
+                    nickname = comment.Member.Nickname!,
+                    thumbnail = comment.Member.Thumbnail!,
+                    postID = comment.PostId,
+                    comment = comment.Comment!,
+                    date = comment.Time,
+                    parentCommentID = comment.ParentCommentId,
+                    childComments = [.. _context.PostComments.OrderBy(
+                                    pc => pc.Time).Include(pc => pc.Member).Include(pc => pc.PostCommentDetails).Where(pc => pc.PostId == comment.PostId && pc.ParentCommentId == comment.PostCommentId)
+                                    .Select(pc => new CommentPostDTO
+                                    {
+                                        postCommentID = pc.PostCommentId,
+                                        memberID = pc.MemberId,
+                                        nickname = pc.Member.Nickname!,
+                                        thumbnail = pc.Member.Thumbnail!,
+                                        postID = pc.PostId,
+                                        comment = pc.Comment!,
+                                        date = pc.Time,
+                                        parentCommentID = pc.ParentCommentId,
+                                        childComments = null,
+                                        postCommentDetail=new PostCommentDetailDTO
+                                        {
+                                            likeCount = pc.PostCommentDetails.Count(pcd => pcd.LikesStatus == "T"),
+                                            dislikeCount = pc.PostCommentDetails.Count(pcd => pcd.LikesStatus == "F"),
+                                            isLiked = pc.PostCommentDetails.Any(pcd => pcd.MemberId == userId && pcd.LikesStatus == "T"),
+                                            isDisliked = pc.PostCommentDetails.Any(pcd => pcd.MemberId == userId && pcd.LikesStatus == "F")
+                                        }
+
+                                    })],
+                    postCommentDetail = new PostCommentDetailDTO
+                    {
+                        likeCount = comment.PostCommentDetails.Count(pcd => pcd.LikesStatus == "T"),
+                        dislikeCount = comment.PostCommentDetails.Count(pcd => pcd.LikesStatus == "F"),
+                        isLiked = comment.PostCommentDetails.Any(pcd => pcd.MemberId == userId && pcd.LikesStatus == "T"),
+                        isDisliked = comment.PostCommentDetails.Any(pcd => pcd.MemberId == userId && pcd.LikesStatus == "F")
+                    }
+                }).ToList();
+
+                return Ok(commentPostDTOs);
             }
             catch (Exception)
             {
