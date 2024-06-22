@@ -481,6 +481,8 @@ namespace BoulevardOfBrokenDreams.Controllers
                     nickname = foundMember.Nickname ?? string.Empty,
                     username = foundMember.Username,
                     email = foundMember.Email ?? string.Empty,
+                    address = foundMember.Address ?? string.Empty,
+                    phone = foundMember.Phone ?? string.Empty,
                     description = foundMember.MemberIntroduction ?? string.Empty,
                     avatar = foundMember.Thumbnail ?? string.Empty,
                     time = foundMember.RegistrationTime ?? DateTime.Now,
@@ -729,6 +731,36 @@ namespace BoulevardOfBrokenDreams.Controllers
                 }
 
                 member.Banner = banner;
+
+                _context.SaveChanges();
+
+                return Ok("修改完成");
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex);
+            }
+        }
+
+        [HttpGet("set-contact-info/{status}"),Authorize(Roles ="user, admin")]
+        public async Task<IActionResult> SetContactInfo(string status)
+        {
+            try
+            {
+                string? jwt = HttpContext.Request.Headers["Authorization"];
+
+                if (jwt == null || jwt == "") return BadRequest();
+
+                int jwtId = int.Parse(decodeJwtId(jwt));
+
+                var member = await _context.Members.FirstOrDefaultAsync(m => m.MemberId == jwtId);
+
+                if (member == null)
+                {
+                    return NotFound("Member not found.");
+                }
+
+                member.ShowContactInfo = status;
 
                 _context.SaveChanges();
 
