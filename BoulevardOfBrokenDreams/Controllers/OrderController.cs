@@ -419,7 +419,7 @@ namespace BoulevardOfBrokenDreams.Controllers
             string id = decodeJwtId(jwt);
             int mId = int.Parse(id);
 
-            var ProjectDTO = from p in _db.Projects.Where(p => p.MemberId == mId)
+            var ProjectDTO = from p in _db.Projects.Where(p => p.MemberId == mId && p.StatusId !=3)
                              select new ProjectDTO
                              {
                                  ProjectId = p.ProjectId,
