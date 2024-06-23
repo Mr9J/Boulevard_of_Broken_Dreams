@@ -382,8 +382,12 @@ namespace BoulevardOfBrokenDreams.Controllers
                     MemberId = int.Parse(newComment.userId),
                     Comment = newComment.comment,
                     Time = DateTime.UtcNow,
-                    ParentCommentId = int.Parse(newComment.parentId),
                 };
+
+                if (newComment.isReply)
+                {
+                    comment.ParentCommentId = int.Parse(newComment.parentId);
+                }
 
                 _context.PostComments.Add(comment);
                 await _context.SaveChangesAsync();
@@ -391,9 +395,9 @@ namespace BoulevardOfBrokenDreams.Controllers
                 return Ok("留言完成");
 
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                return BadRequest("伺服器錯誤，請稍後再試");
+                return BadRequest(ex);
             }
         }
 
@@ -710,6 +714,33 @@ namespace BoulevardOfBrokenDreams.Controllers
                 }
 
                 return Ok(postDTOs);
+            }
+            catch (Exception)
+            {
+                return BadRequest();
+            }
+        }
+
+        [HttpGet("search-users/{keyword}"), Authorize(Roles = "user, admin")]
+        public async Task<IActionResult> SearchUsers(string keyword)
+        {
+            try
+            {
+                if (keyword.Length < 2) return BadRequest("請輸入至少兩個字元");
+
+                var users = await _context.Members.Where(m => m.Nickname!.Contains(keyword)).ToListAsync();
+
+                if (users.Count == 0) return BadRequest("找不到該用戶");
+
+                var userDTOs = users.Select(user => new SimpleUserDTO
+                {
+                    memberId = user.MemberId,
+                    username = user.Username!,
+                    nickname = user.Nickname!,
+                    thumbnail = user.Thumbnail!,
+                }).ToList();
+
+                return Ok(userDTOs);
             }
             catch (Exception)
             {

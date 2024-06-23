@@ -468,7 +468,7 @@ namespace BoulevardOfBrokenDreams.Controllers
         {
             try
             {
-                var foundMember = await _context.Members.Include(m => m.Projects).FirstOrDefaultAsync(m => m.MemberId == int.Parse(id));
+                var foundMember = await _context.Members.Include(m => m.Projects).Include(m => m.Posts).Include(m => m.FollowerFollowings).FirstOrDefaultAsync(m => m.MemberId == int.Parse(id));
 
                 if (foundMember == null)
                 {
@@ -490,6 +490,8 @@ namespace BoulevardOfBrokenDreams.Controllers
                     banner = foundMember.Banner ?? string.Empty,
                     authenticationProvider = foundMember.AuthenticationProvider ?? string.Empty,
                     showContactInfo = foundMember.ShowContactInfo ?? string.Empty,
+                    postCount = foundMember.Posts.Count,
+                    followCount = foundMember.FollowerFollowings.Count,
                     //projects = await _context.Projects.OrderByDescending(p => p.StartDate).Where(p => p.MemberId == foundMember.MemberId)
                     //    .Select(p => new GetProjectDTO
                     //    {

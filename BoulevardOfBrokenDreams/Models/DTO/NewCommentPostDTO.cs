@@ -6,5 +6,6 @@
         public string userId { get; set; } = string.Empty;
         public string comment { get; set; } = string.Empty;
         public string parentId { get; set; } = string.Empty;
+        public bool isReply { get; set; } = false;
     }
 }
