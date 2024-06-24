@@ -62,7 +62,8 @@ namespace BoulevardOfBrokenDreams.Controllers
         [HttpGet("POP")]
         public IEnumerable<HomeProjectCardDTO> POP()
         {
-            var projects = from p in _db.Projects.Where(x => x.StatusId == 1)
+            var projects = from p in _db.Projects
+                           .Where(x => x.StatusId == 1)
                            select new HomeProjectCardDTO
                            {
                                ProjectId = p.ProjectId,
