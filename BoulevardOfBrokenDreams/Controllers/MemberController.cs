@@ -85,6 +85,10 @@ namespace BoulevardOfBrokenDreams.Controllers
 
                 var admin = await _context.Admins.AnyAsync(a => a.MemberId == member!.MemberId);
 
+                //var hobby = await _context.Hobbies.AnyAsync(h => h.MemberId == member!.MemberId);
+
+                bool hobby = member?.Hobbies.Count > 0;
+
                 if (member != null && admin)
                 {
                     isAdmin = true;
@@ -104,7 +108,8 @@ namespace BoulevardOfBrokenDreams.Controllers
                 SignInSuccessDTO signInSuccessDTO = new SignInSuccessDTO
                 {
                     jwt = jwt,
-                    isAdmin = isAdmin
+                    isAdmin = isAdmin,
+                    hasHobby = hobby
                 };
 
 
