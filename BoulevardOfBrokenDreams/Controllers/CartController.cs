@@ -19,6 +19,37 @@ namespace BoulevardOfBrokenDreams.Controllers
             this.context = context;
             this.httpContextAccessor = httpContextAccessor;
         }
+
+        [HttpGet("cartQuantity/{memberId}")]
+        public async Task<int> GetCartQuantity(int memberId)
+        {
+            var user = context.Carts.FirstOrDefault(m => m.MemberId == memberId);
+
+            if (user == null)
+            {
+                //如果找不到使用者沒有CartId 幫他建
+                var newCart = new Cart
+                {
+                    MemberId = memberId,
+                };
+                context.Carts.Add(newCart);
+                await context.SaveChangesAsync();
+
+                int newCartId = newCart.CartId;
+                return 0;
+            }
+            else
+            {
+                var cartQuantity = context.Carts
+                         .Where(c => c.MemberId == memberId)
+                         .SelectMany(c => c.CartDetails)
+                         .Select(cd => cd.ProjectId)
+                         .Distinct()
+                         .Count();
+                return cartQuantity;
+            }
+        }
+
         //載入購物車頁面
         [HttpGet("{memberId}")]
         public async Task<ActionResult<IEnumerable<CartDetailDTO>>> GetCartsDetailData(int memberId)
