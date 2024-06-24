@@ -196,122 +196,122 @@ namespace BoulevardOfBrokenDreams.Controllers
         }
 
         // POST api/<HomeController>
-        [HttpPost("CreateProject"), Authorize(Roles = "user")]
-        public async Task<IActionResult> CreateProject(CreateProjectDTO value)
-        {
-            string? jwt = Request.Headers.Authorization;
-            int memberId = DecodeJwtToMemberId(jwt);
+        //[HttpPost("CreateProject"), Authorize(Roles = "user")]
+        //public async Task<IActionResult> CreateProject(CreateProjectDTO value)
+        //{
+        //    string? jwt = Request.Headers.Authorization;
+        //    int memberId = DecodeJwtToMemberId(jwt);
 
-            var project = new Project
-            {
-                ProjectName = value.ProjectName,
-                ProjectDescription = value.ProjectDescription,
-                ProjectGoal = value.ProjectGoal,
-                StartDate = value.StartDate,
-                EndDate = value.EndDate,
-                MemberId = memberId,
-                GroupId = 1,
-                StatusId = 3,
-                ProjectDetails = value.ProjectDetail,
-            };
-            var pj = _db.Projects.Add(project);
-            var isNull = _db.GroupDetails.Where(x => x.GroupId == 1 && x.MemberId == memberId).IsNullOrEmpty();
-            if (isNull)
-            {
-                var groupdetails = new GroupDetail()
-                {
-                    AuthStatusId = 1,
-                    MemberId = memberId,
-                    GroupId = 1
-                };
-                _db.GroupDetails.Add(groupdetails);
-            }
-            await _db.SaveChangesAsync();
-            int newPjId = pj.Entity.ProjectId;//取得新增的id
-            var type = new ProjectIdtype { ProjectId = newPjId, ProjectTypeId = Convert.ToInt32(value.ProjectTypeId) };
-            _db.ProjectIdtypes.Add(type);
-            if (newPjId > 0 && value.thumbnail != null)
-            {
-                Guid g = Guid.NewGuid();
-                using (var stream = value.thumbnail.OpenReadStream())
-                {
-                    string key = $"Test/project-{newPjId}/{g}.png";
-                    var request = new PutObjectRequest
-                    {
-                        BucketName = "mumu",
-                        Key = key,
-                        InputStream = stream,
-                        ContentType = value.thumbnail.ContentType,
-                        DisablePayloadSigning = true
-                    };
+        //    var project = new Project
+        //    {
+        //        ProjectName = value.ProjectName,
+        //        ProjectDescription = value.ProjectDescription,
+        //        ProjectGoal = value.ProjectGoal,
+        //        StartDate = value.StartDate,
+        //        EndDate = value.EndDate,
+        //        MemberId = memberId,
+        //        GroupId = 1,
+        //        StatusId = 3,
+        //        ProjectDetails = value.ProjectDetail,
+        //    };
+        //    var pj = _db.Projects.Add(project);
+        //    var isNull = _db.GroupDetails.Where(x => x.GroupId == 1 && x.MemberId == memberId).IsNullOrEmpty();
+        //    if (isNull)
+        //    {
+        //        var groupdetails = new GroupDetail()
+        //        {
+        //            AuthStatusId = 1,
+        //            MemberId = memberId,
+        //            GroupId = 1
+        //        };
+        //        _db.GroupDetails.Add(groupdetails);
+        //    }
+        //    await _db.SaveChangesAsync();
+        //    int newPjId = pj.Entity.ProjectId;//取得新增的id
+        //    var type = new ProjectIdtype { ProjectId = newPjId, ProjectTypeId = Convert.ToInt32(value.ProjectTypeId) };
+        //    _db.ProjectIdtypes.Add(type);
+        //    if (newPjId > 0 && value.thumbnail != null)
+        //    {
+        //        Guid g = Guid.NewGuid();
+        //        using (var stream = value.thumbnail.OpenReadStream())
+        //        {
+        //            string key = $"Test/project-{newPjId}/{g}.png";
+        //            var request = new PutObjectRequest
+        //            {
+        //                BucketName = "mumu",
+        //                Key = key,
+        //                InputStream = stream,
+        //                ContentType = value.thumbnail.ContentType,
+        //                DisablePayloadSigning = true
+        //            };
 
-                    var response = await _s3Client.PutObjectAsync(request);
-
-
-
-                    project.Thumbnail = $"https://cdn.mumumsit158.com/{key}"; // 設置圖片路徑
-                    await _db.SaveChangesAsync(); // 再次保存更改
-                }
-
-
-            }
-            return Ok(value);
-        }
-
-        [HttpPut("EditProject"), Authorize(Roles = "user")]
-        public async Task<IActionResult> EditProject(EditProjectDTO value)
-        {
-            string? jwt = Request.Headers.Authorization;
-            int memberId = DecodeJwtToMemberId(jwt);
-
-            Project? p = _db.Projects.FirstOrDefault(x => x.ProjectId == value.projectId);
-
-            if (p == null)
-            {
-                return NotFound("Project not found.");
-            }
-
-            if (p.ProjectId > 0 && value.thumbnail != null)
-            {
-                Guid g = Guid.NewGuid();
-                using (var stream = value.thumbnail.OpenReadStream())
-                {
-                    string key = $"Test/project-{p.ProjectId}/{g}.png";
-                    var request = new PutObjectRequest
-                    {
-                        BucketName = "mumu",
-                        Key = key,
-                        InputStream = stream,
-                        ContentType = value.thumbnail.ContentType,
-                        DisablePayloadSigning = true
-                    };
-
-                    var response = await _s3Client.PutObjectAsync(request);
+        //            var response = await _s3Client.PutObjectAsync(request);
 
 
 
-                    p.Thumbnail = $"https://cdn.mumumsit158.com/{key}"; // 設置圖片路徑
-                    await _db.SaveChangesAsync(); // 再次保存更改
-                }
+        //            project.Thumbnail = $"https://cdn.mumumsit158.com/{key}"; // 設置圖片路徑
+        //            await _db.SaveChangesAsync(); // 再次保存更改
+        //        }
+
+
+        //    }
+        //    return Ok(value);
+        //}
+
+        //[HttpPut("EditProject"), Authorize(Roles = "user")]
+        //public async Task<IActionResult> EditProject(EditProjectDTO value)
+        //{
+        //    string? jwt = Request.Headers.Authorization;
+        //    int memberId = DecodeJwtToMemberId(jwt);
+
+        //    Project? p = _db.Projects.FirstOrDefault(x => x.ProjectId == value.projectId);
+
+        //    if (p == null)
+        //    {
+        //        return NotFound("Project not found.");
+        //    }
+
+        //    if (p.ProjectId > 0 && value.thumbnail != null)
+        //    {
+        //        Guid g = Guid.NewGuid();
+        //        using (var stream = value.thumbnail.OpenReadStream())
+        //        {
+        //            string key = $"Test/project-{p.ProjectId}/{g}.png";
+        //            var request = new PutObjectRequest
+        //            {
+        //                BucketName = "mumu",
+        //                Key = key,
+        //                InputStream = stream,
+        //                ContentType = value.thumbnail.ContentType,
+        //                DisablePayloadSigning = true
+        //            };
+
+        //            var response = await _s3Client.PutObjectAsync(request);
 
 
 
-            }
+        //            p.Thumbnail = $"https://cdn.mumumsit158.com/{key}"; // 設置圖片路徑
+        //            await _db.SaveChangesAsync(); // 再次保存更改
+        //        }
 
-            ProjectIdtype? type = _db.ProjectIdtypes.FirstOrDefault(x => x.ProjectId == value.projectId);
-            if (type != null) 
-            type.ProjectTypeId = value.ProjectTypeId;
+
+
+        //    }
+
+        //    ProjectIdtype? type = _db.ProjectIdtypes.FirstOrDefault(x => x.ProjectId == value.projectId);
+        //    if (type != null) 
+        //    type.ProjectTypeId = value.ProjectTypeId;
             
-            p.ProjectName = value.ProjectName;
-            p.ProjectDescription = value.ProjectDescription;
-            p.EndDate = value.EndDate;
-            p.StartDate = value.StartDate;
-            p.ProjectGoal = value.ProjectGoal;
-            p.ProjectDetails = value.ProjectDetail;
-            p.StatusId = value.statusID;
-            await _db.SaveChangesAsync();
-            return Ok(value);
-        }
+        //    p.ProjectName = value.ProjectName;
+        //    p.ProjectDescription = value.ProjectDescription;
+        //    p.EndDate = value.EndDate;
+        //    p.StartDate = value.StartDate;
+        //    p.ProjectGoal = value.ProjectGoal;
+        //    p.ProjectDetails = value.ProjectDetail;
+        //    p.StatusId = value.statusID;
+        //    await _db.SaveChangesAsync();
+        //    return Ok(value);
+        //}
         private int DecodeJwtToMemberId(string? jwt)
         {
             jwt = jwt.Replace("Bearer ", "");
