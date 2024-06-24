@@ -123,19 +123,20 @@ builder.Services.AddSingleton<IAmazonS3>(sp =>
 var app = builder.Build();
 
 app.UseSwagger();
-app.UseSwaggerUI();
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
+    app.UseSwaggerUI();
 }
 
 app.UseHttpsRedirection();
-app.UseStaticFiles(new StaticFileOptions
-{
-    FileProvider = new PhysicalFileProvider(
-    Path.Combine(Directory.GetCurrentDirectory(), "images")),
-    RequestPath = "/resources"
-});
+
+//app.UseStaticFiles(new StaticFileOptions
+//{
+//    FileProvider = new PhysicalFileProvider(
+//    Path.Combine(Directory.GetCurrentDirectory(), "images")),
+//    RequestPath = "/resources"
+//});
 app.UseRouting();
 
 // Enable authentication
