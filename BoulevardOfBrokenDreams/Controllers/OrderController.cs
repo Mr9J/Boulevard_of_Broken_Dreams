@@ -9,6 +9,7 @@ using System.Text;
 using System.Web;
 using BoulevardOfBrokenDreams.Interface;
 using Microsoft.AspNetCore.Http.HttpResults;
+using System.Linq.Dynamic.Core;
 
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
@@ -19,15 +20,15 @@ namespace BoulevardOfBrokenDreams.Controllers
     [ApiController]
     public class OrderController : ControllerBase
     {
-       
+
         private readonly IEmailSender _emailSender;
         private MumuDbContext _db;
         private readonly IHttpContextAccessor _httpContextAccessor;
         private static bool _paymentResponseReceived = false;
         private static readonly SemaphoreSlim _paymentResponseLock = new SemaphoreSlim(1);
-        private static bool _isWaitingForPaymentResponse = false;  
+        private static bool _isWaitingForPaymentResponse = false;
 
-        public OrderController(MumuDbContext db, IHttpContextAccessor httpContextAccessor,IEmailSender emailSender)
+        public OrderController(MumuDbContext db, IHttpContextAccessor httpContextAccessor, IEmailSender emailSender)
         {
             _emailSender = emailSender;
             _db = db;
@@ -51,38 +52,38 @@ namespace BoulevardOfBrokenDreams.Controllers
 
         // POST api/<OrderController>
         [HttpPost("CalculateChecksum")]
-    public IActionResult CalculateChecksum([FromBody] Dictionary<string, string> data)
-    {
-
-        var param = data.Keys.OrderBy(x => x).Select(key => key + "=" + data[key]).ToList();
-        var checkValue = string.Join("&", param);
-        //測試用的 HashKey
-        var hashKey = "pwFHCqoQZGmho4w6";
-        //測試用的 HashIV
-        var HashIV = "EkRm7iFT261dpevs";
-        checkValue = $"HashKey={hashKey}" + "&" + checkValue + $"&HashIV={HashIV}";
-        checkValue = HttpUtility.UrlEncode(checkValue).ToLower();
-        checkValue = GetSHA256(checkValue);
-       string  checksum = checkValue.ToUpper();
-        return Ok(new { Checksum = checksum });
-
-
-
-    }
-
-    private string GetSHA256(string value)
-    {
-        var result = new StringBuilder();
-        var sha256 = SHA256.Create();
-        var bts = Encoding.UTF8.GetBytes(value);
-        var hash = sha256.ComputeHash(bts);
-        for (int i = 0; i < hash.Length; i++)
+        public IActionResult CalculateChecksum([FromBody] Dictionary<string, string> data)
         {
-            result.Append(hash[i].ToString("X2"));
-        }
-        return result.ToString();
 
-    }
+            var param = data.Keys.OrderBy(x => x).Select(key => key + "=" + data[key]).ToList();
+            var checkValue = string.Join("&", param);
+            //測試用的 HashKey
+            var hashKey = "pwFHCqoQZGmho4w6";
+            //測試用的 HashIV
+            var HashIV = "EkRm7iFT261dpevs";
+            checkValue = $"HashKey={hashKey}" + "&" + checkValue + $"&HashIV={HashIV}";
+            checkValue = HttpUtility.UrlEncode(checkValue).ToLower();
+            checkValue = GetSHA256(checkValue);
+            string checksum = checkValue.ToUpper();
+            return Ok(new { Checksum = checksum });
+
+
+
+        }
+
+        private string GetSHA256(string value)
+        {
+            var result = new StringBuilder();
+            var sha256 = SHA256.Create();
+            var bts = Encoding.UTF8.GetBytes(value);
+            var hash = sha256.ComputeHash(bts);
+            for (int i = 0; i < hash.Length; i++)
+            {
+                result.Append(hash[i].ToString("X2"));
+            }
+            return result.ToString();
+
+        }
 
 
         private async Task WaitForPaymentResponse()
@@ -111,7 +112,7 @@ namespace BoulevardOfBrokenDreams.Controllers
             if (_isWaitingForPaymentResponse)
             {
 
-               await _paymentResponseLock.WaitAsync();
+                await _paymentResponseLock.WaitAsync();
                 try
                 {
                     bool isSuccess = true;
@@ -124,12 +125,12 @@ namespace BoulevardOfBrokenDreams.Controllers
                     _paymentResponseLock.Release();
                 }
             }
-          
-               return Ok("1|OK");
-            
+
+            return Ok("1|OK");
 
 
-          }
+
+        }
 
 
         [HttpPost("CheckProductInventory")]
@@ -162,34 +163,34 @@ namespace BoulevardOfBrokenDreams.Controllers
                 return StatusCode(500, $"發生了錯誤: {ex.Message}");
             }
         }
-             
 
-          
-       
 
-            [HttpPost("CreateOrder")]
+
+
+
+        [HttpPost("CreateOrder")]
         public async Task<string> CreateOrder([FromBody] CreateOrderDTO orderDTO)
         {
 
             //標誌確認 WaitForPaymentResponse()的狀態是否仍在await
-            _isWaitingForPaymentResponse = true;    
-           await WaitForPaymentResponse();
+            _isWaitingForPaymentResponse = true;
+            await WaitForPaymentResponse();
             _isWaitingForPaymentResponse = false;
 
 
             var coupon = _db.Coupons.FirstOrDefault(cc => cc.Code == orderDTO.CouponCode && cc.ProjectId == orderDTO.ProjectId);
-            int? couponId =null;
+            int? couponId = null;
             if (coupon != null)
             {
                 coupon.CurrentStock -= 1;
                 couponId = coupon.CouponId;
                 if (coupon.CurrentStock < 0)
                 {
-                    coupon.CurrentStock = 0;    
+                    coupon.CurrentStock = 0;
                 }
             }
 
-                  try
+            try
             {
                 var newOrder = new Order
                 {
@@ -200,7 +201,7 @@ namespace BoulevardOfBrokenDreams.Controllers
                     PaymentMethodId = orderDTO.PaymentMethodId,
                     PaymentStatusId = 2,
                     Donate = orderDTO.Donate,
-                    CouponId = couponId,           
+                    CouponId = couponId,
                 };
 
                 _db.Orders.Add(newOrder);
@@ -211,7 +212,7 @@ namespace BoulevardOfBrokenDreams.Controllers
                 string donate = orderDTO.Donate.ToString();
                 int d = int.Parse(donate);
                 decimal totalPrice = 0;
-                int orderId = newOrder.OrderId; 
+                int orderId = newOrder.OrderId;
                 var memberCartId = _db.Carts.FirstOrDefault(m => m.MemberId == orderDTO.MemberId)?.CartId;
                 orderDTO.ProductData.ForEach(product =>
                 {
@@ -232,23 +233,23 @@ namespace BoulevardOfBrokenDreams.Controllers
                         Price = total
                     };
 
-                    _db.OrderDetails.Add(newOrderDetails);   
-                                                            
-                if (memberCartId != null)
-                {
-                    
-                    var cartHasProduct = _db.CartDetails.FirstOrDefault(c => c.CartId == memberCartId && c.ProductId == productId);
-                    if (cartHasProduct != null)
-                    {
-                        cartHasProduct.Count -= product.Count;
+                    _db.OrderDetails.Add(newOrderDetails);
 
-                        // 如果 product.Count 大於購物車中的產品數量，則刪除該產品
-                        if (cartHasProduct.Count <= 0)
+                    if (memberCartId != null)
+                    {
+
+                        var cartHasProduct = _db.CartDetails.FirstOrDefault(c => c.CartId == memberCartId && c.ProductId == productId);
+                        if (cartHasProduct != null)
                         {
-                            _db.CartDetails.Remove(cartHasProduct);
+                            cartHasProduct.Count -= product.Count;
+
+                            // 如果 product.Count 大於購物車中的產品數量，則刪除該產品
+                            if (cartHasProduct.Count <= 0)
+                            {
+                                _db.CartDetails.Remove(cartHasProduct);
+                            }
                         }
-                    }            
-                }
+                    }
 
                     var productDetails = _db.Products.FirstOrDefault(pt => pt.ProductId == productId);
                     if (productDetails != null)
@@ -258,7 +259,7 @@ namespace BoulevardOfBrokenDreams.Controllers
                         {
                             productDetails.CurrentStock = 0;
                         }
-                        
+
                     }
 
                     var projectName = _db.Projects.FirstOrDefault(pj => pj.ProjectId == orderDTO.ProjectId)?.ProjectName;
@@ -271,12 +272,12 @@ namespace BoulevardOfBrokenDreams.Controllers
 
                 });
 
-                var receiver = "msit158mumuguest@gmail.com"; 
+                var receiver = "msit158mumuguest@gmail.com";
                 string message = $"<h1>您的訂單已完成付款 交易日期:{DateTime.Now}</h1><br/>";
                 string thead = $"<tr><th colspan='4' style='border: 1px solid black; text-align: center;'>{tProjectName}</th></tr>";
                 string subject = "Mumu 交易完成通知";
                 string th = "<tr><th style='border: 1px solid black; text-align: center;'>贊助商品</th><th style='border: 1px solid black; text-align: center;'>數量</th><th style='border: 1px solid black; text-align: center;'>商品單價</th><th style='border: 1px solid black; text-align: center;'>數量總額</th></tr>";
-                string totalPriceMsg = $"<tr><td colspan='4' style='border: 1px solid black; text-align: center;'>加碼贊助:NT${donate}&nbsp;&nbsp;&nbsp;&nbsp;折價卷優惠:{orderDTO.Discount.ToString("C0")}&nbsp;&nbsp;&nbsp;&nbsp;總計金額:{(totalPrice-orderDTO.Discount+d).ToString("C0")}</td></tr>";
+                string totalPriceMsg = $"<tr><td colspan='4' style='border: 1px solid black; text-align: center;'>加碼贊助:NT${donate}&nbsp;&nbsp;&nbsp;&nbsp;折價卷優惠:{orderDTO.Discount.ToString("C0")}&nbsp;&nbsp;&nbsp;&nbsp;總計金額:{(totalPrice - orderDTO.Discount + d).ToString("C0")}</td></tr>";
                 // 定義表格樣式
                 string tableStyle = "style='border-collapse: collapse; width: 50%;'";
                 string cellStyle = "style='border: 1px solid black; padding: 3px;'";
@@ -306,7 +307,7 @@ namespace BoulevardOfBrokenDreams.Controllers
                 return "訂單失敗";
             }
         }
-       
+
 
 
         // PUT api/<OrderController>/5
@@ -330,7 +331,7 @@ namespace BoulevardOfBrokenDreams.Controllers
                                  ProjectId = p.ProjectId,
                                  ProjectName = p.ProjectName,
                                  GroupId = p.GroupId,
-                                 StatusId= p.StatusId,
+                                 StatusId = p.StatusId,
                                  Thumbnail = p.Thumbnail,
                                  OrderCount = (from orderDetail in _db.OrderDetails
                                                where orderDetail.ProjectId == p.ProjectId
@@ -347,50 +348,54 @@ namespace BoulevardOfBrokenDreams.Controllers
         {
             if (!_db.OrderDetails.Any(p => p.ProjectId == projectId))
             {
-                return NotFound("No projects found for the given member ID.");
+                return NotFound("No projects found for the given project ID.");
             }
-            var orders = from o in _db.Orders
-                         join od in _db.OrderDetails on o.OrderId equals od.OrderId
-                         join p in _db.Projects on od.ProjectId equals p.ProjectId
-                         where od.ProjectId == projectId
-                         select new OrderDTO
-                         {
-                             OrderId = o.OrderId,
-                             OrderDate = o.OrderDate.ToString("yyyy-MM-dd"),
-                             MemberId = o.MemberId,
-                             ShipDate = o.ShipDate,
-                             ShipmentStatusId = o.ShipmentStatusId,
-                             PaymentMethodId = o.PaymentMethodId,
-                             PaymentStatusId = o.PaymentStatusId,
-                             Donate = o.Donate,
-                             Member = new MemberDTO
-                             {
-                                 MemberId = o.Member.MemberId,
-                                 Username = o.Member.Username,
-                                 Thumbnail = o.Member.Thumbnail,
-                             },
-                             OrderDetails =new OrderDetailDTO
-                             {
-                                 OrderDetailId = od.OrderDetailId,
-                                 OrderId = od.OrderId,
-                                 ProjectId = od.ProjectId,
-                                 ProductId = od.ProductId,
-                                 ProjectName = (from projects in _db.Projects
-                                                 where projects.ProjectId == od.ProjectId
-                                                select projects.ProjectName).FirstOrDefault(),
-                                 Count = od.Count,
-                                 Price = od.Price
-                             },
-                             Coupon = _db.Coupons.Where(c => c.CouponId == o.CouponId)
-                                     .Select(c => new CouponDTO
-                                     {
-                                         Discount = c.Discount
-                                     })
-                                     .FirstOrDefault() ?? new CouponDTO { Discount = 0 },
-                             //ProjectId = projectId
-                         };
 
-            return Ok(orders.ToList());
+            var orders = _db.Orders
+                .Where(o => _db.OrderDetails.Any(od => od.OrderId == o.OrderId && od.ProjectId == projectId))
+                .Include(o => o.Member)
+                .Include(o => o.Coupon)
+                .Select(o => new OrderDTO
+                {
+                    OrderId = o.OrderId,
+                    OrderDate = o.OrderDate.ToString("yyyy-MM-dd"),
+                    MemberId = o.MemberId,
+                    ShipDate = o.ShipDate,
+                    ShipmentStatusId = o.ShipmentStatusId,
+                    PaymentMethodId = o.PaymentMethodId,
+                    PaymentStatusId = o.PaymentStatusId,
+                    Donate = o.Donate,
+                    Member = new MemberDTO
+                    {
+                        MemberId = o.Member.MemberId,
+                        Username = o.Member.Username,
+                        Thumbnail = o.Member.Thumbnail,
+                    },
+                    OrderDetails = o.OrderDetails
+                        .Where(od => od.ProjectId == projectId)
+                        .Select(od => new OrderDetailDTO
+                        {
+                            OrderDetailId = od.OrderDetailId,
+                            OrderId = od.OrderId,
+                            ProjectId = od.ProjectId,
+                            ProductId = od.ProductId,
+                            ProjectName = _db.Projects
+                                            .Where(p => p.ProjectId == od.ProjectId)
+                                            .Select(p => p.ProjectName)
+                                            .FirstOrDefault(),
+                            Count = od.Count,
+                            Price = od.Price
+                        })
+                        .ToList(),
+                    Coupon = new CouponDTO
+                    {
+                        Discount = o.Coupon != null ? o.Coupon.Discount : 0
+                    },
+                     TotalAmount = (from orderDetail in _db.OrderDetails.Where(od => od.OrderId == o.OrderId && od.ProjectId == projectId)
+                                    select orderDetail.Price).Sum(),
+                })
+                .ToList();
+            return Ok(orders);
         }
         private string decodeJwtId(string jwt)
         {
@@ -414,7 +419,7 @@ namespace BoulevardOfBrokenDreams.Controllers
             string id = decodeJwtId(jwt);
             int mId = int.Parse(id);
 
-            var ProjectDTO = from p in _db.Projects.Where(p=>p.MemberId == mId)
+            var ProjectDTO = from p in _db.Projects.Where(p => p.MemberId == mId && p.StatusId !=3)
                              select new ProjectDTO
                              {
                                  ProjectId = p.ProjectId,
@@ -468,7 +473,7 @@ namespace BoulevardOfBrokenDreams.Controllers
                 return Ok("郵件已成功發送");
 
             }
-            
+
             catch (Exception)
             {
                 return BadRequest("伺服器錯誤，請稍後再試");
