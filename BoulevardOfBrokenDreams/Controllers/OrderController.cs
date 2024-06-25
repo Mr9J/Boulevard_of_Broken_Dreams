@@ -85,11 +85,11 @@ namespace BoulevardOfBrokenDreams.Controllers
     }
 
 
-        private async Task WaitForPaymentResponse()
+        private async Task WaitForPaymentResponse(CancellationToken token)
         {
             while (true)
             {
-                await _paymentResponseLock.WaitAsync();
+                await _paymentResponseLock.WaitAsync(token);
                 try
                 {
                     if (_paymentResponseReceived)
@@ -101,7 +101,7 @@ namespace BoulevardOfBrokenDreams.Controllers
                 {
                     _paymentResponseLock.Release();
                 }
-                await Task.Delay(100); // 每次等待 100 毫秒
+                await Task.Delay(500,token); // 每次等待 500 毫秒
             }
         }
 
@@ -170,11 +170,29 @@ namespace BoulevardOfBrokenDreams.Controllers
             [HttpPost("CreateOrder")]
         public async Task<string> CreateOrder([FromBody] CreateOrderDTO orderDTO)
         {
+            _isWaitingForPaymentResponse = true;
+            var cts = new CancellationTokenSource();
+            var delayTask = Task.Delay(TimeSpan.FromMinutes(10), cts.Token);
+            var waitForPaymentResponseTask = WaitForPaymentResponse(cts.Token);
+            var completedTask = await Task.WhenAny(waitForPaymentResponseTask, delayTask);
+            if (completedTask == delayTask)
+            {
+                return "訂單超時";
+            }
+            else
+            {
+                // 取消 delay task 因為主要任務已經完成
+                cts.Cancel();
+                await waitForPaymentResponseTask; // 確保任何異常被捕獲
+            }
+            _isWaitingForPaymentResponse = false;
+
+
 
             //標誌確認 WaitForPaymentResponse()的狀態是否仍在await
-            _isWaitingForPaymentResponse = true;    
-           await WaitForPaymentResponse();
-            _isWaitingForPaymentResponse = false;
+           // _isWaitingForPaymentResponse = true;    
+           //await WaitForPaymentResponse();
+           // _isWaitingForPaymentResponse = false;
 
 
             var coupon = _db.Coupons.FirstOrDefault(cc => cc.Code == orderDTO.CouponCode && cc.ProjectId == orderDTO.ProjectId);
