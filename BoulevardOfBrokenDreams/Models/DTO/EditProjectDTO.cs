@@ -9,7 +9,7 @@
         public DateOnly EndDate { get; set; }
         public string ProjectDetail { get; set; }
         public int ProjectTypeId { get; set; }
-        public IFormFile? thumbnail { get; set; }
+        public string? thumbnail { get; set; }
         public int projectId { get; set; }
         public int statusID { get; set; }
 
