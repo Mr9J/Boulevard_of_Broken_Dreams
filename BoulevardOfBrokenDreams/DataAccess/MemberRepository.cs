@@ -74,7 +74,7 @@ namespace BoulevardOfBrokenDreams.DataAccess
         {
             if (!SignInPropsValidation(user)) return null;
 
-            Member? foundMember = await _context.Members.FirstOrDefaultAsync(m => m.Username == user.username);
+            Member? foundMember = await _context.Members.Include(m=>m.Hobbies).FirstOrDefaultAsync(m => m.Username == user.username);
 
             if (foundMember != null)
             {

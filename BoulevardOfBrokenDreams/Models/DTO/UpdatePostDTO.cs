@@ -9,5 +9,6 @@
         public string tags { get; set; } = string.Empty;
         public string id { get; set; } = string.Empty;
         public int postId { get; set; }
+        public string isAlert { get; set; } = string.Empty;
     }
 }
