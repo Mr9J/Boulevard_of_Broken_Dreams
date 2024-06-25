@@ -93,7 +93,7 @@ builder.Services.AddAuthentication(options =>
 builder.Services.AddControllers();
 
 builder.Services.AddDbContext<MumuDbContext>(options =>
-   options.UseSqlServer(builder.Configuration.GetConnectionString("MumuDev")));
+   options.UseSqlServer(builder.Configuration.GetConnectionString("Mumu")));
 
 builder.Services.AddSignalR();
 builder.Services.AddScoped<BoulevardOfBrokenDreams.Services.ServiceMessage>();
