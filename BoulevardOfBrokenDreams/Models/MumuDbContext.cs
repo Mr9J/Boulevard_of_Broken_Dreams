@@ -86,7 +86,7 @@ public partial class MumuDbContext : DbContext
     public virtual DbSet<Status> Statuses { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-        => optionsBuilder.UseSqlServer("Name=ConnectionStrings:Mumu");
+        => optionsBuilder.UseSqlServer("Name=ConnectionStrings:MumuDev");
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

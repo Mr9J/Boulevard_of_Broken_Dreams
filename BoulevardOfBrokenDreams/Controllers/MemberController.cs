@@ -109,7 +109,6 @@ namespace BoulevardOfBrokenDreams.Controllers
                 {
                     jwt = jwt,
                     isAdmin = isAdmin,
-                    hasHobby = hobby
                 };
 
 
