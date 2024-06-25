@@ -50,7 +50,8 @@ namespace BoulevardOfBrokenDreams.Controllers
                     MemberId = user.MemberId,
                     ProjectTypeId = hobby.ProjectTypeId
                 };
-                await _db.Hobbies.AddAsync(userHobby);
+                //await _db.Hobbies.AddAsync(userHobby);
+                _db.Hobbies.Add(userHobby);
             }
             await _db.SaveChangesAsync();
 

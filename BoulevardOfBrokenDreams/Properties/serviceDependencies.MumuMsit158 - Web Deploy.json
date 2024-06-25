@@ -1,0 +1,22 @@
+{
+  "dependencies": {
+    "apis1": {
+      "resourceId": "/subscriptions/[parameters('subscriptionId')]/resourceGroups/[parameters('resourceGroupName')]/providers/Microsoft.ApiManagement/service/MumuMsit158api/apis/BoulevardOfBrokenDreams",
+      "type": "apis.azure"
+    },
+    "signalr1": {
+      "serviceConnectorResourceId": "/subscriptions/[parameters('subscriptionId')]/resourcegroups/[parameters('resourceGroupName')]/providers/Microsoft.Web/sites/MumuMsit158/providers/Microsoft.ServiceLinker/linkers/AzureSignalRConnectionString_93203888E3",
+      "secretStore": "AzureAppSettings",
+      "resourceId": "/subscriptions/[parameters('subscriptionId')]/resourceGroups/[parameters('resourceGroupName')]/providers/Microsoft.SignalRService/SignalR/BoulevardOfBrokenDreams",
+      "type": "signalr.azure",
+      "connectionId": "Azure:SignalR:ConnectionString"
+    },
+    "mssql2": {
+      "serviceConnectorResourceId": "/subscriptions/[parameters('subscriptionId')]/resourcegroups/[parameters('resourceGroupName')]/providers/Microsoft.Web/sites/MumuMsit158/providers/Microsoft.ServiceLinker/linkers/connectionStringsMumu_6C6F21679E",
+      "secretStore": "AzureAppSettings",
+      "resourceId": "/subscriptions/[parameters('subscriptionId')]/resourceGroups/[parameters('resourceGroupName')]/providers/Microsoft.Sql/servers/boulevardofbrokendreamsdbserver/databases/Mumu",
+      "type": "mssql.azure",
+      "connectionId": "connectionStrings:Mumu"
+    }
+  }
+}

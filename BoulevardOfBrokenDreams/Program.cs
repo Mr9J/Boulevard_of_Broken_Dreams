@@ -14,6 +14,9 @@ using Microsoft.OpenApi.Models;
 
 using System.Text;
 
+
+//0624 0953
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
@@ -119,20 +122,21 @@ builder.Services.AddSingleton<IAmazonS3>(sp =>
 
 var app = builder.Build();
 
+app.UseSwagger();
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
-    app.UseSwagger();
     app.UseSwaggerUI();
 }
 
 app.UseHttpsRedirection();
-app.UseStaticFiles(new StaticFileOptions
-{
-    FileProvider = new PhysicalFileProvider(
-    Path.Combine(Directory.GetCurrentDirectory(), "images")),
-    RequestPath = "/resources"
-});
+
+//app.UseStaticFiles(new StaticFileOptions
+//{
+//    FileProvider = new PhysicalFileProvider(
+//    Path.Combine(Directory.GetCurrentDirectory(), "images")),
+//    RequestPath = "/resources"
+//});
 app.UseRouting();
 
 // Enable authentication

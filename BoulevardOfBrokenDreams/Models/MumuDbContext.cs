@@ -61,6 +61,8 @@ public partial class MumuDbContext : DbContext
 
     public virtual DbSet<PostComment> PostComments { get; set; }
 
+    public virtual DbSet<PostCommentDetail> PostCommentDetails { get; set; }
+
     public virtual DbSet<PostLiked> PostLikeds { get; set; }
 
     public virtual DbSet<PostSaved> PostSaveds { get; set; }
@@ -144,8 +146,6 @@ public partial class MumuDbContext : DbContext
             entity.HasOne(d => d.Member).WithMany(p => p.Comments)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_Comments_Members");
-
-            entity.HasOne(d => d.Parent).WithMany(p => p.InverseParent).HasConstraintName("FK_Comments_Comments");
 
             entity.HasOne(d => d.Project).WithMany(p => p.Comments)
                 .OnDelete(DeleteBehavior.ClientSetNull)
@@ -307,9 +307,24 @@ public partial class MumuDbContext : DbContext
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_PostComment_Members");
 
+            entity.HasOne(d => d.ParentComment).WithMany(p => p.InverseParentComment).HasConstraintName("FK_PostComment_PostComment");
+
             entity.HasOne(d => d.Post).WithMany(p => p.PostComments)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_PostComment_Posts");
+        });
+
+        modelBuilder.Entity<PostCommentDetail>(entity =>
+        {
+            entity.Property(e => e.LikesStatus).IsFixedLength();
+
+            entity.HasOne(d => d.Member).WithMany(p => p.PostCommentDetails)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_PostCommentDetail_Members");
+
+            entity.HasOne(d => d.PostComment).WithMany(p => p.PostCommentDetails)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_PostCommentDetail_PostComment");
         });
 
         modelBuilder.Entity<PostLiked>(entity =>
