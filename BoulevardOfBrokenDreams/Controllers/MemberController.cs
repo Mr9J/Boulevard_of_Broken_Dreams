@@ -49,7 +49,7 @@ namespace BoulevardOfBrokenDreams.Controllers
                     var subject = "Mumu 用戶註冊驗證";
                     var message = "<h1 style=\"background-color: cornflowerblue; color: aliceblue\">Mumu 用戶註冊驗證</h1>";
                     message += "<p>請點擊以下連結驗證您的帳號:</p>";
-                    message += "<a href='https://mumumsit158.com/email-verify/" + member.Username + "/" + member.Eid + "'>點擊這裡</a>進行驗證";
+                    message += "<a href='http://localhost:5173/email-verify/" + member.Username + "/" + member.Eid + "'>點擊這裡</a>進行驗證";
 
                     await _emailSender.SendEmailAsync(receiver, subject, message);
 
@@ -186,7 +186,7 @@ namespace BoulevardOfBrokenDreams.Controllers
                 var subject = "Mumu 用戶註冊驗證";
                 var message = "<h1 style=\"background-color: cornflowerblue; color: aliceblue\">Mumu 用戶註冊驗證</h1>";
                 message += "<p>請點擊以下連結驗證您的帳號 : </p>";
-                message += "<a href='https://mumumsit158.com/email-verify/" + member.Username + "/" + member.Eid + "'>點擊這裡</a>進行驗證";
+                message += "<a href='http://localhost:5173/email-verify/" + member.Username + "/" + member.Eid + "'>點擊這裡</a>進行驗證";
 
                 await _emailSender.SendEmailAsync(receiver!, subject, message);
 
@@ -223,7 +223,7 @@ namespace BoulevardOfBrokenDreams.Controllers
 
                 var token = (new JwtGenerator(_configuration)).GenerateJwtToken(member.Username, "guest", member.MemberId);
 
-                message += "<a href='https://mumumsit158.com/reset-password/" + token + "'>點擊這裡</a>進行重設";
+                message += "<a href='http://localhost:5173/reset-password/" + token + "'>點擊這裡</a>進行重設";
 
                 await _emailSender.SendEmailAsync(receiver!, subject, message);
 
