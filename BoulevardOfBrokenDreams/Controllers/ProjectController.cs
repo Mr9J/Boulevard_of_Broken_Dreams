@@ -92,6 +92,7 @@ namespace BoulevardOfBrokenDreams.Controllers
         public async Task<IActionResult> GetHistory(int id)
         {
             var project=await _db.Projects
+                        .Where(x => x.StatusId == 1)
                         .Select(x=> new HomeProjectCardDTO {
                             ProjectId=x.ProjectId,
                             ProjectName=x.ProjectName,

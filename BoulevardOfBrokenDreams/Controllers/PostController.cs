@@ -39,6 +39,7 @@ namespace BoulevardOfBrokenDreams.Controllers
                 Location = newPost.location,
                 Tags = newPost.tags,
                 PostTime = DateTime.UtcNow,
+                IsAnonymous = newPost.isAlert
             };
 
             _context.Posts.Add(post);
@@ -341,6 +342,8 @@ namespace BoulevardOfBrokenDreams.Controllers
                 {
                     post.ImgUrl = update.file;
                 }
+
+                post.IsAnonymous = update.isAlert;
 
                 _context.Posts.Update(post);
                 await _context.SaveChangesAsync();
