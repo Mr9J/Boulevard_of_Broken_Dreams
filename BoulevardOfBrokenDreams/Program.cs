@@ -15,7 +15,7 @@ using Microsoft.OpenApi.Models;
 using System.Text;
 
 
-//0624 0953
+//line 134
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -137,6 +137,7 @@ app.UseHttpsRedirection();
 //    Path.Combine(Directory.GetCurrentDirectory(), "images")),
 //    RequestPath = "/resources"
 //});
+
 app.UseRouting();
 
 // Enable authentication
