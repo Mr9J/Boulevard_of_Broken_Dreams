@@ -62,7 +62,8 @@ namespace BoulevardOfBrokenDreams.Controllers
         [HttpGet("POP")]
         public IEnumerable<HomeProjectCardDTO> POP()
         {
-            var projects = from p in _db.Projects.Where(x => x.StatusId == 1)
+            var projects = from p in _db.Projects
+                           .Where(x => x.StatusId == 1)
                            select new HomeProjectCardDTO
                            {
                                ProjectId = p.ProjectId,
@@ -142,6 +143,7 @@ namespace BoulevardOfBrokenDreams.Controllers
                                SponsorCount = (from orderDetail in _db.OrderDetails
                                                where orderDetail.ProjectId == p.ProjectId
                                                select orderDetail.OrderId).Count(),
+                               clicked = (int)p.Clicked
                            };
             var filteredProjects = projects.AsEnumerable().Where(x => x.DayLeft >= 0);
             switch (orderby)
@@ -159,6 +161,9 @@ namespace BoulevardOfBrokenDreams.Controllers
                     break;
                 case "startdate":
                     filteredProjects = filteredProjects.OrderByDescending(x => x.StartDate);
+                    break;
+                case "clicked":
+                    filteredProjects = filteredProjects.OrderByDescending(x => x.clicked);
                     break;
                 default:
                     break;
@@ -232,16 +237,16 @@ namespace BoulevardOfBrokenDreams.Controllers
             _db.ProjectIdtypes.Add(type);
             if (newPjId > 0 && value.thumbnail != null)
             {
-                Guid g = Guid.NewGuid();
-                using (var stream = value.thumbnail.OpenReadStream())
+                byte[] thumbnailBytes = Convert.FromBase64String(value.thumbnail);
+                using (MemoryStream memStream = new MemoryStream(thumbnailBytes))
                 {
+                    Guid g = Guid.NewGuid();
                     string key = $"Test/project-{newPjId}/{g}.png";
                     var request = new PutObjectRequest
                     {
                         BucketName = "mumu",
                         Key = key,
-                        InputStream = stream,
-                        ContentType = value.thumbnail.ContentType,
+                        InputStream = memStream,
                         DisablePayloadSigning = true
                     };
 
@@ -273,16 +278,16 @@ namespace BoulevardOfBrokenDreams.Controllers
 
             if (p.ProjectId > 0 && value.thumbnail != null)
             {
-                Guid g = Guid.NewGuid();
-                using (var stream = value.thumbnail.OpenReadStream())
+                byte[] thumbnailBytes = Convert.FromBase64String(value.thumbnail);
+                using (MemoryStream memStream = new MemoryStream(thumbnailBytes))
                 {
+                    Guid g = Guid.NewGuid();
                     string key = $"Test/project-{p.ProjectId}/{g}.png";
                     var request = new PutObjectRequest
                     {
                         BucketName = "mumu",
                         Key = key,
-                        InputStream = stream,
-                        ContentType = value.thumbnail.ContentType,
+                        InputStream = memStream,
                         DisablePayloadSigning = true
                     };
 
@@ -299,9 +304,9 @@ namespace BoulevardOfBrokenDreams.Controllers
             }
 
             ProjectIdtype? type = _db.ProjectIdtypes.FirstOrDefault(x => x.ProjectId == value.projectId);
-            if (type != null) 
-            type.ProjectTypeId = value.ProjectTypeId;
-            
+            if (type != null)
+                type.ProjectTypeId = value.ProjectTypeId;
+
             p.ProjectName = value.ProjectName;
             p.ProjectDescription = value.ProjectDescription;
             p.EndDate = value.EndDate;
@@ -323,15 +328,15 @@ namespace BoulevardOfBrokenDreams.Controllers
         }
 
         // PUT api/<HomeController>/5
-        [HttpPut("{id}")]
-        public void Put(int id, [FromBody] string value)
-        {
-        }
+        //[HttpPut("{id}")]
+        //public void Put(int id, [FromBody] string value)
+        //{
+        //}
 
-        // DELETE api/<HomeController>/5
-        [HttpDelete("{id}")]
-        public void Delete(int id)
-        {
-        }
+        //// DELETE api/<HomeController>/5
+        //[HttpDelete("{id}")]
+        //public void Delete(int id)
+        //{
+        //}
     }
 }

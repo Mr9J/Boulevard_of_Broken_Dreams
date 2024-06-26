@@ -2,8 +2,10 @@
 {
     public class NewCommentPostDTO
     {
-        public string postId { get; set; }=string.Empty;
-        public string userId { get; set; }=string.Empty; 
-        public string comment { get; set; }=string.Empty;
+        public string postId { get; set; } = string.Empty;
+        public string userId { get; set; } = string.Empty;
+        public string comment { get; set; } = string.Empty;
+        public string parentId { get; set; } = string.Empty;
+        public bool isReply { get; set; } = false;
     }
 }

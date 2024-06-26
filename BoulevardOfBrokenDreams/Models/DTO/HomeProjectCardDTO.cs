@@ -11,6 +11,7 @@ namespace BoulevardOfBrokenDreams.Models.DTO
         public string? Thumbnail { get; set; }
         public decimal TotalAmount { get; set; }
         public int SponsorCount { get; set; }
+        public int clicked {  get; set; }
 
     }
 }

@@ -9,5 +9,6 @@
         public string userId { get; set; } = string.Empty;
         public string tags { get; set; } = string.Empty;    
         public string id { get; set; } = string.Empty;
+        public string isAlert { get; set; } = "N";
     }
 }

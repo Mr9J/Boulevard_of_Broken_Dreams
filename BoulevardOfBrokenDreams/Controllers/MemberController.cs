@@ -85,6 +85,10 @@ namespace BoulevardOfBrokenDreams.Controllers
 
                 var admin = await _context.Admins.AnyAsync(a => a.MemberId == member!.MemberId);
 
+                //var hobby = await _context.Hobbies.AnyAsync(h => h.MemberId == member!.MemberId);
+
+                bool hobby = member?.Hobbies.Count > 0;
+
                 if (member != null && admin)
                 {
                     isAdmin = true;
@@ -104,9 +108,9 @@ namespace BoulevardOfBrokenDreams.Controllers
                 SignInSuccessDTO signInSuccessDTO = new SignInSuccessDTO
                 {
                     jwt = jwt,
-                    isAdmin = isAdmin
+                    isAdmin = isAdmin,
                 };
-   
+
 
                 return Ok(signInSuccessDTO);
             }
@@ -468,7 +472,7 @@ namespace BoulevardOfBrokenDreams.Controllers
         {
             try
             {
-                var foundMember = await _context.Members.FirstOrDefaultAsync(m => m.MemberId == int.Parse(id));
+                var foundMember = await _context.Members.Include(m => m.Projects).Include(m => m.Posts).Include(m => m.FollowerFollowings).FirstOrDefaultAsync(m => m.MemberId == int.Parse(id));
 
                 if (foundMember == null)
                 {
@@ -481,6 +485,8 @@ namespace BoulevardOfBrokenDreams.Controllers
                     nickname = foundMember.Nickname ?? string.Empty,
                     username = foundMember.Username,
                     email = foundMember.Email ?? string.Empty,
+                    address = foundMember.Address ?? string.Empty,
+                    phone = foundMember.Phone ?? string.Empty,
                     description = foundMember.MemberIntroduction ?? string.Empty,
                     avatar = foundMember.Thumbnail ?? string.Empty,
                     time = foundMember.RegistrationTime ?? DateTime.Now,
@@ -488,19 +494,33 @@ namespace BoulevardOfBrokenDreams.Controllers
                     banner = foundMember.Banner ?? string.Empty,
                     authenticationProvider = foundMember.AuthenticationProvider ?? string.Empty,
                     showContactInfo = foundMember.ShowContactInfo ?? string.Empty,
-                    projects = await _context.Projects.OrderByDescending(p => p.StartDate).Where(p => p.MemberId == foundMember.MemberId)
-                        .Select(p => new GetProjectDTO
-                        {
-                            projectId = p.ProjectId,
-                            projectName = p.ProjectName ?? string.Empty,
-                            projectDescription = p.ProjectDescription ?? string.Empty,
-                            projectGoal = p.ProjectGoal,
-                            projectStartDate = p.StartDate,
-                            projectEndDate = p.EndDate,
-                            projectGroupId = p.GroupId ?? 0,
-                            projectThumbnail = p.Thumbnail ?? string.Empty,
-                            projectStatusId = p.StatusId
-                        }).ToArrayAsync()
+                    postCount = foundMember.Posts.Count,
+                    followCount = foundMember.FollowerFollowings.Count,
+                    //projects = await _context.Projects.OrderByDescending(p => p.StartDate).Where(p => p.MemberId == foundMember.MemberId)
+                    //    .Select(p => new GetProjectDTO
+                    //    {
+                    //        projectId = p.ProjectId,
+                    //        projectName = p.ProjectName ?? string.Empty,
+                    //        projectDescription = p.ProjectDescription ?? string.Empty,
+                    //        projectGoal = p.ProjectGoal,
+                    //        projectStartDate = p.StartDate,
+                    //        projectEndDate = p.EndDate,
+                    //        projectGroupId = p.GroupId ?? 0,
+                    //        projectThumbnail = p.Thumbnail ?? string.Empty,
+                    //        projectStatusId = p.StatusId
+                    //    }).ToArrayAsync()
+                    projects = foundMember.Projects.Select(p => new GetProjectDTO
+                    {
+                        projectId = p.ProjectId,
+                        projectName = p.ProjectName ?? string.Empty,
+                        projectDescription = p.ProjectDescription ?? string.Empty,
+                        projectGoal = p.ProjectGoal,
+                        projectStartDate = p.StartDate,
+                        projectEndDate = p.EndDate,
+                        projectGroupId = p.GroupId ?? 0,
+                        projectThumbnail = p.Thumbnail ?? string.Empty,
+                        projectStatusId = p.StatusId
+                    }).ToArray()
                 };
 
                 return Ok(memberInfoDTOs);
@@ -717,6 +737,206 @@ namespace BoulevardOfBrokenDreams.Controllers
                 }
 
                 member.Banner = banner;
+
+                _context.SaveChanges();
+
+                return Ok("修改完成");
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex);
+            }
+        }
+
+        [HttpGet("get-project-group/{projectId}"), Authorize(Roles = "user, admin")]
+        public async Task<IActionResult> GetProjectGroup(int projectId)
+        {
+            try
+            {
+                var project = await _context.Projects.Include(p => p.Group).FirstOrDefaultAsync(p => p.ProjectId == projectId);
+
+                if (project == null)
+                {
+                    return NotFound("Project not found.");
+                }
+
+                var group = await _context.GroupDetails.Include(gd => gd.Member).Where(gd => gd.GroupId == project.GroupId).ToListAsync();
+
+                var GroupDTOs = new GroupDTO
+                {
+                    groupId = project.GroupId ?? null,
+                    groupName = project.Group?.GroupName ?? string.Empty,
+                    users = group.Select(gd => new SimpleUserDTO
+                    {
+                        memberId = gd.MemberId,
+                        username = gd.Member.Username,
+                        nickname = gd.Member.Nickname ?? string.Empty,
+                        thumbnail = gd.Member?.Thumbnail ?? string.Empty,
+                        authStatus = gd.AuthStatusId
+                    }).ToArray()
+                };
+
+                return Ok(GroupDTOs);
+            }
+            catch (Exception)
+            {
+                return BadRequest();
+            }
+        }
+
+        [HttpGet("select-group"), Authorize(Roles = "user, admin")]
+        public async Task<IActionResult> SelectGroup()
+        {
+            string? jwt = HttpContext.Request.Headers["Authorization"];
+            if (string.IsNullOrEmpty(jwt)) return BadRequest();
+
+            int jwtId = int.Parse(decodeJwtId(jwt));
+
+            var groupDetails = await _context.GroupDetails.Include(gd => gd.Group)
+                .Where(gd => gd.MemberId == jwtId).ToListAsync();
+
+            var grouplist = groupDetails.Select(
+                gd => new
+                {
+                    groupName = gd.Group.GroupName,
+                });
+
+            return Ok(grouplist);
+        }
+
+        [HttpPost("update-project-group"), Authorize(Roles = "user, admin")]
+        public async Task<IActionResult> UpdateProjectGroup(GroupUpdateDTO x)
+        {
+            try
+            {
+                string? jwt = HttpContext.Request.Headers["Authorization"];
+
+                if (string.IsNullOrEmpty(jwt))
+                    return BadRequest();
+
+                int jwtId = int.Parse(decodeJwtId(jwt));
+
+                if (x.action == "create")
+                {
+                    var group = new Group
+                    {
+                        GroupName = x.groupName
+                    };
+
+                    _context.Groups.Add(group);
+                    await _context.SaveChangesAsync();
+
+
+                    var groupDetail = new GroupDetail
+                    {
+                        GroupId = group.GroupId,
+                        MemberId = jwtId,
+                        AuthStatusId = 1
+                    };
+
+                    var project = await _context.Projects.FirstOrDefaultAsync(p => p.ProjectId == x.projectId);
+
+                    if (project != null)
+                    {
+                        project.GroupId = group.GroupId;
+                    }
+
+                    _context.GroupDetails.Add(groupDetail);
+                    await _context.SaveChangesAsync();
+
+                    return Ok("新增完成");
+                }
+                else if (x.action == "update")
+                {
+                    var group = await _context.Groups
+                        .Include(g => g.GroupDetails)
+                        .FirstOrDefaultAsync(g => g.GroupId == x.groupId);
+
+                    if (group == null) { return NotFound("Group not found."); }
+
+                    group.GroupName = x.groupName;
+
+                    bool userAdd = !string.IsNullOrEmpty(x.username);
+
+                    if (userAdd)
+                    {
+                        var memberId = await _context.Members.FirstOrDefaultAsync(m => m.Username == x.username);
+                        if (memberId == null) { return NotFound("Member not found."); }
+
+                        var groupUserExist = await _context.GroupDetails.AnyAsync(
+                            gd => gd.GroupId == x.groupId && gd.MemberId == memberId.MemberId);
+
+                        if (groupUserExist) { return BadRequest("User already in the group."); }
+
+                        var groupDetail = new GroupDetail
+                        {
+                            GroupId = x.groupId,
+                            MemberId = memberId.MemberId,
+                            AuthStatusId = 2
+                        };
+                        _context.GroupDetails.Add(groupDetail);
+                    }
+
+                    await _context.SaveChangesAsync();
+
+                    return Ok("更新完成");
+                }
+                else if (x.action == "delete")
+                {
+                    if (string.IsNullOrEmpty(x.username)) return BadRequest("請輸入欲刪除的用戶資訊");
+
+                    var memberId = await _context.Members.FirstOrDefaultAsync(m => m.Username == x.username);
+
+                    if (memberId == null) { return NotFound("Member not found."); }
+
+                    var group = await _context.Groups
+                        .Include(g => g.GroupDetails)
+                        .FirstOrDefaultAsync(g => g.GroupId == x.groupId);
+
+                    if (group == null) { return NotFound("Group not found."); }
+
+                    var groupDetail = await _context.GroupDetails.FirstOrDefaultAsync(
+                        gd => gd.GroupId == x.groupId && gd.MemberId == memberId.MemberId);
+
+                    if (groupDetail == null) { return NotFound("Group detail not found."); }
+
+                    _context.GroupDetails.Remove(groupDetail);
+
+                    await _context.SaveChangesAsync();
+
+                    return Ok("刪除完成");
+                }
+                else
+                {
+                    return BadRequest();
+                }
+            }
+            catch (Exception)
+            {
+                return BadRequest();
+            }
+        }
+
+
+        [HttpGet("set-contact-info/{status}"), Authorize(Roles = "user, admin")]
+        public async Task<IActionResult> SetContactInfo(string status)
+        {
+            try
+            {
+                string? jwt = HttpContext.Request.Headers["Authorization"];
+
+                if (jwt == null || jwt == "") return BadRequest();
+
+                int jwtId = int.Parse(decodeJwtId(jwt));
+
+                var member = await _context.Members.FirstOrDefaultAsync(m => m.MemberId == jwtId);
+
+                if (member == null)
+                {
+                    return NotFound("Member not found.");
+                }
+
+                member.ShowContactInfo = status;
 
                 _context.SaveChanges();
 
