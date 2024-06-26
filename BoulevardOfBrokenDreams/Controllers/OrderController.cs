@@ -291,7 +291,7 @@ namespace BoulevardOfBrokenDreams.Controllers
                 });
 
                 var receiver = "msit158mumuguest@gmail.com";
-                string message = $"<h1>您的訂單已完成付款 交易日期:{DateTime.Now}</h1><br/>";
+                string message = $"<h1>您的贊助訂單已完成 贊助日期:{DateTime.Now}</h1><br/>";
                 string thead = $"<tr><th colspan='4' style='border: 1px solid black; text-align: center;'>{tProjectName}</th></tr>";
                 string subject = "Mumu 交易完成通知";
                 string th = "<tr><th style='border: 1px solid black; text-align: center;'>贊助商品</th><th style='border: 1px solid black; text-align: center;'>數量</th><th style='border: 1px solid black; text-align: center;'>商品單價</th><th style='border: 1px solid black; text-align: center;'>數量總額</th></tr>";
