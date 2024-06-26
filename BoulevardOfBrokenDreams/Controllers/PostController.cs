@@ -281,13 +281,13 @@ namespace BoulevardOfBrokenDreams.Controllers
                 {
                     return BadRequest("找不到該貼文或權限不足");
                 }
-                var comments = await _context.PostComments.Include(pd=>pd.PostCommentDetails).Where(p => p.PostId == postId).ToListAsync();
+                var comments = await _context.PostComments.Include(p => p.PostCommentDetails).Where(p => p.PostId == postId).ToListAsync();
+                //var commentsDetails=comments.SelectMany(p=>p.PostCommentDetails).ToList();
                 var likes = await _context.PostLikeds.Where(p => p.PostId == postId).ToListAsync();
                 var saveds = await _context.PostSaveds.Where(p => p.PostId == postId).ToListAsync();
 
-                
+                _context.PostCommentDetails.RemoveRange(comments.SelectMany(p => p.PostCommentDetails));
                 _context.PostComments.RemoveRange(comments);
-                _context.PostCommentDetails.RemoveRange(comments.SelectMany(c => c.PostCommentDetails));
                 _context.PostLikeds.RemoveRange(likes);
                 _context.PostSaveds.RemoveRange(saveds);
                 _context.Posts.Remove(post);
@@ -345,7 +345,7 @@ namespace BoulevardOfBrokenDreams.Controllers
                     post.ImgUrl = update.file;
                 }
 
-                if(!string.IsNullOrEmpty(update.location))
+                if (!string.IsNullOrEmpty(update.location))
                 {
                     post.Location = update.location;
                 }
