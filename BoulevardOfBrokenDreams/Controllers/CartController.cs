@@ -21,7 +21,7 @@ namespace BoulevardOfBrokenDreams.Controllers
         }
 
         [HttpGet("cartQuantity/{memberId}")]
-        public async Task<int> GetCartQuantity(int memberId)
+        public async Task<IActionResult> GetCartQuantity(int memberId)
         {
             var user = context.Carts.FirstOrDefault(m => m.MemberId == memberId);
 
@@ -36,7 +36,7 @@ namespace BoulevardOfBrokenDreams.Controllers
                 await context.SaveChangesAsync();
 
                 int newCartId = newCart.CartId;
-                return 0;
+                return Ok(0);
             }
             else
             {
@@ -46,7 +46,7 @@ namespace BoulevardOfBrokenDreams.Controllers
                          .Select(cd => cd.ProjectId)
                          .Distinct()
                          .Count();
-                return cartQuantity;
+                return Ok(cartQuantity);
             }
         }
 

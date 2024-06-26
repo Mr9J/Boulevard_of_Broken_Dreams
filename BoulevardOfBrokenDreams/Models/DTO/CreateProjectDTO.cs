@@ -10,7 +10,7 @@
         //public string? Thumbnail { get; set; }
         public string ProjectDetail { get; set; }
         public int ProjectTypeId {  get; set; }
-        public IFormFile thumbnail { get; set; }
+        public string? thumbnail { get; set; }
 
     }
 }
