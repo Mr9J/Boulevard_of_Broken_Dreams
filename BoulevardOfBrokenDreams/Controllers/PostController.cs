@@ -281,11 +281,13 @@ namespace BoulevardOfBrokenDreams.Controllers
                 {
                     return BadRequest("找不到該貼文或權限不足");
                 }
-                var comments = await _context.PostComments.Where(p => p.PostId == postId).ToListAsync();
+                var comments = await _context.PostComments.Include(pd=>pd.PostCommentDetails).Where(p => p.PostId == postId).ToListAsync();
                 var likes = await _context.PostLikeds.Where(p => p.PostId == postId).ToListAsync();
                 var saveds = await _context.PostSaveds.Where(p => p.PostId == postId).ToListAsync();
 
+                
                 _context.PostComments.RemoveRange(comments);
+                _context.PostCommentDetails.RemoveRange(comments.SelectMany(c => c.PostCommentDetails));
                 _context.PostLikeds.RemoveRange(likes);
                 _context.PostSaveds.RemoveRange(saveds);
                 _context.Posts.Remove(post);
