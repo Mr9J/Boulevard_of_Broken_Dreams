@@ -109,6 +109,9 @@ namespace BoulevardOfBrokenDreams.Controllers
         [HttpPost("ECPayResponseMessage")]
         public async Task<IActionResult> ECPayResponseMessage([FromForm] Dictionary<string, string> requestData)
         {
+
+            //var datas = requestData;
+
             if (_isWaitingForPaymentResponse)
             {
 
@@ -171,29 +174,25 @@ namespace BoulevardOfBrokenDreams.Controllers
         [HttpPost("CreateOrder")]
         public async Task<string> CreateOrder([FromBody] CreateOrderDTO orderDTO)
         {
-            _isWaitingForPaymentResponse = true;
-            var cts = new CancellationTokenSource();
-            var delayTask = Task.Delay(TimeSpan.FromMinutes(10), cts.Token);
-            var waitForPaymentResponseTask = WaitForPaymentResponse(cts.Token);
-            var completedTask = await Task.WhenAny(waitForPaymentResponseTask, delayTask);
-            if (completedTask == delayTask)
-            {
-                return "訂單超時";
-            }
-            else
-            {
-                // 取消 delay task 因為主要任務已經完成
-                cts.Cancel();
-                await waitForPaymentResponseTask; // 確保任何異常被捕獲
-            }
-            _isWaitingForPaymentResponse = false;
 
+            
+            //_isWaitingForPaymentResponse = true;
+            //var cts = new CancellationTokenSource();
+            //var delayTask = Task.Delay(TimeSpan.FromMinutes(5), cts.Token);
+            //var waitForPaymentResponseTask = WaitForPaymentResponse(cts.Token);
+            //var completedTask = await Task.WhenAny(waitForPaymentResponseTask, delayTask);
+            //if (completedTask == delayTask)
+            //{
+            //    return "訂單超時";
+            //}
+            //else
+            //{
+            //    // 取消 delay task 因為主要任務已經完成
+            //    cts.Cancel();
+            //    await waitForPaymentResponseTask; // 確保任何異常被捕獲
+            //}
+            //_isWaitingForPaymentResponse = false;
 
-
-            //標誌確認 WaitForPaymentResponse()的狀態是否仍在await
-           // _isWaitingForPaymentResponse = true;    
-           //await WaitForPaymentResponse();
-           // _isWaitingForPaymentResponse = false;
 
 
 
@@ -292,7 +291,7 @@ namespace BoulevardOfBrokenDreams.Controllers
                 });
 
                 var receiver = "msit158mumuguest@gmail.com";
-                string message = $"<h1>您的訂單已完成付款 交易日期:{DateTime.Now}</h1><br/>";
+                string message = $"<h1>您的贊助訂單已完成 贊助日期:{DateTime.Now}</h1><br/>";
                 string thead = $"<tr><th colspan='4' style='border: 1px solid black; text-align: center;'>{tProjectName}</th></tr>";
                 string subject = "Mumu 交易完成通知";
                 string th = "<tr><th style='border: 1px solid black; text-align: center;'>贊助商品</th><th style='border: 1px solid black; text-align: center;'>數量</th><th style='border: 1px solid black; text-align: center;'>商品單價</th><th style='border: 1px solid black; text-align: center;'>數量總額</th></tr>";
@@ -306,23 +305,16 @@ namespace BoulevardOfBrokenDreams.Controllers
                 await _emailSender.SendEmailAsync(receiver, subject, message);
 
 
-
-
                 _db.SaveChanges();
 
 
-
-
-                //從購物車中尋找是否有符合的商品，如果有就對該購物車商品進行數量修改
-
-
-                _paymentResponseReceived = false;
+                //_paymentResponseReceived = false;
 
                 return "訂單完成";
             }
             catch (Exception ex)
             {
-                // 处理异常
+                // 處理異常
                 return "訂單失敗";
             }
         }
