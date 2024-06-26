@@ -48,9 +48,6 @@ namespace BoulevardOfBrokenDreams.Controllers
                     if (member == null) return BadRequest("註冊失敗");
                     var receiver = user.email;
                     var subject = "Mumu 用戶註冊驗證";
-                    var message = "<h1 style=\"background-color: cornflowerblue; color: aliceblue\">Mumu 用戶註冊驗證</h1>";
-                    message += "<p>請點擊以下連結驗證您的帳號:</p>";
-                    message += "<a href='http://localhost:5173/email-verify/" + member.Username + "/" + member.Eid + "'>點擊這裡</a>進行驗證";
                     var message = "<h1 style=\"background-color: cornflowerblue; color: aliceblue\">Mumu 重設密碼</h1>";
                     message += "<p>請點擊以下連結重設您的密碼 :</p>";
                     message += "<p><a href='https://mumumsit158.com/email-verify/" + member.Username + "/" + member.Eid + "'>點擊這裡</a>進行重設";
