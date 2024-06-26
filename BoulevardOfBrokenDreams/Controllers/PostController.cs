@@ -345,6 +345,16 @@ namespace BoulevardOfBrokenDreams.Controllers
                     post.ImgUrl = update.file;
                 }
 
+                if(!string.IsNullOrEmpty(update.location))
+                {
+                    post.Location = update.location;
+                }
+
+                if (!string.IsNullOrEmpty(update.tags))
+                {
+                    post.Tags = update.tags;
+                }
+
                 post.IsAnonymous = update.isAlert;
 
                 _context.Posts.Update(post);
