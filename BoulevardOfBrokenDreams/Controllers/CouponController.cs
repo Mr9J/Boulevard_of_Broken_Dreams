@@ -3,6 +3,7 @@ using BoulevardOfBrokenDreams.Models.DTO;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
+using Newtonsoft.Json.Linq;
 using System.IdentityModel.Tokens.Jwt;
 using System.Linq.Dynamic.Core;
 using System.Security.Claims;
@@ -58,8 +59,22 @@ namespace BoulevardOfBrokenDreams.Controllers
 
         // PUT api/<CouponController>/5
         [HttpPut("{id}")]
-        public void Put(int id, [FromBody] string value)
+        public async Task<IActionResult> Put(int id, [FromBody] CouponDTO value)
         {
+            Coupon? c = _context.Coupons.FirstOrDefault(x => x.CouponId == id);
+            if (c == null)
+            {
+                return NotFound("Coupon not found.");
+            }
+            c.ProjectId = value.ProjectId;
+            c.Code = value.Code;
+            c.Discount = value.Discount;
+            c.InitialStock = value.InitialStock;
+            c.CurrentStock = value.CurrentStock;
+            c.Deadline = value.Deadline;
+            c.StatusId = value.StatusId;
+            _context.SaveChanges();
+            return Ok(c);
         }
 
         // DELETE api/<CouponController>/5
