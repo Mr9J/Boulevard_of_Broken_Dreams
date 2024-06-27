@@ -66,6 +66,47 @@ namespace BoulevardOfBrokenDreams.Controllers
             return Ok(check);
         }
 
+        [HttpGet("getMemHobby/{userId}")]
+        public async Task<IActionResult> GetMemHobby(int userId)
+        {
+            var projects = await _db.Hobbies
+                .Where(h => h.MemberId == userId)
+                .Include(h => h.ProjectType)
+                    .ThenInclude(pt => pt.ProjectIdtypes)
+                        .ThenInclude(pit => pit.Project)
+                .SelectMany(h => h.ProjectType.ProjectIdtypes.Select(pit => pit.Project))
+                .Distinct()
+                .Select(x => new HomeProjectCardDTO
+                {
+                    ProjectId = x.ProjectId,
+                    ProjectName = x.ProjectName,
+                    ProjectGoal = x.ProjectGoal,
+                    StartDate = x.StartDate,
+                    EndDate = x.EndDate,
+                    DayLeft = (x.EndDate.DayNumber - DateOnly.FromDateTime(DateTime.Today).DayNumber),
+                    Thumbnail = x.Thumbnail,
+                    TotalAmount = ((from orderDetail in _db.OrderDetails
+                                    where orderDetail.ProjectId == x.ProjectId
+                                    select orderDetail.Price).Sum()) +
+                              ((from order in _db.Orders
+                                join orderDetail in _db.OrderDetails on order.OrderId equals orderDetail.OrderId
+                                where orderDetail.ProjectId == x.ProjectId
+                                select order.Donate ?? 0).Sum()),
+                    SponsorCount = (from orderDetail in _db.OrderDetails
+                                    where orderDetail.ProjectId == x.ProjectId
+                                    select orderDetail.OrderId).Count(),
+                })
+                .ToListAsync();
+
+            if (projects == null || !projects.Any())
+            {
+                return NotFound();
+            }
+
+            return Ok(projects);
+
+        }
+
 
 
 

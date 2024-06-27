@@ -48,12 +48,12 @@ namespace BoulevardOfBrokenDreams.Controllers
                     if (member == null) return BadRequest("註冊失敗");
                     var receiver = user.email;
                     var subject = "Mumu 用戶註冊驗證";
-                    var message = "<h1 style=\"background-color: cornflowerblue; color: aliceblue\">Mumu 重設密碼</h1>";
-                    message += "<p>請點擊以下連結重設您的密碼 :</p>";
-                    message += "<p><a href='https://mumumsit158.com/email-verify/" + member.Username + "/" + member.Eid + "'>點擊這裡</a>進行重設";
-                    message += "</p><p>如果您沒有要求重設密碼，請忽略此郵件。</p>";
+                    var message = "<h1 style=\"background-color: cornflowerblue; color: aliceblue\">Mumu 註冊驗證</h1>";
+                    message += "<p>請點擊以下連結進行email驗證 :</p>";
+                    message += "<p><a href='https://mumumsit158.com/email-verify/" + member.Username + "/" + member.Eid + "'>點擊這裡</a>進行驗證";
+                    message += "</p><p>如果您沒有要求註冊Mumu，請忽略此郵件。</p>";
                     message += "<h2 style=\"background-color: brown; color: white\">測試版本請使用下方localhost連結</h2>";
-                    message += "<p><a href='http://localhost:5173/email-verify/" + member.Username + "/" + member.Eid + "'>點擊這裡</a>進行重設</p>";
+                    message += "<p><a href='http://localhost:5173/email-verify/" + member.Username + "/" + member.Eid + "'>點擊這裡</a>進行驗證</p>";
 
                     await _emailSender.SendEmailAsync(receiver, subject, message);
 
@@ -188,12 +188,12 @@ namespace BoulevardOfBrokenDreams.Controllers
 
                 var receiver = member.Email;
                 var subject = "Mumu 用戶註冊驗證";
-                var message = "<h1 style=\"background-color: cornflowerblue; color: aliceblue\">Mumu 重設密碼</h1>";
-                message += "<p>請點擊以下連結重設您的密碼 :</p>";
-                message += "<p><a href='https://mumumsit158.com/verify-email/" + member.Username + "/" + member.Eid + "'>點擊這裡</a>進行重設";
-                message += "</p><p>如果您沒有要求重設密碼，請忽略此郵件。</p>";
+                var message = "<h1 style=\"background-color: cornflowerblue; color: aliceblue\">Mumu 註冊驗證</h1>";
+                message += "<p>請點擊以下連結進行email驗證 :</p>";
+                message += "<p><a href='https://mumumsit158.com/verify-email/" + member.Username + "/" + member.Eid + "'>點擊這裡</a>進行驗證";
+                message += "</p><p>如果您沒有要求註冊Mumu，請忽略此郵件。</p>";
                 message += "<h2 style=\"background-color: brown; color: white\">測試版本請使用下方localhost連結</h2>";
-                message += "<p><a href='http://localhost:5173/verify-email/" + member.Username + "/" + member.Eid + "'>點擊這裡</a>進行重設</p>";
+                message += "<p><a href='http://localhost:5173/verify-email/" + member.Username + "/" + member.Eid + "'>點擊這裡</a>進行驗證</p>";
 
                 await _emailSender.SendEmailAsync(receiver!, subject, message);
 
